@@ -1,0 +1,165 @@
+import type { Metadata } from "next";
+
+/** Fallback when `NEXT_PUBLIC_SITE_URL` is not set (local dev). */
+const LOCAL_SITE_URL = "http://localhost:3000";
+
+export const SITE_NAME = "Vippin";
+
+export const DEFAULT_DESCRIPTION =
+  "Venda aulas e materiais digitais com Pix. Sua vitrine, seu link, sua renda.";
+
+/** Absolute origin used for Open Graph / Twitter cards and canonical URLs. */
+export function getSiteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (configured) return configured;
+
+  const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
+  if (vercel) return `https://${vercel}`;
+
+  return LOCAL_SITE_URL;
+}
+
+export function toAbsoluteUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${getSiteUrl()}${normalized}`;
+}
+
+export function truncateDescription(text: string, maxLength = 160): string {
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+export function createRootMetadata(): Metadata {
+  return {
+    metadataBase: new URL(getSiteUrl()),
+    title: {
+      default: SITE_NAME,
+      template: `%s | ${SITE_NAME}`,
+    },
+    description: DEFAULT_DESCRIPTION,
+    applicationName: SITE_NAME,
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: SITE_NAME,
+    },
+    formatDetection: {
+      telephone: false,
+    },
+    openGraph: {
+      type: "website",
+      locale: "pt_BR",
+      siteName: SITE_NAME,
+      title: SITE_NAME,
+      description: DEFAULT_DESCRIPTION,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_NAME,
+      description: DEFAULT_DESCRIPTION,
+    },
+  };
+}
+
+export function createCreatorMetadata({
+  handle,
+  slug,
+  productCount,
+}: {
+  handle: string;
+  slug: string;
+  productCount: number;
+}): Metadata {
+  const displayHandle = `@${handle}`;
+  const title = displayHandle;
+  const description =
+    productCount > 0
+      ? `${displayHandle} no Vippin — confira ${productCount} ${productCount === 1 ? "produto" : "produtos"} de aulas e materiais digitais.`
+      : `${displayHandle} no Vippin — vitrine de aulas e materiais digitais.`;
+  const path = `/@${slug}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      url: path,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
+
+export function createProductMetadata({
+  title,
+  description,
+  priceCents,
+  creatorHandle,
+  creatorSlug,
+  productSlug,
+  productId,
+  thumbnailPath,
+  type,
+}: {
+  title: string;
+  description: string | null;
+  priceCents: number;
+  creatorHandle: string;
+  creatorSlug: string;
+  productSlug: string;
+  productId: string;
+  thumbnailPath: string | null;
+  type: "single_lesson" | "document";
+}): Metadata {
+  const typeLabel = type === "single_lesson" ? "Aula" : "Material";
+  const priceLabel = priceCents === 0 ? "Grátis" : undefined;
+  const fallbackDescription = priceLabel
+    ? `${typeLabel} ${priceLabel} de @${creatorHandle} no Vippin.`
+    : `${typeLabel} de @${creatorHandle} no Vippin.`;
+  const metaDescription = truncateDescription(
+    description?.trim() || fallbackDescription,
+  );
+  const path = `/@${creatorSlug}/${productSlug}`;
+  const ogImage = thumbnailPath
+    ? toAbsoluteUrl(`/api/products/${productId}/thumbnail`)
+    : undefined;
+
+  return {
+    title,
+    description: metaDescription,
+    alternates: {
+      canonical: path,
+    },
+    openGraph: {
+      type: "website",
+      title,
+      description: metaDescription,
+      url: path,
+      ...(ogImage
+        ? {
+            images: [
+              {
+                url: ogImage,
+                alt: title,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title,
+      description: metaDescription,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+  };
+}

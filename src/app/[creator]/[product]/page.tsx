@@ -1,4 +1,5 @@
 import { Download, Pencil } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -16,6 +17,7 @@ import {
 import { LayoutBackground } from "@/components/ui/layout-background";
 import type { ProductType } from "@/core/models/product";
 import { formatFileSize } from "@/lib/products";
+import { createProductMetadata } from "@/lib/metadata";
 import { signMediaToken } from "@/lib/security/media-token";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
@@ -27,6 +29,49 @@ import { cn } from "@/lib/utils";
 
 interface ProductPageProps {
   params: Promise<{ creator: string; product: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
+  const { creator, product } = await params;
+  const creatorSlug = decodeURIComponent(creator).replace(/^@/, "");
+  const productSlug = decodeURIComponent(product);
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data: profile } = await supabase
+    .from("public_profiles")
+    .select("id, creator_name, slug")
+    .eq("slug", creatorSlug)
+    .maybeSingle();
+
+  if (!profile) {
+    return { title: "Produto não encontrado" };
+  }
+
+  const { data: row } = await supabase
+    .from("products")
+    .select("id, title, description, price_cents, slug, thumbnail_path, type")
+    .eq("creator_id", profile.id)
+    .eq("slug", productSlug)
+    .maybeSingle();
+
+  if (!row) {
+    return { title: "Produto não encontrado" };
+  }
+
+  return createProductMetadata({
+    title: row.title,
+    description: row.description,
+    priceCents: row.price_cents ?? 0,
+    creatorHandle: profile.creator_name ?? profile.slug,
+    creatorSlug: profile.slug,
+    productSlug: row.slug,
+    productId: row.id,
+    thumbnailPath: row.thumbnail_path,
+    type: row.type as ProductType,
+  });
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

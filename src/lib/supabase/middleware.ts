@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Rotas que exigem usuário autenticado.
-const PROTECTED_PREFIXES = ["/onboarding", "/products"];
+const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile"];
 
 /**
  * Refreshes the Supabase auth session (rotating cookies) and enforces

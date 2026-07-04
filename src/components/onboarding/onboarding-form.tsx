@@ -12,7 +12,13 @@ import { LinkStepFields } from "./link-step-fields";
 import { OnboardingStep } from "./onboarding-step";
 import { ProfileStepFields } from "./profile-step-fields";
 import { SocialsStepFields } from "./socials-step-fields";
-import { INITIAL_ONBOARDING_FORM, type OnboardingFormData } from "./types";
+import {
+  clearOnboardingDraft,
+  INITIAL_ONBOARDING_FORM,
+  readOnboardingDraft,
+  writeOnboardingDraft,
+  type OnboardingFormData,
+} from "./types";
 import {
   formatPixKey,
   inferPixKeyType,
@@ -36,21 +42,59 @@ function formFromUser(user: User): OnboardingFormData {
   };
 }
 
+function inferStepFromUser(user: User): number {
+  if (user.slug) return 3;
+  if (user.creatorName) return 2;
+  return 1;
+}
+
 export function OnboardingForm() {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
+  const userId = user?.id;
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<OnboardingFormData>(INITIAL_ONBOARDING_FORM);
   const [slug, setSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    setForm(formFromUser(user));
-    if (user.slug) setSlug(user.slug);
-  }, [user]);
+    if (!userId) return;
+
+    const id = userId;
+    let cancelled = false;
+
+    async function hydrate() {
+      const profile = await userRepository.getById(id);
+      if (cancelled) return;
+
+      const draft = readOnboardingDraft(id);
+      if (draft) {
+        setForm(draft.form);
+        setStep(draft.step);
+        setSlug(draft.slug);
+      } else if (profile) {
+        setForm(formFromUser(profile));
+        setStep(inferStepFromUser(profile));
+        setSlug(profile.slug ?? "");
+      }
+
+      await refreshUser();
+      if (!cancelled) setHydrated(true);
+    }
+
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, refreshUser]);
+
+  useEffect(() => {
+    if (!user || !hydrated) return;
+    writeOnboardingDraft(user.id, { step, form, slug });
+  }, [user, hydrated, step, form, slug]);
 
   function updateField(field: keyof Omit<OnboardingFormData, "socials">, value: string) {
     setForm((prev) => {
@@ -108,6 +152,7 @@ export function OnboardingForm() {
           creatorName: normalizedForm.creatorName,
           onboardingCompleted: false,
         });
+        await refreshUser();
         setStep(2);
         return;
       }
@@ -123,6 +168,7 @@ export function OnboardingForm() {
           slug: uniqueSlug,
           onboardingCompleted: false,
         });
+        await refreshUser();
         setSlug(uniqueSlug);
         setStep(3);
         return;
@@ -131,6 +177,7 @@ export function OnboardingForm() {
       await userRepository.upsert(user.id, {
         onboardingCompleted: true,
       });
+      clearOnboardingDraft(user.id);
       await refreshUser();
       router.push("/");
     } catch (err) {
@@ -150,6 +197,10 @@ export function OnboardingForm() {
 
   const nextSteps = () => {
     router.push("/");
+  }
+
+  if (!hydrated) {
+    return null;
   }
 
   return (

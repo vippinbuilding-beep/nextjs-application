@@ -4,7 +4,6 @@ import { AnimatedHeight } from "@/components/ui/animated-height";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProductType } from "@/core/models/product";
 import ProductCard from "./product-card";
-import { useState } from "react";
 
 interface ProductListItem {
     id: string;
@@ -29,6 +28,7 @@ interface ProductTabsProps {
     mode?: "public" | "manage";
     emptyLessonsLabel?: string;
     emptyDocumentsLabel?: string;
+    emptyAllLabel?: string;
 }
 
 /**
@@ -42,12 +42,15 @@ export function ProductTabs({
     mode = "public",
     emptyLessonsLabel = "Nenhuma aula publicada ainda.",
     emptyDocumentsLabel = "Nenhum documento publicado ainda.",
+    emptyAllLabel = "Nenhum aula ou documento publicado ainda.",
 }: ProductTabsProps) {
     const lessons = products.filter((product) => product.type === "single_lesson");
     const documents = products.filter((product) => product.type === "document");
 
+    const defaultTab = lessons.length > 0 ? "lessons" : "documents";
+
     return (
-        <Tabs defaultValue="lessons">
+        <Tabs defaultValue={defaultTab}>
             {lessons.length && documents.length ? (
                 <TabsList className="sm:max-w-80 max-w-none">
                     <TabsTrigger value="lessons">
@@ -64,6 +67,9 @@ export function ProductTabs({
             )}
 
             <AnimatedHeight>
+                {!lessons.length && !documents.length && (
+                    <EmptyTabState label={emptyAllLabel} />
+                )}
                 <TabsContent value="lessons">
                     {lessons.length === 0 ? (
                         <EmptyTabState label={emptyLessonsLabel} />

@@ -1,7 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fredoka, Geist_Mono } from "next/font/google";
 
+import { InstallAppPrompt } from "@/components/pwa/install-app-prompt";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { createRootMetadata } from "@/lib/metadata";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -15,9 +18,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Vippin",
-  description: "Next.js + Tailwind + shadcn/ui + Firebase starter",
+export const metadata: Metadata = createRootMetadata();
+
+export const viewport: Viewport = {
+  themeColor: "#ffe502",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -26,11 +33,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body
         className={`${fredoka.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>{children}</AuthProvider>
+        <ServiceWorkerRegister />
+        <InstallAppPrompt />
       </body>
     </html>
   );

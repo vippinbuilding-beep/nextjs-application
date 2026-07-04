@@ -1,10 +1,10 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Check, Copy, ExternalLink, Pencil, Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import { CreatorLinkCard } from "@/components/creator/creator-link-card";
 import { useAuth } from "@/components/providers/auth-provider";
 import { ProductTabs } from "@/components/products/product-tabs";
 import { Button } from "@/components/ui/button";
@@ -67,16 +67,12 @@ export default function DashboardPage() {
     return (
         <LayoutBackground
             element="main"
+            background="primary"
             className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
         >
             <div className="flex w-full max-w-md flex-col gap-6 sm:max-w-2xl">
-                <div className="flex items-center justify-end">
-                    <Button variant="outline" onClick={handleSignOut}>
-                        Sair
-                    </Button>
-                </div>
 
-                {user.slug && <CreatorLinkCard slug={user.slug} />}
+                {user.slug && <CreatorLinkCard slug={user.slug} handleSignOut={handleSignOut} />}
 
                 <Card>
                     <CardHeader>
@@ -96,12 +92,6 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-center">
                                 <Loading />
                             </div>
-                        ) : products.length === 0 ? (
-                            <div className="flex items-center justify-center">
-                                <p className="text-muted-foreground text-sm">
-                                    Você ainda não criou nenhum produto.
-                                </p>
-                            </div>
                         ) : (
                             <ProductTabs
                                 products={products}
@@ -109,11 +99,87 @@ export default function DashboardPage() {
                                 mode="manage"
                                 emptyLessonsLabel="Você ainda não criou nenhuma aula."
                                 emptyDocumentsLabel="Você ainda não criou nenhum documento."
+                                emptyAllLabel="Você ainda não criou nenhum aula ou documento."
                             />
                         )}
                     </CardContent>
                 </Card>
             </div>
         </LayoutBackground>
+    );
+}
+
+interface CreatorLinkCardProps {
+    slug: string;
+    handleSignOut: () => void;
+}
+
+
+export function CreatorLinkCard({ slug, handleSignOut }: CreatorLinkCardProps) {
+    const [copied, setCopied] = useState(false);
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const path = `/@${slug}`;
+    const link = `${origin}${path}`;
+
+    async function handleCopy() {
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+            // Clipboard pode estar indisponível; ignora.
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Seu link de criador</CardTitle>
+                <CardDescription>
+                    Compartilhe com sua audiência para divulgar seus produtos.
+                </CardDescription>
+                <CardAction className="flex gap-2 flex-col sm:flex-row">
+                    <Button size="sm" variant="outline" asChild>
+                        <Link href="/profile/edit">
+                            <Pencil className="size-4" /> Editar perfil
+                        </Link>
+                    </Button>
+                    <Button variant="outline" onClick={handleSignOut}>
+                        Sair
+                    </Button>
+                </CardAction>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+                <a
+                    href={path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-primary px-3.5 py-2.5 font-bold text-primary-foreground shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon"
+                >
+                    <span className="truncate">
+                        <span className="opacity-70">{origin.replace(/^https?:\/\//, "")}</span>
+                        {path}
+                    </span>
+                    <ExternalLink className="size-4 shrink-0" />
+                </a>
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleCopy}
+                >
+                    {copied ? (
+                        <>
+                            <Check className="size-4" /> Copiado!
+                        </>
+                    ) : (
+                        <>
+                            <Copy className="size-4" /> Copiar link
+                        </>
+                    )}
+                </Button>
+            </CardContent>
+        </Card>
     );
 }
