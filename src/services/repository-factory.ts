@@ -1,9 +1,11 @@
 import type { AuthRepository } from "@/core/repositories/auth-repository";
+import type { ProductCommentRepository } from "@/core/repositories/product-comment-repository";
 import type { ProductAccessRepository } from "@/core/repositories/product-access-repository";
 import type { ProductProgressRepository } from "@/core/repositories/product-progress-repository";
 import type { ProductRepository } from "@/core/repositories/product-repository";
 import type { UserRepository } from "@/core/repositories/user-repository";
 import { SupabaseAuthRepository } from "@/infrastructure/supabase/supabase-auth-repository";
+import { SupabaseProductCommentRepository } from "@/infrastructure/supabase/supabase-product-comment-repository";
 import { SupabaseProductAccessRepository } from "@/infrastructure/supabase/supabase-product-access-repository";
 import { SupabaseProductProgressRepository } from "@/infrastructure/supabase/supabase-product-progress-repository";
 import { SupabaseProductRepository } from "@/infrastructure/supabase/supabase-product-repository";
@@ -24,3 +26,5 @@ export const productProgressRepository: ProductProgressRepository =
   new SupabaseProductProgressRepository();
 export const productAccessRepository: ProductAccessRepository =
   new SupabaseProductAccessRepository();
+export const productCommentRepository: ProductCommentRepository =
+  new SupabaseProductCommentRepository();

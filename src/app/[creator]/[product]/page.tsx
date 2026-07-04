@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { ProductLanding } from "@/components/products/product-landing";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
+import { ProductViewer } from "@/components/products/product-viewer";
 import { VideoPlayer } from "@/components/products/video-player";
 import { Button } from "@/components/ui/button";
 import {
@@ -208,30 +209,36 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </CardHeader>
 
           <CardContent>
-            {!hasFile ? (
-              <p className="text-muted-foreground text-sm">
-                O conteúdo deste produto ainda não está disponível.
-              </p>
-            ) : type === "single_lesson" ? (
-              <VideoPlayer
-                src={mediaUrl!}
-                productId={row.id}
-                poster={thumbnailUrl}
-                watermark={`@${profile.slug}`}
-              />
-            ) : (
-              <DocumentBlock
-                downloadUrl={downloadUrl!}
-                fileName={row.file_name}
-                fileSize={row.file_size}
-              />
-            )}
+            <ProductViewer
+              productId={row.id}
+              type={type}
+              isOwner={isOwner}
+            >
+              {!hasFile ? (
+                <p className="text-muted-foreground text-sm">
+                  O conteúdo deste produto ainda não está disponível.
+                </p>
+              ) : type === "single_lesson" ? (
+                <VideoPlayer
+                  src={mediaUrl!}
+                  productId={row.id}
+                  poster={thumbnailUrl}
+                  watermark={`@${profile.slug}`}
+                />
+              ) : (
+                <DocumentBlock
+                  downloadUrl={downloadUrl!}
+                  fileName={row.file_name}
+                  fileSize={row.file_size}
+                />
+              )}
 
-            {row.description && type === "single_lesson" && (
-              <p className="text-base break-all text-muted-foreground mt-5">
-                {row.description}
-              </p>
-            )}
+              {row.description && type === "single_lesson" && (
+                <p className="text-base break-all text-muted-foreground mt-5">
+                  {row.description}
+                </p>
+              )}
+            </ProductViewer>
           </CardContent>
         </Card>
       </div>
