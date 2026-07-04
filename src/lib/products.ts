@@ -15,6 +15,29 @@ export interface ProductTypeConfig {
 
 const MB = 1024 * 1024;
 
+/** MIME and extension for single-lesson uploads (HTML5 `<video>` without transcode). */
+export const LESSON_VIDEO_ACCEPT = "video/mp4,.mp4";
+export const LESSON_VIDEO_MIME = "video/mp4";
+
+function hasMp4Extension(fileName: string): boolean {
+  return fileName.toLowerCase().endsWith(".mp4");
+}
+
+/** Server-side guard for lesson video uploads (MIME + `.mp4` fallback). */
+export function isAllowedLessonVideo(
+  contentType: string,
+  fileName: string
+): boolean {
+  if (contentType === LESSON_VIDEO_MIME) return true;
+  if (
+    (!contentType || contentType === "application/octet-stream") &&
+    hasMp4Extension(fileName)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * Product field limits. These mirror the CHECK constraints on
  * `public.products` (see `supabase/migrations/20260708_product_limits.sql` and
@@ -36,8 +59,8 @@ export const PRODUCT_TYPES: Record<ProductType, ProductTypeConfig> = {
     label: "Aula única",
     shortLabel: "Aula",
     description: "Um vídeo-aula que sua audiência assiste na página do produto.",
-    accept: "video/*",
-    allowedHint: "Vídeos (mp4, webm, mov...)",
+    accept: LESSON_VIDEO_ACCEPT,
+    allowedHint: "MP4 (H.264 recomendado)",
     maxSize: 500 * MB,
     uploadLabel: "Enviar vídeo da aula",
   },
@@ -75,6 +98,12 @@ export function validateProductFile(
     return `O arquivo é muito grande. Tamanho máximo: ${formatFileSize(
       config.maxSize
     )}.`;
+  }
+  if (
+    type === "single_lesson" &&
+    !isAllowedLessonVideo(file.type, file.name)
+  ) {
+    return "O vídeo da aula precisa estar em MP4 para todos conseguirem assistir.";
   }
   return null;
 }

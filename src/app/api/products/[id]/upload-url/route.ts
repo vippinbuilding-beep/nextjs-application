@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import type { ProductType } from "@/core/models/product";
-import { getProductTypeConfig, THUMBNAIL_MAX_SIZE } from "@/lib/products";
+import {
+  getProductTypeConfig,
+  isAllowedLessonVideo,
+  THUMBNAIL_MAX_SIZE,
+} from "@/lib/products";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { PRODUCTS_BUCKET, sanitizeFileName } from "@/lib/supabase/storage";
@@ -78,9 +82,19 @@ export async function POST(
       return Response.json({ error: "Imagem muito grande." }, { status: 400 });
     }
   } else {
-    const config = getProductTypeConfig(product.type as ProductType);
+    const productType = product.type as ProductType;
+    const config = getProductTypeConfig(productType);
     if (size > config.maxSize) {
       return Response.json({ error: "Arquivo muito grande." }, { status: 400 });
+    }
+    if (
+      productType === "single_lesson" &&
+      !isAllowedLessonVideo(contentType, fileName)
+    ) {
+      return Response.json(
+        { error: "O vídeo da aula precisa estar em MP4." },
+        { status: 400 }
+      );
     }
   }
 
