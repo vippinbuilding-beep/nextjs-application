@@ -27,9 +27,10 @@ export class SupabaseAuthRepository implements AuthRepository {
     return toUser(data.user);
   }
 
-  async signInWithGoogle(next?: string): Promise<void> {
+  async signInWithGoogle(options?: { next?: string; role?: "creator" | "consumer" }): Promise<void> {
     const callback = new URL("/auth/callback", window.location.origin);
-    if (next) callback.searchParams.set("next", next);
+    if (options?.next) callback.searchParams.set("next", options.next);
+    if (options?.role) callback.searchParams.set("role", options.role);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

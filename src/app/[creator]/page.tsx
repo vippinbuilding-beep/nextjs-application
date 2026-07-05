@@ -2,9 +2,10 @@ import {
   Globe,
   Instagram,
   Linkedin,
+  LayoutDashboard,
+  Link2,
   type LucideIcon,
   Music2,
-  LayoutDashboard,
   Pencil,
   Twitch,
   Twitter,
@@ -14,11 +15,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProductTabs } from "@/components/products/product-tabs";
+import { AskMeProfileButton } from "@/components/ask-me/ask-me-dialog";
+import { CreatorPageTabs } from "@/components/profile/creator-page-tabs";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LayoutBackground } from "@/components/ui/layout-background";
 import type { ProductType } from "@/core/models/product";
+import type { ProfileLink } from "@/core/models/profile-link";
+import { resolveAskMePriceCents } from "@/lib/ask-me";
 import { createCreatorMetadata } from "@/lib/metadata";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -36,7 +41,7 @@ export async function generateMetadata({
 
   const { data: profile } = await supabase
     .from("public_profiles")
-    .select("id, creator_name, slug")
+    .select("id, creator_name, slug, avatar_path, avatar_url")
     .eq("slug", creatorSlug)
     .maybeSingle();
 
@@ -53,6 +58,9 @@ export async function generateMetadata({
     handle: profile.creator_name ?? profile.slug,
     slug: profile.slug,
     productCount: count ?? 0,
+    userId: profile.id,
+    avatarPath: profile.avatar_path,
+    avatarUrl: profile.avatar_url,
   });
 }
 
@@ -86,7 +94,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
 
   const { data: profile } = await supabase
     .from("public_profiles")
-    .select("id, creator_name, name, slug, socials")
+    .select("id, creator_name, name, slug, socials, avatar_path, avatar_url, ask_me_enabled, ask_me_price_cents")
     .eq("slug", creatorSlug)
     .maybeSingle();
 
@@ -95,15 +103,49 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
   const { data: rows } = await supabase
     .from("products")
     .select(
-      "id, type, title, description, price_cents, slug, thumbnail_path"
+      "id, type, title, description, price_cents, slug, thumbnail_path, thumbnail_width, thumbnail_height, media_width, media_height"
     )
     .eq("creator_id", profile.id)
     .order("created_at", { ascending: false });
 
   const products = rows ?? [];
+
+  const { data: linkRows } = await supabase
+    .from("profile_links")
+    .select("id, creator_id, title, url, image_path, image_mime, sort_order, created_at, updated_at")
+    .eq("creator_id", profile.id)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  const links: ProfileLink[] = (linkRows ?? []).map((row) => ({
+    id: row.id,
+    creatorId: row.creator_id,
+    title: row.title,
+    url: row.url,
+    imagePath: row.image_path ?? undefined,
+    imageMime: row.image_mime ?? undefined,
+    sortOrder: row.sort_order ?? 0,
+    createdAt: row.created_at ? new Date(row.created_at) : new Date(),
+    updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
+  }));
+
   const handle = profile.creator_name ?? profile.slug;
-  const initial = handle.charAt(0).toUpperCase();
   const isOwner = authUser?.id === profile.id;
+  const askMeEnabled = Boolean(profile.ask_me_enabled);
+  const askMePriceCents = resolveAskMePriceCents(
+    askMeEnabled,
+    profile.ask_me_price_cents
+  );
+
+  let askerHasPixKey = false;
+  if (authUser && !isOwner) {
+    const { data: askerProfile } = await supabase
+      .from("profiles")
+      .select("pix_key")
+      .eq("id", authUser.id)
+      .maybeSingle();
+    askerHasPixKey = Boolean(askerProfile?.pix_key);
+  }
 
   const socials = Object.entries(
     (profile.socials as Record<string, string> | null) ?? {}
@@ -123,6 +165,11 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
               </Link>
             </Button>
             <Button size="sm" variant="outline" asChild>
+              <Link href="/profile/links">
+                <Link2 className="size-4" /> Meus links
+              </Link>
+            </Button>
+            <Button size="sm" variant="outline" asChild>
               <Link href="/profile/edit">
                 <Pencil className="size-4" /> Editar perfil
               </Link>
@@ -131,13 +178,26 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
         )}
         <CardContent className="flex flex-col gap-6">
           <header className="flex flex-col items-center gap-3 text-center">
-            <span className="flex size-20 items-center justify-center rounded-2xl border-2 border-border bg-primary text-3xl font-bold text-primary-foreground shadow-cartoon-lg">
-              {initial}
-            </span>
+            <UserAvatar
+              userId={profile.id}
+              name={handle}
+              avatarPath={profile.avatar_path}
+              avatarUrl={profile.avatar_url}
+              size="xl"
+            />
 
             <div className="flex flex-col items-center gap-2">
               <h1 className="text-3xl font-bold tracking-tight">@{handle}</h1>
-
+              {askMeEnabled && (
+                <AskMeProfileButton
+                  creatorId={profile.id}
+                  creatorName={handle}
+                  priceCents={askMePriceCents}
+                  isAuthenticated={Boolean(authUser)}
+                  hasPixKey={askerHasPixKey}
+                  isOwner={isOwner}
+                />
+              )}
             </div>
 
             {socials.length > 0 && (
@@ -164,15 +224,20 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
 
           <div className="border-t-2 border-dashed border-border" />
 
-          <ProductTabs
+          <CreatorPageTabs
             products={products.map((product) => ({
               id: product.id,
               title: product.title,
               description: product.description,
               thumbnailPath: product.thumbnail_path,
+              thumbnailWidth: product.thumbnail_width,
+              thumbnailHeight: product.thumbnail_height,
+              mediaWidth: product.media_width,
+              mediaHeight: product.media_height,
               slug: product.slug,
               type: product.type as ProductType,
             }))}
+            links={links}
             mode="public"
             profile={profile}
           />

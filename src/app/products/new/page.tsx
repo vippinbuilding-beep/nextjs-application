@@ -16,6 +16,7 @@ import {
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { ProductType } from "@/core/models/product";
+import { isCreator } from "@/lib/user-role";
 import { PRODUCT_TYPES } from "@/lib/products";
 import ProductTypeIcon from "@/components/icons/ProductTypeIcon";
 
@@ -29,6 +30,8 @@ export default function NewProductPage() {
       router.replace("/login");
     } else if (!user.onboardingCompleted) {
       router.replace("/onboarding");
+    } else if (!isCreator(user)) {
+      router.replace("/");
     }
   }, [loading, user, router]);
 

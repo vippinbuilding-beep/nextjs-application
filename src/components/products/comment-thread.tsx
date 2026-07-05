@@ -9,8 +9,10 @@ import {
   MessageSquareReply,
   Trash2,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -93,97 +95,118 @@ function CommentCard({
   }
 
   return (
-    <article className="w-full min-w-0 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm">
+    <article className="w-full min-w-0 rounded-xl border-2 border-border bg-background p-2.5 shadow-cartoon-sm">
       {parent && parent.id !== node.id && (
         <p className="text-muted-foreground mb-2 text-xs font-medium">
           Em resposta a {authorLabel(parent)}
         </p>
       )}
 
-      <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+      <div className="flex items-start gap-2.5">
+        <UserAvatar
+          userId={node.userId}
+          name={authorLabel(node)}
+          avatarPath={node.authorAvatarPath}
+          avatarUrl={node.authorAvatarUrl}
+          size="sm"
+        />
+
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold">{authorLabel(node)}</p>
-          <p className="text-muted-foreground text-xs font-medium whitespace-nowrap">
-            {formatDistanceToNow(node.createdAt, {
-              addSuffix: true,
-              locale: ptBR,
-            })}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2 text-xs"
-            onClick={() =>
-              isReplying ? onCancelReply() : onStartReply(node.id)
-            }
-            disabled={submitting || deleting}
-          >
-            <MessageSquareReply className="size-3.5" />
-            {isReplying ? "Cancelar" : "Responder"}
-          </Button>
-          {canDelete && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 text-xs text-destructive hover:text-destructive"
-              onClick={() => void handleDelete()}
-              disabled={submitting || deleting}
-              aria-label="Apagar comentário"
-            >
-              {deleting ? (
-                <Loader2 className="size-3.5 animate-spin" />
+          <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+            <div className="min-w-0 flex-1">
+              {node.authorSlug ? (
+                <Link
+                  href={`/@${node.authorSlug}`}
+                  className="block truncate text-sm font-bold hover:underline"
+                >
+                  {authorLabel(node)}
+                </Link>
               ) : (
-                <Trash2 className="size-3.5" />
+                <p className="truncate text-sm font-bold">{authorLabel(node)}</p>
               )}
-            </Button>
+              <p className="text-muted-foreground text-xs font-medium whitespace-nowrap">
+                {formatDistanceToNow(node.createdAt, {
+                  addSuffix: true,
+                  locale: ptBR,
+                })}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() =>
+                  isReplying ? onCancelReply() : onStartReply(node.id)
+                }
+                disabled={submitting || deleting}
+              >
+                <MessageSquareReply className="size-3.5" />
+              </Button>
+              {canDelete && (
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  className="h-8 px-2 text-xs text-black"
+                  onClick={() => void handleDelete()}
+                  disabled={submitting || deleting}
+                  aria-label="Apagar comentário"
+                >
+                  {deleting ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-3.5" />
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <p className="mt-2 wrap-break-word text-sm">{node.body}</p>
+
+          {isReplying && (
+            <form
+              onSubmit={(e) => void handleReplySubmit(e)}
+              className="mt-2.5 flex flex-col gap-2 border-t-2 border-dashed border-border pt-2.5"
+            >
+              <Label htmlFor={`reply-${node.id}`} className="sr-only">
+                Responder comentário
+              </Label>
+              <Textarea
+                id={`reply-${node.id}`}
+                value={replyBody}
+                onChange={(e) =>
+                  setReplyBody(e.target.value.slice(0, COMMENT_BODY_MAX))
+                }
+                maxLength={COMMENT_BODY_MAX}
+                placeholder="Escreva sua resposta..."
+                rows={3}
+                disabled={submitting}
+              />
+              <p className="text-muted-foreground text-right text-xs">
+                {replyBody.length}/{COMMENT_BODY_MAX}
+              </p>
+              {replyError && (
+                <p className="text-destructive text-sm" role="alert">
+                  {replyError}
+                </p>
+              )}
+              <Button type="submit" size="sm" className="self-end" disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  "Enviar resposta"
+                )}
+              </Button>
+            </form>
           )}
         </div>
       </div>
-      <p className="mt-2 wrap-break-word text-sm">{node.body}</p>
-
-      {isReplying && (
-        <form
-          onSubmit={(e) => void handleReplySubmit(e)}
-          className="mt-3 flex flex-col gap-2 border-t-2 border-dashed border-border pt-3"
-        >
-          <Label htmlFor={`reply-${node.id}`} className="sr-only">
-            Responder comentário
-          </Label>
-          <Textarea
-            id={`reply-${node.id}`}
-            value={replyBody}
-            onChange={(e) =>
-              setReplyBody(e.target.value.slice(0, COMMENT_BODY_MAX))
-            }
-            maxLength={COMMENT_BODY_MAX}
-            placeholder="Escreva sua resposta..."
-            rows={3}
-            disabled={submitting}
-          />
-          <p className="text-muted-foreground text-right text-xs">
-            {replyBody.length}/{COMMENT_BODY_MAX}
-          </p>
-          {replyError && (
-            <p className="text-destructive text-sm" role="alert">
-              {replyError}
-            </p>
-          )}
-          <Button type="submit" size="sm" className="self-end" disabled={submitting}>
-            {submitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Enviando...
-              </>
-            ) : (
-              "Enviar resposta"
-            )}
-          </Button>
-        </form>
-      )}
     </article>
   );
 }
@@ -247,7 +270,7 @@ function RootCommentThread({
   };
 
   return (
-    <li className="flex w-full min-w-0 flex-col gap-3">
+    <li className="flex w-full min-w-0 flex-col gap-2">
       <CommentCard node={node} {...cardProps} />
 
       {replyCount > 0 && (
@@ -275,7 +298,7 @@ function RootCommentThread({
       )}
 
       {expanded && replyCount > 0 && (
-        <ul className="flex w-full min-w-0 flex-col gap-3">
+        <ul className="flex w-full min-w-0 flex-col gap-2">
           {flattenReplies(node).map(({ node: reply, parent, depth }) => (
             <li
               key={reply.id}
@@ -308,7 +331,7 @@ export function CommentThread({
   if (nodes.length === 0) return null;
 
   return (
-    <ul className="flex w-full min-w-0 flex-col gap-3">
+    <ul className="flex w-full min-w-0 flex-col gap-2">
       {nodes.map((node) => (
         <RootCommentThread
           key={node.id}

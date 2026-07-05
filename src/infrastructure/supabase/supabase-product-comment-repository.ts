@@ -20,6 +20,8 @@ type PublicProfileRow = {
   id: string;
   slug: string | null;
   creator_name: string | null;
+  avatar_path: string | null;
+  avatar_url: string | null;
 };
 
 function mapWriteError(error: { code?: string; message: string }): Error {
@@ -44,7 +46,7 @@ async function fetchAuthorMap(
 
   const { data, error } = await supabase
     .from("public_profiles")
-    .select("id, slug, creator_name")
+    .select("id, slug, creator_name, avatar_path, avatar_url")
     .in("id", unique);
 
   if (error) throw new Error(error.message);
@@ -68,6 +70,8 @@ function toProductComment(
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     authorSlug: author?.slug ?? undefined,
     authorName: author?.creator_name ?? undefined,
+    authorAvatarPath: author?.avatar_path ?? null,
+    authorAvatarUrl: author?.avatar_url ?? null,
   };
 }
 

@@ -50,26 +50,28 @@ function DialogContent({
   return (
     <DialogPrimitive.Portal data-slot="dialog-portal">
       <DialogOverlay />
-      <DialogPrimitive.Content
-        data-slot="dialog-content"
-        className={cn(
-          "bg-background text-foreground fixed left-1/2 top-1/2 z-50 grid w-full max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border-2 border-border p-6 shadow-cartoon-lg outline-none",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-          className
-        )}
-        {...props}
-      >
-        {children}
-        {showCloseButton && (
-          <DialogPrimitive.Close
-            data-slot="dialog-close"
-            className="absolute cursor-pointer right-4 top-4 flex size-8 items-center justify-center rounded-lg border-2 border-transparent outline-none transition-all hover:border-border hover:bg-accent focus-visible:ring-ring focus-visible:ring-[3px] disabled:pointer-events-none"
-            aria-label="Fechar"
-          >
-            <X className="size-4" />
-          </DialogPrimitive.Close>
-        )}
-      </DialogPrimitive.Content>
+      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+        <DialogPrimitive.Content
+          data-slot="dialog-content"
+          className={cn(
+            "bg-background text-foreground pointer-events-auto relative grid w-full max-w-md max-h-[min(90vh,720px)] gap-4 overflow-y-auto rounded-2xl border-2 border-border p-6 shadow-cartoon-lg outline-none",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+            className
+          )}
+          {...props}
+        >
+          {children}
+          {showCloseButton && (
+            <DialogPrimitive.Close
+              data-slot="dialog-close"
+              className="absolute cursor-pointer right-4 top-4 flex size-8 items-center justify-center rounded-lg border-2 border-transparent outline-none transition-all hover:border-border hover:bg-accent focus-visible:ring-ring focus-visible:ring-[3px] disabled:pointer-events-none"
+              aria-label="Fechar"
+            >
+              <X className="size-4" />
+            </DialogPrimitive.Close>
+          )}
+        </DialogPrimitive.Content>
+      </div>
     </DialogPrimitive.Portal>
   );
 }

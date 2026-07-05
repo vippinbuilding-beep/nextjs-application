@@ -1,0 +1,277 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loading } from "@/components/ui/loading";
+import { Textarea } from "@/components/ui/textarea";
+import type { AskMeQuestionWithAsker } from "@/core/models/ask-me-question";
+import {
+  ASK_ME_LIMITS,
+  ASK_ME_VIDEO_ACCEPT,
+  formatAskMeDeadline,
+  getAskMeStatusLabel,
+  isAskMeAwaitingResponse,
+  validateAskMeAnswerText,
+  validateAskMeVideo,
+} from "@/lib/ask-me";
+import { formatBRL } from "@/lib/money";
+import { getAskMeAnswerVideoUrl, ASK_ME_ANSWERS_BUCKET } from "@/lib/supabase/storage";
+import { supabase } from "@/lib/supabase/client";
+import { askMeQuestionRepository } from "@/services/repository-factory";
+
+interface AskMeCreatorInboxProps {
+  creatorId: string;
+}
+
+export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
+  const [questions, setQuestions] = useState<AskMeQuestionWithAsker[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
+  const [videoFiles, setVideoFiles] = useState<Record<string, File | null>>({});
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const rows = await askMeQuestionRepository.listByCreator(creatorId);
+      setQuestions(rows);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar perguntas");
+    } finally {
+      setLoading(false);
+    }
+  }, [creatorId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function uploadVideo(questionId: string, file: File): Promise<string> {
+    const res = await fetch(`/api/ask-me/questions/${questionId}/upload-url`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+      }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error ?? "Falha no upload do vídeo");
+    }
+    const { path, token } = (await res.json()) as { path: string; token: string };
+    const { error } = await supabase.storage
+      .from(ASK_ME_ANSWERS_BUCKET)
+      .uploadToSignedUrl(path, token, file, { contentType: file.type });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  async function handleAnswer(questionId: string) {
+    const text = (answerDrafts[questionId] ?? "").trim();
+    const videoFile = videoFiles[questionId];
+    if (!text && !videoFile) {
+      setError("Escreva uma resposta ou envie um vídeo.");
+      return;
+    }
+    if (text) {
+      const textError = validateAskMeAnswerText(text);
+      if (textError) {
+        setError(textError);
+        return;
+      }
+    }
+    if (videoFile) {
+      const videoError = validateAskMeVideo(videoFile);
+      if (videoError) {
+        setError(videoError);
+        return;
+      }
+    }
+
+    setBusyId(questionId);
+    setError(null);
+    try {
+      let answerVideoPath: string | undefined;
+      let answerVideoMime: string | undefined;
+      if (videoFile) {
+        answerVideoPath = await uploadVideo(questionId, videoFile);
+        answerVideoMime = videoFile.type;
+      }
+
+      const res = await fetch(`/api/ask-me/questions/${questionId}/answer`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          answerText: text || undefined,
+          answerVideoPath,
+          answerVideoMime,
+        }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(body?.error ?? "Falha ao enviar resposta");
+      }
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao responder");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleDecline(questionId: string) {
+    if (!confirm("Recusar esta pergunta? O valor será estornado ao perguntador.")) {
+      return;
+    }
+    setBusyId(questionId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ask-me/questions/${questionId}/answer`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(body?.error ?? "Falha ao recusar");
+      }
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao recusar");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (questions.length === 0) {
+    return (
+      <p className="text-muted-foreground py-6 text-center text-sm">
+        Nenhuma pergunta recebida ainda.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="flex flex-col gap-4">
+      {questions.map((q) => (
+        <li
+          key={q.id}
+          className="rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm"
+        >
+          <div className="mb-3 flex items-start gap-3">
+            <UserAvatar
+              userId={q.asker.id}
+              name={q.asker.name}
+              avatarPath={q.asker.avatarPath}
+              avatarUrl={q.asker.avatarUrl}
+              size="sm"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="font-bold">{q.asker.name}</p>
+              <p className="text-muted-foreground text-xs">
+                {formatBRL(q.amountCents)} · {getAskMeStatusLabel(q.status)}
+              </p>
+            </div>
+          </div>
+
+          <p className="mb-3 whitespace-pre-wrap text-sm">{q.questionText}</p>
+
+          {q.responseDeadlineAt && isAskMeAwaitingResponse(q.status) && (
+            <p className="text-muted-foreground mb-3 text-xs">
+              Responder até {formatAskMeDeadline(q.responseDeadlineAt)}
+            </p>
+          )}
+
+          {q.answerText && (
+            <div className="mb-3 rounded-lg border-2 border-dashed border-border bg-muted/40 p-3 text-sm">
+              <p className="mb-1 text-xs font-bold">Sua resposta</p>
+              <p className="whitespace-pre-wrap">{q.answerText}</p>
+            </div>
+          )}
+
+          {q.answerVideoPath && (
+            <video
+              src={getAskMeAnswerVideoUrl(q.id)}
+              controls
+              className="mb-3 w-full rounded-xl border-2 border-border"
+            />
+          )}
+
+          {isAskMeAwaitingResponse(q.status) && (
+            <div className="flex flex-col gap-3 border-t-2 border-dashed border-border pt-3">
+              <div className="flex flex-col gap-2">
+                <Label>Responder em texto</Label>
+                <Textarea
+                  value={answerDrafts[q.id] ?? ""}
+                  onChange={(e) =>
+                    setAnswerDrafts((prev) => ({
+                      ...prev,
+                      [q.id]: e.target.value,
+                    }))
+                  }
+                  maxLength={ASK_ME_LIMITS.answerText.max}
+                  rows={3}
+                  disabled={busyId === q.id}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Ou enviar vídeo</Label>
+                <input
+                  ref={(el) => {
+                    fileInputRefs.current[q.id] = el;
+                  }}
+                  type="file"
+                  accept={ASK_ME_VIDEO_ACCEPT}
+                  className="text-sm"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    setVideoFiles((prev) => ({ ...prev, [q.id]: file }));
+                  }}
+                  disabled={busyId === q.id}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  disabled={busyId === q.id}
+                  onClick={() => void handleDecline(q.id)}
+                >
+                  Recusar e estornar
+                </Button>
+                <Button
+                  type="button"
+                  className="flex-1"
+                  disabled={busyId === q.id}
+                  onClick={() => void handleAnswer(q.id)}
+                >
+                  {busyId === q.id ? "Enviando..." : "Responder"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </li>
+      ))}
+      {error && (
+        <p className="text-destructive text-sm" role="alert">
+          {error}
+        </p>
+      )}
+    </ul>
+  );
+}

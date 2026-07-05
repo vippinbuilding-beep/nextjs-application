@@ -10,12 +10,13 @@ import {
 } from "react";
 
 import type { User } from "@/core/models/user";
+import type { GoogleSignInOptions } from "@/core/repositories/auth-repository";
 import { authRepository, userRepository } from "@/services/repository-factory";
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: (next?: string) => Promise<void>;
+  signInWithGoogle: (options?: GoogleSignInOptions) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -39,8 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, []);
 
-  const signInWithGoogle = useCallback(async (next?: string): Promise<void> => {
-    await authRepository.signInWithGoogle(next);
+  const signInWithGoogle = useCallback(async (options?: GoogleSignInOptions): Promise<void> => {
+    await authRepository.signInWithGoogle(options);
   }, []);
 
   const signOut = useCallback(async () => {

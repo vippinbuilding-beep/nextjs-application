@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
 
+import { getSiteUrl } from "@/lib/metadata";
+import { hasProfileAvatar } from "@/lib/profile";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const alt = "Perfil do criador no Vippin";
@@ -20,7 +22,7 @@ export default async function CreatorOpenGraphImage({
   const supabase = await createSupabaseServerClient();
   const { data: profile } = await supabase
     .from("public_profiles")
-    .select("creator_name, slug")
+    .select("id, creator_name, slug, avatar_path, avatar_url")
     .eq("slug", creatorSlug)
     .maybeSingle();
 
@@ -28,6 +30,12 @@ export default async function CreatorOpenGraphImage({
 
   const handle = profile.creator_name ?? profile.slug;
   const initial = handle.charAt(0).toUpperCase();
+  const avatarSrc = hasProfileAvatar({
+    avatarPath: profile.avatar_path,
+    avatarUrl: profile.avatar_url,
+  })
+    ? `${getSiteUrl()}/api/profiles/${profile.id}/avatar`
+    : null;
 
   return new ImageResponse(
     (
@@ -47,23 +55,38 @@ export default async function CreatorOpenGraphImage({
           padding: 80,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 180,
-            height: 180,
-            borderRadius: 48,
-            background: "#ffe502",
-            border: "8px solid #000000",
-            fontSize: 96,
-            fontWeight: 700,
-            color: "#000000",
-          }}
-        >
-          {initial}
-        </div>
+        {avatarSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={avatarSrc}
+            alt=""
+            width={180}
+            height={180}
+            style={{
+              borderRadius: 48,
+              border: "8px solid #000000",
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 180,
+              height: 180,
+              borderRadius: 48,
+              background: "#ffe502",
+              border: "8px solid #000000",
+              fontSize: 96,
+              fontWeight: 700,
+              color: "#000000",
+            }}
+          >
+            {initial}
+          </div>
+        )}
         <div
           style={{
             display: "flex",

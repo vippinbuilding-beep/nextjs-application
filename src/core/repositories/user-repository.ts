@@ -14,6 +14,11 @@ export interface SocialsInput {
   socials: UserSocials;
 }
 
+export interface AvatarMetadata {
+  avatarPath: string;
+  avatarMime: string;
+}
+
 /**
  * Contract for user persistence. The UI and services depend on this interface,
  * never on a concrete backend. Implementations live in `src/infrastructure`.
@@ -30,4 +35,8 @@ export interface UserRepository {
    * value on the profile.
    */
   generateUniqueSlug(base: string): Promise<string>;
+  /**
+   * Uploads a profile avatar via a presigned upload URL issued server-side.
+   */
+  uploadAvatar(userId: string, file: File): Promise<AvatarMetadata>;
 }

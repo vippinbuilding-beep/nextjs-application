@@ -23,11 +23,15 @@ function safeNext(next: string | null): string | null {
   return next;
 }
 
+function resolveSignupRole(roleParam: string | null): "creator" | "consumer" {
+  return roleParam === "consumer" ? "consumer" : "creator";
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = safeNext(searchParams.get("next"));
-
+  const signupRole = resolveSignupRole(searchParams.get("role"));
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login`);
@@ -48,11 +52,42 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("onboarding_completed")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (!profile) {
+    const metadata = user.user_metadata ?? {};
+    const displayName =
+      (metadata.full_name as string | undefined) ??
+      (metadata.name as string | undefined) ??
+      null;
+    const avatarUrl =
+      (metadata.picture as string | undefined) ??
+      (metadata.avatar_url as string | undefined) ??
+      null;
+
+    const { data: created, error: insertError } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        email: user.email,
+        display_name: displayName,
+        avatar_url: avatarUrl,
+        role: signupRole,
+        onboarding_completed: false,
+      })
+      .select("onboarding_completed")
+      .single();
+
+    if (insertError) {
+      return NextResponse.redirect(`${origin}/login`);
+    }
+
+    profile = created;
+  }
 
   const destination = profile?.onboarding_completed
     ? (next ?? "/")

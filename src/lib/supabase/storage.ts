@@ -8,6 +8,9 @@
  * route paths (no network call), so they work in Server Components too.
  */
 export const PRODUCTS_BUCKET = "products";
+export const AVATARS_BUCKET = "avatars";
+export const PROFILE_LINKS_BUCKET = "profile-links";
+export const ASK_ME_ANSWERS_BUCKET = "ask-me-answers";
 
 /** URL of the gated video stream route. Requires a media token minted server-side. */
 export function getProductMediaUrl(productId: string, token: string): string {
@@ -25,6 +28,28 @@ export function getProductDownloadUrl(productId: string, token: string): string 
  */
 export function getProductThumbnailUrl(productId: string): string {
   return `/api/products/${productId}/thumbnail`;
+}
+
+/** Public avatar route (streams uploaded bytes or proxies an external URL). */
+export function getProfileAvatarUrl(userId: string, cacheKey?: string | null): string {
+  const base = `/api/profiles/${userId}/avatar`;
+  if (!cacheKey) return base;
+  return `${base}?v=${encodeURIComponent(cacheKey)}`;
+}
+
+/** Proxied Google OAuth photo for the signed-in user (onboarding preview). */
+export function getProfileAvatarPreviewUrl(): string {
+  return "/api/profile/avatar/preview";
+}
+
+/** Public route for a profile link cover image. */
+export function getProfileLinkImageUrl(linkId: string): string {
+  return `/api/profile/links/${linkId}/image`;
+}
+
+/** Gated route for an ask-me answer video. */
+export function getAskMeAnswerVideoUrl(questionId: string): string {
+  return `/api/ask-me/questions/${questionId}/video`;
 }
 
 /**

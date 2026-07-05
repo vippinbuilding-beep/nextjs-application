@@ -54,7 +54,10 @@ function LoginCard() {
     setError(null);
     setLoading(true);
     try {
-      await signInWithGoogle(nextParam ?? undefined);
+      await signInWithGoogle({
+        next: nextParam ?? undefined,
+        role: role ?? undefined,
+      });
       // Browser redirects to Google — code below won't execute on success.
     } catch (err) {
       setError(

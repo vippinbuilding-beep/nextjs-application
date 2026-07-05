@@ -66,10 +66,16 @@ export function createCreatorMetadata({
   handle,
   slug,
   productCount,
+  userId,
+  avatarPath,
+  avatarUrl,
 }: {
   handle: string;
   slug: string;
   productCount: number;
+  userId?: string;
+  avatarPath?: string | null;
+  avatarUrl?: string | null;
 }): Metadata {
   const displayHandle = `@${handle}`;
   const title = displayHandle;
@@ -78,6 +84,10 @@ export function createCreatorMetadata({
       ? `${displayHandle} no Vippin — confira ${productCount} ${productCount === 1 ? "produto" : "produtos"} de aulas e materiais digitais.`
       : `${displayHandle} no Vippin — vitrine de aulas e materiais digitais.`;
   const path = `/@${slug}`;
+  const ogImage =
+    userId && (avatarPath || avatarUrl)
+      ? toAbsoluteUrl(`/api/profiles/${userId}/avatar`)
+      : undefined;
 
   return {
     title,
@@ -90,11 +100,22 @@ export function createCreatorMetadata({
       title,
       description,
       url: path,
+      ...(ogImage
+        ? {
+            images: [
+              {
+                url: ogImage,
+                alt: displayHandle,
+              },
+            ],
+          }
+        : {}),
     },
     twitter: {
-      card: "summary_large_image",
+      card: ogImage ? "summary_large_image" : "summary_large_image",
       title,
       description,
+      ...(ogImage ? { images: [ogImage] } : {}),
     },
   };
 }

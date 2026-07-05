@@ -1,8 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import {
+  AvatarPicker,
+  persistAvatarSelection,
+  type AvatarSelection,
+} from "@/components/profile/avatar-picker";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import type { User, UserSocials } from "@/core/models/user";
@@ -12,6 +17,7 @@ import { LinkStepFields } from "./link-step-fields";
 import { OnboardingStep } from "./onboarding-step";
 import { ProfileStepFields } from "./profile-step-fields";
 import { SocialsStepFields } from "./socials-step-fields";
+import { ProfileLinksEditor } from "@/components/profile/profile-links-editor";
 import {
   clearOnboardingDraft,
   INITIAL_ONBOARDING_FORM,
@@ -27,7 +33,7 @@ import {
   validateSocialsStep,
 } from "./validation";
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 function formFromUser(user: User): OnboardingFormData {
   const pixKey = formatPixKey(user.pixKey ?? "");
@@ -50,7 +56,7 @@ function inferStepFromUser(user: User): number {
 
 export function OnboardingForm() {
   const router = useRouter();
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, signOut } = useAuth();
   const userId = user?.id;
 
   const [step, setStep] = useState(1);
@@ -59,6 +65,15 @@ export function OnboardingForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [avatarSelection, setAvatarSelection] = useState<AvatarSelection>({
+    kind: "none",
+  });
+  const [profileAvatarPath, setProfileAvatarPath] = useState<string | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+
+  const handleAvatarChange = useCallback((selection: AvatarSelection) => {
+    setAvatarSelection(selection);
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -79,6 +94,8 @@ export function OnboardingForm() {
         setForm(formFromUser(profile));
         setStep(inferStepFromUser(profile));
         setSlug(profile.slug ?? "");
+        setProfileAvatarPath(profile.avatarPath ?? null);
+        setProfileAvatarUrl(profile.avatarUrl ?? null);
       }
 
       await refreshUser();
@@ -118,6 +135,23 @@ export function OnboardingForm() {
     }));
   }
 
+  async function advanceFromLinksStep() {
+    if (!user) return;
+
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      setStep(4);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao continuar"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -150,16 +184,16 @@ export function OnboardingForm() {
           pixKey: normalizedForm.pixKey,
           pixKeyType: normalizedForm.pixKeyType || undefined,
           creatorName: normalizedForm.creatorName,
+          role: "creator",
           onboardingCompleted: false,
         });
+        await persistAvatarSelection(user.id, avatarSelection);
         await refreshUser();
         setStep(2);
         return;
       }
 
       if (step === 2) {
-        // Gera o slug único a partir do nome de criador e o persiste, mas ainda
-        // não conclui o onboarding: a etapa 3 apenas mostra o link resultante.
         const uniqueSlug = await userRepository.generateUniqueSlug(
           normalizedForm.creatorName
         );
@@ -188,15 +222,23 @@ export function OnboardingForm() {
             ? "Erro ao salvar dados"
             : step === 2
               ? "Erro ao salvar redes sociais"
-              : "Erro ao concluir cadastro"
+              : step === 3
+                ? "Erro ao continuar"
+                : "Erro ao concluir cadastro"
       );
     } finally {
       setSubmitting(false);
     }
   }
 
-  const nextSteps = () => {
-    router.push("/");
+  function goToStep(nextStep: number) {
+    setError(null);
+    setStep(nextStep);
+  }
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace("/login");
   }
 
   if (!hydrated) {
@@ -204,8 +246,45 @@ export function OnboardingForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md">
+    <div className="w-full max-w-md">
       <div key={step} className="animate-in fade-in slide-in-from-right-2 duration-200">
+        {step === 3 ? (
+          <OnboardingStep
+            step={3}
+            totalSteps={TOTAL_STEPS}
+            title="Seus links"
+            description="Adicione links personalizados com título e imagem para sua página pública (opcional)"
+          >
+            <ProfileLinksEditor creatorId={user!.id} compact />
+
+            {error && (
+              <p className="text-destructive text-sm" role="alert">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-2 flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => goToStep(2)}
+                disabled={submitting}
+              >
+                Voltar
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                disabled={submitting}
+                onClick={() => void advanceFromLinksStep()}
+              >
+                Continuar
+              </Button>
+            </div>
+          </OnboardingStep>
+        ) : (
+          <form onSubmit={handleSubmit}>
         {step === 1 ? (
           <OnboardingStep
             step={1}
@@ -213,6 +292,14 @@ export function OnboardingForm() {
             title="Conte um pouco sobre você"
             description="Preencha seus dados para configurar seu perfil de criador"
           >
+            <AvatarPicker
+              userId={user!.id}
+              displayName={form.creatorName || form.name}
+              avatarPath={profileAvatarPath}
+              avatarUrl={profileAvatarUrl}
+              onChange={handleAvatarChange}
+            />
+
             <ProfileStepFields data={form} onChange={updateField} />
 
             {error && (
@@ -221,9 +308,20 @@ export function OnboardingForm() {
               </p>
             )}
 
-            <Button type="submit" className="mt-2 w-full" disabled={submitting}>
-              {submitting ? "Salvando..." : "Continuar"}
-            </Button>
+            <div className="mt-2 flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={handleSignOut}
+                disabled={submitting}
+              >
+                Voltar
+              </Button>
+              <Button type="submit" className="flex-1" disabled={submitting}>
+                {submitting ? "Salvando..." : "Continuar"}
+              </Button>
+            </div>
           </OnboardingStep>
         ) : step === 2 ? (
           <OnboardingStep
@@ -245,10 +343,7 @@ export function OnboardingForm() {
                 type="button"
                 variant="outline"
                 className="flex-1"
-                onClick={() => {
-                  setError(null);
-                  setStep(1);
-                }}
+                onClick={() => goToStep(1)}
                 disabled={submitting}
               >
                 Voltar
@@ -260,7 +355,7 @@ export function OnboardingForm() {
           </OnboardingStep>
         ) : (
           <OnboardingStep
-            step={3}
+            step={4}
             totalSteps={TOTAL_STEPS}
             title="Tudo pronto!"
             description="Geramos o link exclusivo do seu perfil de criador"
@@ -273,12 +368,25 @@ export function OnboardingForm() {
               </p>
             )}
 
-            <Button className="mt-2 w-full" onClick={nextSteps}>
-              Próximo Passo
-            </Button>
+            <div className="mt-2 flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => goToStep(3)}
+                disabled={submitting}
+              >
+                Voltar
+              </Button>
+              <Button type="submit" className="flex-1" disabled={submitting}>
+                {submitting ? "Concluindo..." : "Concluir cadastro"}
+              </Button>
+            </div>
           </OnboardingStep>
         )}
+          </form>
+        )}
       </div>
-    </form>
+    </div>
   );
 }

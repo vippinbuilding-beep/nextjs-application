@@ -37,6 +37,7 @@ import {
   validateProductFile,
   validateThumbnailFile,
 } from "@/lib/products";
+import { readImageDimensions, readVideoDimensions } from "@/lib/media-dimensions";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
 import { productRepository } from "@/services/repository-factory";
 
@@ -183,11 +184,21 @@ export function ProductForm({ type, product }: ProductFormProps) {
         });
         if (file) {
           const uploaded = await productRepository.uploadFile(product.id, file);
+          const mediaDimensions =
+            type === "single_lesson"
+              ? await readVideoDimensions(file).catch(() => null)
+              : null;
           await productRepository.update(product.id, {
             filePath: uploaded.filePath,
             fileName: uploaded.fileName,
             fileMime: uploaded.fileMime,
             fileSize: uploaded.fileSize,
+            ...(mediaDimensions
+              ? {
+                mediaWidth: mediaDimensions.width,
+                mediaHeight: mediaDimensions.height,
+              }
+              : {}),
           });
         }
         if (thumbnailFile) {
@@ -195,13 +206,21 @@ export function ProductForm({ type, product }: ProductFormProps) {
             product.id,
             thumbnailFile
           );
+          const thumbnailDimensions = await readImageDimensions(
+            thumbnailFile
+          ).catch(() => null);
           await productRepository.update(product.id, {
             thumbnailPath: uploadedThumbnail.thumbnailPath,
             thumbnailMime: uploadedThumbnail.thumbnailMime,
+            ...(thumbnailDimensions
+              ? {
+                thumbnailWidth: thumbnailDimensions.width,
+                thumbnailHeight: thumbnailDimensions.height,
+              }
+              : {}),
           });
         }
-        router.push(`/@${user.slug}/${product.slug}`);
-        router.refresh();
+        router.back();
         return;
       }
 
@@ -215,11 +234,21 @@ export function ProductForm({ type, product }: ProductFormProps) {
       });
 
       const uploaded = await productRepository.uploadFile(created.id, file!);
+      const mediaDimensions =
+        type === "single_lesson"
+          ? await readVideoDimensions(file!).catch(() => null)
+          : null;
       await productRepository.update(created.id, {
         filePath: uploaded.filePath,
         fileName: uploaded.fileName,
         fileMime: uploaded.fileMime,
         fileSize: uploaded.fileSize,
+        ...(mediaDimensions
+          ? {
+            mediaWidth: mediaDimensions.width,
+            mediaHeight: mediaDimensions.height,
+          }
+          : {}),
       });
 
       if (thumbnailFile) {
@@ -227,14 +256,22 @@ export function ProductForm({ type, product }: ProductFormProps) {
           created.id,
           thumbnailFile
         );
+        const thumbnailDimensions = await readImageDimensions(thumbnailFile).catch(
+          () => null
+        );
         await productRepository.update(created.id, {
           thumbnailPath: uploadedThumbnail.thumbnailPath,
           thumbnailMime: uploadedThumbnail.thumbnailMime,
+          ...(thumbnailDimensions
+            ? {
+              thumbnailWidth: thumbnailDimensions.width,
+              thumbnailHeight: thumbnailDimensions.height,
+            }
+            : {}),
         });
       }
 
-      router.push(`/@${user.slug}/${slug}`);
-      router.refresh();
+      router.back();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Erro ao salvar o produto."

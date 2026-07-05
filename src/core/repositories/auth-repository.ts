@@ -1,5 +1,10 @@
 import type { User } from "@/core/models/user";
 
+export interface GoogleSignInOptions {
+  next?: string;
+  role?: "creator" | "consumer";
+}
+
 /**
  * Contract for authentication. Swapping the auth backend later only requires
  * a new implementation of this interface.
@@ -13,9 +18,10 @@ export interface AuthRepository {
   signIn(email: string, password: string): Promise<User>;
   /**
    * Starts the Google OAuth flow. `next` is an optional in-app path to return to
-   * after login completes (forwarded through the callback).
+   * after login completes (forwarded through the callback). `role` is persisted
+   * on first sign-up so the app can route creators vs consumers.
    */
-  signInWithGoogle(next?: string): Promise<void>;
+  signInWithGoogle(options?: GoogleSignInOptions): Promise<void>;
   signOut(): Promise<void>;
   getCurrentUser(): User | null;
   /**

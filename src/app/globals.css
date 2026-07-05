@@ -114,6 +114,7 @@
 
   /* Sombras cartoon "hard shadow" (sem blur) */
   --shadow-cartoon-sm: 2px 2px 0 0 var(--border);
+  --shadow-cartoon-avatar: 1px 1px 0 0 var(--border);
   --shadow-cartoon: 4px 4px 0 0 var(--border);
   --shadow-cartoon-lg: 6px 6px 0 0 var(--border);
   --shadow-cartoon-xl: 8px 8px 0 0 var(--border);

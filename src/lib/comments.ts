@@ -84,10 +84,10 @@ const MAX_REPLY_INDENT_DEPTH = 4;
 export function replyIndentClass(depth: number): string {
   const capped = Math.min(depth, MAX_REPLY_INDENT_DEPTH);
   if (capped <= 0) return "";
-  if (capped === 1) return "pl-4";
-  if (capped === 2) return "pl-8";
-  if (capped === 3) return "pl-12";
-  return "pl-16";
+  if (capped === 1) return "pl-3";
+  if (capped === 2) return "pl-6";
+  if (capped === 3) return "pl-9";
+  return "pl-12";
 }
 
 /** True when `commentId` is the root or any of its descendants. */

@@ -2,6 +2,7 @@ import { Lock } from "lucide-react";
 
 import { PixCheckout } from "@/components/products/pix-checkout";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
+import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
 import {
   Card,
   CardContent,
@@ -20,7 +21,12 @@ interface ProductLandingProps {
   description?: string | null;
   priceCents: number;
   thumbnailUrl?: string | null;
+  bannerAspectRatio?: number;
+  creatorId: string;
+  creatorSlug: string;
   creatorHandle: string;
+  creatorAvatarPath?: string | null;
+  creatorAvatarUrl?: string | null;
   isAuthenticated: boolean;
 }
 
@@ -36,7 +42,12 @@ export function ProductLanding({
   description,
   priceCents,
   thumbnailUrl,
+  bannerAspectRatio,
+  creatorId,
+  creatorSlug,
   creatorHandle,
+  creatorAvatarPath,
+  creatorAvatarUrl,
   isAuthenticated,
 }: ProductLandingProps) {
   const isFree = priceCents <= 0;
@@ -48,9 +59,10 @@ export function ProductLanding({
           type={type}
           thumbnailUrl={thumbnailUrl}
           rounded="rounded-t-2xl rounded-b-none"
-          className="-mt-6 aspect-video w-full border-0 border-b-2"
+          className="-mt-6 w-full border-0 border-b-2"
           iconClassName="size-14"
           sizes="(min-width: 672px) 672px, 100vw"
+          aspectRatio={bannerAspectRatio}
         />
         <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2.5 py-1 text-xs font-bold shadow-cartoon-sm">
           <Lock className="size-3.5" />
@@ -68,6 +80,14 @@ export function ProductLanding({
       </CardHeader>
 
       <CardContent className="flex flex-col gap-5">
+        <CreatorProfileLink
+          userId={creatorId}
+          slug={creatorSlug}
+          handle={creatorHandle}
+          avatarPath={creatorAvatarPath}
+          avatarUrl={creatorAvatarUrl}
+        />
+
         <div className="flex items-center justify-between gap-3 border-none">
           <span className="text-muted-foreground text-sm font-medium">
             {isFree ? "Preço" : "Você paga"}

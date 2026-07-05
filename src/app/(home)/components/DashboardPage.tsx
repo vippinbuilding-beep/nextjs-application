@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, Copy, ExternalLink, Pencil, Plus } from "lucide-react";
+import { Check, Copy, ExternalLink, MessageCircleQuestion, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ProductTabs } from "@/components/products/product-tabs";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import {
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { Product } from "@/core/models/product";
+import { isCreator } from "@/lib/user-role";
 import { productRepository } from "@/services/repository-factory";
 import { Loading } from "@/components/ui/loading";
 
@@ -35,6 +37,8 @@ export default function DashboardPage() {
             router.replace("/");
         } else if (!user.onboardingCompleted) {
             router.replace("/onboarding");
+        } else if (!isCreator(user)) {
+            router.replace("/");
         }
     }, [loading, user, router]);
 
@@ -71,8 +75,28 @@ export default function DashboardPage() {
             className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
         >
             <div className="flex w-full max-w-md flex-col gap-6 sm:max-w-2xl">
+                <div className="flex justify-end">
+                    <NotificationBell />
+                </div>
 
                 {user.slug && <CreatorLinkCard slug={user.slug} handleSignOut={handleSignOut} />}
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Me pergunte</CardTitle>
+                        <CardDescription>
+                            Receba perguntas pagas da sua audiência. O valor fica
+                            retido até você responder em até 72h.
+                        </CardDescription>
+                        <CardAction>
+                            <Button size="sm" variant="outline" asChild>
+                                <Link href="/profile/ask-me">
+                                    <MessageCircleQuestion className="size-4" /> Gerenciar
+                                </Link>
+                            </Button>
+                        </CardAction>
+                    </CardHeader>
+                </Card>
 
                 <Card>
                     <CardHeader>

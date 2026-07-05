@@ -2,9 +2,12 @@ import { supabase } from "@/lib/supabase/client";
 import { PRODUCTS_BUCKET } from "@/lib/supabase/storage";
 import type { Product, ProductType } from "@/core/models/product";
 import type {
+  ExploreProductsParams,
+  ExploreProductsResult,
   ProductFileMetadata,
   ProductInput,
   ProductRepository,
+  ProductWithCreator,
   ThumbnailMetadata,
 } from "@/core/repositories/product-repository";
 
@@ -24,6 +27,10 @@ type ProductRow = {
   file_size: number | null;
   thumbnail_path: string | null;
   thumbnail_mime: string | null;
+  thumbnail_width: number | null;
+  thumbnail_height: number | null;
+  media_width: number | null;
+  media_height: number | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -136,6 +143,10 @@ export class SupabaseProductRepository implements ProductRepository {
     if (data.fileSize !== undefined) row.file_size = data.fileSize;
     if (data.thumbnailPath !== undefined) row.thumbnail_path = data.thumbnailPath;
     if (data.thumbnailMime !== undefined) row.thumbnail_mime = data.thumbnailMime;
+    if (data.thumbnailWidth !== undefined) row.thumbnail_width = data.thumbnailWidth;
+    if (data.thumbnailHeight !== undefined) row.thumbnail_height = data.thumbnailHeight;
+    if (data.mediaWidth !== undefined) row.media_width = data.mediaWidth;
+    if (data.mediaHeight !== undefined) row.media_height = data.mediaHeight;
 
     const { error } = await supabase.from(TABLE).update(row).eq("id", id);
     if (error) throw mapWriteError(error);
@@ -175,6 +186,69 @@ export class SupabaseProductRepository implements ProductRepository {
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return (data as ProductRow[]).map(toProduct);
+  }
+
+  async searchExplore(
+    params: ExploreProductsParams = {}
+  ): Promise<ExploreProductsResult> {
+    const page = Math.max(1, params.page ?? 1);
+    const pageSize = Math.min(48, Math.max(1, params.pageSize ?? 12));
+    const query = params.query?.trim() ?? "";
+    const offset = (page - 1) * pageSize;
+
+    let matchingCreatorIds: string[] = [];
+    if (query) {
+      const pattern = toIlikePattern(query);
+      const { data: profiles, error: profilesError } = await supabase
+        .from("public_profiles")
+        .select("id")
+        .or(`creator_name.ilike.${pattern},slug.ilike.${pattern}`);
+
+      if (profilesError) throw new Error(profilesError.message);
+      matchingCreatorIds = ((profiles ?? []) as { id: string }[]).map(
+        (profile) => profile.id
+      );
+    }
+
+    let builder = supabase
+      .from(TABLE)
+      .select("*", { count: "exact" })
+      .order("created_at", { ascending: false });
+
+    if (query) {
+      const pattern = toIlikePattern(query);
+      const filters = [
+        `title.ilike.${pattern}`,
+        `description.ilike.${pattern}`,
+      ];
+      if (matchingCreatorIds.length > 0) {
+        filters.push(`creator_id.in.(${matchingCreatorIds.join(",")})`);
+      }
+      builder = builder.or(filters.join(","));
+    }
+
+    const { data, error, count } = await builder.range(
+      offset,
+      offset + pageSize - 1
+    );
+    if (error) throw new Error(error.message);
+
+    const items = await attachCreators((data ?? []) as ProductRow[]);
+    const total = count ?? 0;
+
+    return { items, total, page, pageSize };
+  }
+
+  async listByIds(ids: string[]): Promise<ProductWithCreator[]> {
+    if (!ids.length) return [];
+
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select("*")
+      .in("id", ids)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return attachCreators(data as ProductRow[]);
   }
 
   async delete(id: string): Promise<void> {
@@ -230,7 +304,57 @@ function toProduct(row: ProductRow): Product {
     fileSize: row.file_size ?? undefined,
     thumbnailPath: row.thumbnail_path ?? undefined,
     thumbnailMime: row.thumbnail_mime ?? undefined,
+    thumbnailWidth: row.thumbnail_width ?? undefined,
+    thumbnailHeight: row.thumbnail_height ?? undefined,
+    mediaWidth: row.media_width ?? undefined,
+    mediaHeight: row.media_height ?? undefined,
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   };
+}
+
+type PublicProfileRow = {
+  id: string;
+  slug: string;
+  creator_name: string | null;
+};
+
+/** Escapes user input for safe use inside a PostgREST `ilike` filter. */
+function toIlikePattern(query: string): string {
+  const escaped = query
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_")
+    .replace(/"/g, '""');
+  return `"%${escaped}%"`;
+}
+
+async function attachCreators(rows: ProductRow[]): Promise<ProductWithCreator[]> {
+  if (!rows.length) return [];
+
+  const creatorIds = [...new Set(rows.map((row) => row.creator_id))];
+  const { data, error } = await supabase
+    .from("public_profiles")
+    .select("id, slug, creator_name")
+    .in("id", creatorIds);
+
+  if (error) throw new Error(error.message);
+
+  const creatorsById = new Map(
+    ((data ?? []) as PublicProfileRow[]).map((profile) => [
+      profile.id,
+      {
+        id: profile.id,
+        slug: profile.slug,
+        handle: profile.creator_name ?? profile.slug,
+      },
+    ])
+  );
+
+  return rows
+    .filter((row) => creatorsById.has(row.creator_id))
+    .map((row) => ({
+      ...toProduct(row),
+      creator: creatorsById.get(row.creator_id)!,
+    }));
 }

@@ -2,13 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { LayoutDashboard } from "lucide-react";
 
 import { LinkStepFields } from "@/components/onboarding/link-step-fields";
 import { ProfileStepFields } from "@/components/onboarding/profile-step-fields";
 import { SocialsStepFields } from "@/components/onboarding/socials-step-fields";
+import {
+  AvatarPicker,
+  persistAvatarSelection,
+  type AvatarSelection,
+} from "@/components/profile/avatar-picker";
 import {
   INITIAL_ONBOARDING_FORM,
   type OnboardingFormData,
@@ -56,6 +61,15 @@ export function ProfileForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [avatarSelection, setAvatarSelection] = useState<AvatarSelection>({
+    kind: "none",
+  });
+  const [profileAvatarPath, setProfileAvatarPath] = useState<string | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+
+  const handleAvatarChange = useCallback((selection: AvatarSelection) => {
+    setAvatarSelection(selection);
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -70,6 +84,8 @@ export function ProfileForm() {
       setForm(formFromUser(profile));
       setSlug(profile.slug ?? "");
       setOriginalCreatorName(profile.creatorName ?? "");
+      setProfileAvatarPath(profile.avatarPath ?? null);
+      setProfileAvatarUrl(profile.avatarUrl ?? null);
       setHydrated(true);
     }
 
@@ -135,8 +151,16 @@ export function ProfileForm() {
         slug: nextSlug,
       });
 
+      await persistAvatarSelection(user.id, avatarSelection);
+
+      const updatedProfile = await userRepository.getById(user.id);
+      if (updatedProfile) {
+        setProfileAvatarPath(updatedProfile.avatarPath ?? null);
+        setProfileAvatarUrl(updatedProfile.avatarUrl ?? null);
+      }
+
       await refreshUser();
-      router.push("/");
+      router.back();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Erro ao salvar alterações do perfil"
@@ -158,7 +182,10 @@ export function ProfileForm() {
           <CardDescription>
             Atualize seus dados, redes sociais e informações de pagamento.
           </CardDescription>
-          <CardAction>
+          <CardAction className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link href="/profile/links">Gerenciar links</Link>
+            </Button>
             <Button size="sm" variant="outline" asChild>
               <Link href="/">
                 <LayoutDashboard className="size-4" /> Gerenciar produtos
@@ -173,6 +200,14 @@ export function ProfileForm() {
           </p>
 
           <div className="border-t-2 border-dashed border-border" />
+
+          <AvatarPicker
+            userId={user!.id}
+            displayName={form.creatorName || form.name}
+            avatarPath={profileAvatarPath}
+            avatarUrl={profileAvatarUrl}
+            onChange={handleAvatarChange}
+          />
 
           <ProfileStepFields data={form} onChange={updateField} />
 

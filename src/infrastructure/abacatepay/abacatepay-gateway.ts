@@ -10,6 +10,10 @@ import type {
   SendPixInput,
 } from "@/core/payments/payment-gateway";
 import type { PixKeyType } from "@/core/models/user";
+import {
+  buildDevSimulatedTransferId,
+  isAbacatePayDevMode,
+} from "@/lib/payments/abacatepay-dev";
 
 const DEFAULT_BASE_URL = "https://api.abacatepay.com/v2";
 
@@ -188,6 +192,17 @@ export class AbacatePayGateway implements PaymentGateway {
   }
 
   async sendPix(input: SendPixInput): Promise<PixTransfer> {
+    // AbacatePay Dev mode supports charge simulation only — `/pix/send` always
+    // returns 400 with "Serviço temporariamente indisponível". Fake success so
+    // local flows (Me Pergunte repass, refunds, order repass) stay testable.
+    if (isAbacatePayDevMode()) {
+      return {
+        id: buildDevSimulatedTransferId(input.externalId),
+        status: "complete",
+        amountCents: input.amountCents,
+      };
+    }
+
     const data = await this.request<AbacatePixTransaction>("POST", "/pix/send", {
       amount: input.amountCents,
       externalId: input.externalId,

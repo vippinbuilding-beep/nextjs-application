@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { finalizeOrder } from "@/lib/payments/finalize";
+import { finalizeAskMeQuestion } from "@/lib/payments/ask-me-finalize";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -40,7 +41,16 @@ export async function POST(request: NextRequest) {
     try {
       await finalizeOrder(orderId);
     } catch (err) {
-      // Return 500 so AbacatePay retries; the operation is idempotent.
+      const message = err instanceof Error ? err.message : "Processing failed";
+      return Response.json({ error: message }, { status: 500 });
+    }
+  }
+
+  const askMeQuestionId = await resolveAskMeQuestionId(payload);
+  if (askMeQuestionId) {
+    try {
+      await finalizeAskMeQuestion(askMeQuestionId);
+    } catch (err) {
       const message = err instanceof Error ? err.message : "Processing failed";
       return Response.json({ error: message }, { status: 500 });
     }
@@ -85,4 +95,26 @@ async function resolveOrderId(payload: WebhookPayload): Promise<string | null> {
     .maybeSingle();
 
   return order?.id ?? null;
+}
+
+async function resolveAskMeQuestionId(
+  payload: WebhookPayload
+): Promise<string | null> {
+  const data = payload.data ?? {};
+
+  const fromMetadata = data.metadata?.askMeQuestionId;
+  if (typeof fromMetadata === "string" && fromMetadata) return fromMetadata;
+
+  const chargeId =
+    data.pixQrCode?.id ?? data.id ?? data.transaction?.id ?? null;
+  if (!chargeId) return null;
+
+  const admin = createSupabaseAdminClient();
+  const { data: question } = await admin
+    .from("ask_me_questions")
+    .select("id")
+    .eq("abacate_charge_id", chargeId)
+    .maybeSingle();
+
+  return question?.id ?? null;
 }

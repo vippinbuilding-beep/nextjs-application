@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase/client";
-import type { PixKeyType, User, UserSocials } from "@/core/models/user";
-import type { UserRepository } from "@/core/repositories/user-repository";
+import { AVATARS_BUCKET } from "@/lib/supabase/storage";
+import type { PixKeyType, User, UserRole, UserSocials } from "@/core/models/user";
+import type {
+  AvatarMetadata,
+  UserRepository,
+} from "@/core/repositories/user-repository";
 
 const TABLE = "profiles";
 
@@ -16,6 +20,12 @@ type ProfileRow = {
   slug: string | null;
   socials: UserSocials | null;
   onboarding_completed: boolean | null;
+  role: string | null;
+  avatar_path: string | null;
+  avatar_mime: string | null;
+  avatar_url: string | null;
+  ask_me_enabled: boolean | null;
+  ask_me_price_cents: number | null;
   created_at: string | null;
 };
 
@@ -33,6 +43,49 @@ function mapWriteError(error: { code?: string; message: string }): Error {
     }
   }
   return new Error(error.message);
+}
+
+function mapStorageError(error: { message: string }): Error {
+  const msg = error.message.toLowerCase();
+  if (msg.includes("maximum allowed size") || msg.includes("entity too large")) {
+    return new Error("A imagem passou do limite do Supabase Storage.");
+  }
+  return new Error(error.message);
+}
+
+async function uploadAvatarViaSignedUrl(userId: string, file: File): Promise<string> {
+  const response = await fetch("/api/profile/avatar/upload-url", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      fileName: file.name,
+      contentType: file.type || undefined,
+      size: file.size,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as
+      | { error?: string }
+      | null;
+    throw mapStorageError({
+      message: body?.error ?? "Falha ao preparar o upload.",
+    });
+  }
+
+  const { path, token } = (await response.json()) as {
+    path: string;
+    token: string;
+  };
+
+  const { error } = await supabase.storage
+    .from(AVATARS_BUCKET)
+    .uploadToSignedUrl(path, token, file, {
+      contentType: file.type || undefined,
+    });
+  if (error) throw mapStorageError(error);
+
+  return path;
 }
 
 /**
@@ -71,6 +124,13 @@ export class SupabaseUserRepository implements UserRepository {
     if (data.socials !== undefined) row.socials = data.socials;
     if (data.onboardingCompleted !== undefined)
       row.onboarding_completed = data.onboardingCompleted;
+    if (data.role !== undefined) row.role = data.role;
+    if (data.avatarPath !== undefined) row.avatar_path = data.avatarPath;
+    if (data.avatarMime !== undefined) row.avatar_mime = data.avatarMime;
+    if (data.avatarUrl !== undefined) row.avatar_url = data.avatarUrl;
+    if (data.askMeEnabled !== undefined) row.ask_me_enabled = data.askMeEnabled;
+    if (data.askMePriceCents !== undefined)
+      row.ask_me_price_cents = data.askMePriceCents;
 
     const { error } = await supabase.from(TABLE).upsert(row, {
       onConflict: "id",
@@ -95,6 +155,13 @@ export class SupabaseUserRepository implements UserRepository {
     if (data.socials !== undefined) row.socials = data.socials;
     if (data.onboardingCompleted !== undefined)
       row.onboarding_completed = data.onboardingCompleted;
+    if (data.role !== undefined) row.role = data.role;
+    if (data.avatarPath !== undefined) row.avatar_path = data.avatarPath;
+    if (data.avatarMime !== undefined) row.avatar_mime = data.avatarMime;
+    if (data.avatarUrl !== undefined) row.avatar_url = data.avatarUrl;
+    if (data.askMeEnabled !== undefined) row.ask_me_enabled = data.askMeEnabled;
+    if (data.askMePriceCents !== undefined)
+      row.ask_me_price_cents = data.askMePriceCents;
 
     const { error } = await supabase.from(TABLE).update(row).eq("id", id);
     if (error) throw mapWriteError(error);
@@ -111,6 +178,14 @@ export class SupabaseUserRepository implements UserRepository {
     });
     if (error) throw new Error(error.message);
     return data as string;
+  }
+
+  async uploadAvatar(userId: string, file: File): Promise<AvatarMetadata> {
+    const avatarPath = await uploadAvatarViaSignedUrl(userId, file);
+    return {
+      avatarPath,
+      avatarMime: file.type || "application/octet-stream",
+    };
   }
 }
 
@@ -130,5 +205,11 @@ function toUser(row: ProfileRow): User {
     slug: row.slug ?? undefined,
     socials: row.socials ?? undefined,
     onboardingCompleted: row.onboarding_completed ?? false,
+    role: (row.role === "consumer" ? "consumer" : "creator") as UserRole,
+    avatarPath: row.avatar_path ?? undefined,
+    avatarMime: row.avatar_mime ?? undefined,
+    avatarUrl: row.avatar_url ?? undefined,
+    askMeEnabled: row.ask_me_enabled ?? false,
+    askMePriceCents: row.ask_me_price_cents ?? undefined,
   };
 }

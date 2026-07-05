@@ -13,11 +13,38 @@ export interface ProductFileMetadata {
   fileName: string;
   fileMime: string;
   fileSize: number;
+  mediaWidth?: number;
+  mediaHeight?: number;
 }
 
 export interface ThumbnailMetadata {
   thumbnailPath: string;
   thumbnailMime: string;
+  thumbnailWidth?: number;
+  thumbnailHeight?: number;
+}
+
+export interface ProductCreatorProfile {
+  id: string;
+  slug: string;
+  handle: string;
+}
+
+export interface ProductWithCreator extends Product {
+  creator: ProductCreatorProfile;
+}
+
+export interface ExploreProductsParams {
+  query?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ExploreProductsResult {
+  items: ProductWithCreator[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 /**
@@ -37,6 +64,10 @@ export interface ProductRepository {
     slug: string
   ): Promise<Product | null>;
   listByCreator(creatorId: string): Promise<Product[]>;
+  /** Paginated explore feed with optional title/description/creator search. */
+  searchExplore(params?: ExploreProductsParams): Promise<ExploreProductsResult>;
+  /** Fetches products by id and attaches public creator profile metadata. */
+  listByIds(ids: string[]): Promise<ProductWithCreator[]>;
   delete(id: string): Promise<void>;
   /**
    * Returns an available slug (unique within the caller's products) derived

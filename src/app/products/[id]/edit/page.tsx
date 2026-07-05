@@ -8,6 +8,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { Product } from "@/core/models/product";
+import { isCreator } from "@/lib/user-role";
 import { productRepository } from "@/services/repository-factory";
 
 export default function EditProductPage() {
@@ -26,6 +27,10 @@ export default function EditProductPage() {
     }
     if (!user.onboardingCompleted) {
       router.replace("/onboarding");
+      return;
+    }
+    if (!isCreator(user)) {
+      router.replace("/");
       return;
     }
 

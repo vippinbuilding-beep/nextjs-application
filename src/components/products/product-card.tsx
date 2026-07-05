@@ -3,6 +3,7 @@ import { ProductThumbnail } from "./product-thumbnail";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
+import { productAspectRatio } from "@/lib/media-dimensions";
 import { PRODUCT_TYPES } from "@/lib/products";
 
 interface ProductCardProps {
@@ -11,6 +12,10 @@ interface ProductCardProps {
         title: string;
         description?: string;
         thumbnailPath?: string;
+        thumbnailWidth?: number | null;
+        thumbnailHeight?: number | null;
+        mediaWidth?: number | null;
+        mediaHeight?: number | null;
         slug: string;
     };
     profile: {
@@ -37,6 +42,12 @@ const ProductCard = ({ product, profile, type, mode = "public" }: ProductCardPro
     const thumbnailUrl = product.thumbnailPath
         ? getProductThumbnailUrl(product.id)
         : null;
+    const bannerAspectRatio = productAspectRatio({
+        thumbnailWidth: product.thumbnailWidth,
+        thumbnailHeight: product.thumbnailHeight,
+        mediaWidth: product.mediaWidth,
+        mediaHeight: product.mediaHeight,
+    });
     const href =
         mode === "manage"
             ? `/products/${product.id}/edit`
@@ -83,9 +94,10 @@ const ProductCard = ({ product, profile, type, mode = "public" }: ProductCardPro
             <ProductThumbnail
                 type={type}
                 thumbnailUrl={thumbnailUrl}
-                className="aspect-video w-full rounded-none border-0 border-b-2"
+                className="w-full rounded-none border-0 border-b-2"
                 iconClassName="size-10"
                 sizes="(min-width: 640px) 45vw, 100vw"
+                aspectRatio={bannerAspectRatio}
             />
 
             <span className="flex min-w-0 flex-1 flex-col gap-1.5 p-4">

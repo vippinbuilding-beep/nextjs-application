@@ -10,6 +10,10 @@ interface ProductListItem {
     title: string;
     description?: string;
     thumbnailPath?: string;
+    thumbnailWidth?: number | null;
+    thumbnailHeight?: number | null;
+    mediaWidth?: number | null;
+    mediaHeight?: number | null;
     slug: string;
     type: ProductType;
 }
@@ -49,6 +53,10 @@ export function ProductTabs({
 
     const defaultTab = lessons.length > 0 ? "lessons" : "documents";
 
+    if (!lessons.length && !documents.length) {
+        return <EmptyTabState label={emptyAllLabel} />;
+    }
+
     return (
         <Tabs defaultValue={defaultTab}>
             {lessons.length && documents.length ? (
@@ -67,9 +75,7 @@ export function ProductTabs({
             )}
 
             <AnimatedHeight>
-                {!lessons.length && !documents.length && (
-                    <EmptyTabState label={emptyAllLabel} />
-                )}
+
                 <TabsContent value="lessons">
                     {lessons.length === 0 ? (
                         <EmptyTabState label={emptyLessonsLabel} />

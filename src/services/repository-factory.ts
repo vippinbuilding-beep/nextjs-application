@@ -1,10 +1,17 @@
+import type { AskMeQuestionRepository } from "@/core/repositories/ask-me-repository";
 import type { AuthRepository } from "@/core/repositories/auth-repository";
+import type { NotificationRepository } from "@/core/repositories/notification-repository";
+import type { ProfileLinkRepository } from "@/core/repositories/profile-link-repository";
 import type { ProductCommentRepository } from "@/core/repositories/product-comment-repository";
 import type { ProductAccessRepository } from "@/core/repositories/product-access-repository";
 import type { ProductProgressRepository } from "@/core/repositories/product-progress-repository";
 import type { ProductRepository } from "@/core/repositories/product-repository";
 import type { UserRepository } from "@/core/repositories/user-repository";
+import { SupabaseAskMeQuestionRepository } from "@/infrastructure/supabase/supabase-ask-me-repository";
 import { SupabaseAuthRepository } from "@/infrastructure/supabase/supabase-auth-repository";
+import { supabase } from "@/lib/supabase/client";
+import { SupabaseNotificationRepository } from "@/infrastructure/supabase/supabase-notification-repository";
+import { SupabaseProfileLinkRepository } from "@/infrastructure/supabase/supabase-profile-link-repository";
 import { SupabaseProductCommentRepository } from "@/infrastructure/supabase/supabase-product-comment-repository";
 import { SupabaseProductAccessRepository } from "@/infrastructure/supabase/supabase-product-access-repository";
 import { SupabaseProductProgressRepository } from "@/infrastructure/supabase/supabase-product-progress-repository";
@@ -28,3 +35,9 @@ export const productAccessRepository: ProductAccessRepository =
   new SupabaseProductAccessRepository();
 export const productCommentRepository: ProductCommentRepository =
   new SupabaseProductCommentRepository();
+export const profileLinkRepository: ProfileLinkRepository =
+  new SupabaseProfileLinkRepository();
+export const askMeQuestionRepository: AskMeQuestionRepository =
+  new SupabaseAskMeQuestionRepository(supabase);
+export const notificationRepository: NotificationRepository =
+  new SupabaseNotificationRepository();

@@ -28,6 +28,11 @@ export interface Product {
   // Optional thumbnail image shown instead of the generic type icon.
   thumbnailPath?: string;
   thumbnailMime?: string;
+  thumbnailWidth?: number;
+  thumbnailHeight?: number;
+  // Dimensions of the main media file (e.g. video), used when no thumbnail exists.
+  mediaWidth?: number;
+  mediaHeight?: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -8,7 +8,6 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ProductComment } from "@/core/models/product-comment";
 import {
   buildCommentTree,
   COMMENT_BODY_MAX,
@@ -20,14 +19,15 @@ import { productCommentRepository } from "@/services/repository-factory";
 interface ProductCommentsPanelProps {
   productId: string;
   isOwner: boolean;
+  formId?: string;
 }
 
 export function ProductCommentsPanel({
   productId,
   isOwner,
+  formId = "comment-body",
 }: ProductCommentsPanelProps) {
   const { user } = useAuth();
-  const [comments, setComments] = useState<ProductComment[]>([]);
   const [tree, setTree] = useState<CommentNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -40,7 +40,6 @@ export function ProductCommentsPanel({
     setError(null);
     try {
       const next = await productCommentRepository.listByProduct(productId);
-      setComments(next);
       setTree(buildCommentTree(next));
     } catch (err) {
       setError(
@@ -117,11 +116,11 @@ export function ProductCommentsPanel({
   }
 
   return (
-    <div className="flex flex-col gap-5 overflow-x-hidden p-2">
+    <div className="flex flex-col gap-4 overflow-x-hidden px-1 py-0.5 h-full">
       <form onSubmit={(e) => void handleRootSubmit(e)} className="flex flex-col gap-2">
-        <Label htmlFor="comment-body">Novo comentário</Label>
+        <Label htmlFor={formId}>Novo comentário</Label>
         <Textarea
-          id="comment-body"
+          id={formId}
           value={body}
           onChange={(e) => setBody(e.target.value.slice(0, COMMENT_BODY_MAX))}
           maxLength={COMMENT_BODY_MAX}

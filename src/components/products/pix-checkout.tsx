@@ -6,6 +6,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Loading } from "@/components/ui/loading";
 import { formatBRL } from "@/lib/money";
 
@@ -27,11 +34,58 @@ type Phase = "idle" | "creating" | "awaiting" | "paid" | "error";
 
 const POLL_INTERVAL_MS = 4000;
 
+function PixQrPanel({
+  order,
+  copied,
+  onCopy,
+}: {
+  order: CheckoutResponse;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  const imgSrc = order.brCodeBase64.startsWith("data:")
+    ? order.brCodeBase64
+    : `data:image/png;base64,${order.brCodeBase64}`;
+
+  return (
+    <div className="flex w-full flex-col items-center gap-4 text-center">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imgSrc}
+        alt="QR Code PIX"
+        className="mx-auto w-full max-w-56 rounded-xl border-2 border-border bg-white p-2"
+      />
+      <div className="flex w-full min-w-0 flex-col gap-2">
+        <p className="text-muted-foreground text-xs font-medium">
+          Ou copie o código PIX:
+        </p>
+        <div className="flex w-full min-w-0 items-start gap-2">
+          <code className="min-w-0 flex-1 break-all rounded-xl border-2 border-border bg-muted px-3 py-2 text-left text-[10px] leading-snug sm:text-xs">
+            {order.brCode}
+          </code>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={onCopy}
+            aria-label="Copiar código PIX"
+          >
+            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+          </Button>
+        </div>
+      </div>
+      <p className="text-muted-foreground flex items-center gap-2 text-sm">
+        <Loading /> Aguardando confirmação do pagamento...
+      </p>
+    </div>
+  );
+}
+
 /**
  * Transparent PIX checkout. Opens a charge on our API, shows the QR code and
- * copy-and-paste code, then polls the order status until the payment clears —
- * at which point it refreshes the page so the (now unlocked) product content
- * renders in place.
+ * copy-and-paste code in a modal, then polls the order status until the
+ * payment clears — at which point it refreshes the page so the (now unlocked)
+ * product content renders in place.
  */
 export function PixCheckout({
   productId,
@@ -44,6 +98,7 @@ export function PixCheckout({
   const [order, setOrder] = useState<CheckoutResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = useCallback(() => {
@@ -54,6 +109,16 @@ export function PixCheckout({
   }, []);
 
   useEffect(() => stopPolling, [stopPolling]);
+
+  useEffect(() => {
+    if (phase === "awaiting") {
+      setQrModalOpen(true);
+      return;
+    }
+    if (phase === "paid" || phase === "error" || phase === "idle") {
+      setQrModalOpen(false);
+    }
+  }, [phase]);
 
   const startCheckout = useCallback(async () => {
     setPhase("creating");
@@ -141,74 +206,80 @@ export function PixCheckout({
     );
   }
 
-  if (phase === "awaiting" && order) {
-    const imgSrc = order.brCodeBase64.startsWith("data:")
-      ? order.brCodeBase64
-      : `data:image/png;base64,${order.brCodeBase64}`;
+  return (
+    <>
+      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-6 py-8 text-center">
+        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm">
+          <QrCode className="size-6" />
+        </span>
 
-    return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-border bg-background px-6 py-8 text-center shadow-cartoon-sm">
-        <p className="font-bold">Escaneie o QR Code para pagar</p>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imgSrc}
-          alt="QR Code PIX"
-          className="size-56 rounded-xl border-2 border-border bg-white p-2"
-        />
-        <div className="flex w-full flex-col gap-2">
-          <p className="text-muted-foreground text-xs font-medium">
-            Ou copie o código PIX:
-          </p>
-          <div className="flex items-center gap-2">
-            <code className="min-w-0 flex-1 truncate rounded-xl border-2 border-border bg-muted px-3 py-2 text-left text-xs">
-              {order.brCode}
-            </code>
+        {phase === "awaiting" && order ? (
+          <>
+            <p className="font-bold">Pagamento PIX em andamento</p>
+            <p className="text-muted-foreground text-sm">
+              Valor: {formatBRL(order.amountCents)}
+            </p>
+            <p className="text-muted-foreground flex items-center gap-2 text-sm">
+              <Loading /> Aguardando confirmação...
+            </p>
             <Button
               type="button"
-              variant="outline"
-              size="icon"
-              onClick={copyCode}
-              aria-label="Copiar código PIX"
+              className="w-full max-w-xs"
+              onClick={() => setQrModalOpen(true)}
             >
-              {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+              <QrCode className="size-4" />
+              Ver QR Code para pagar
             </Button>
-          </div>
-        </div>
-        <p className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Loading /> Aguardando confirmação do pagamento...
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-6 py-8 text-center">
-      <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm">
-        <QrCode className="size-6" />
-      </span>
-      {phase === "error" && error && (
-        <p className="text-destructive text-sm font-semibold" role="alert">
-          {error}
-        </p>
-      )}
-      <p className="text-muted-foreground text-sm">
-        Pague com PIX e tenha acesso imediato ao conteúdo.
-      </p>
-      <Button
-        className="w-full max-w-xs"
-        onClick={startCheckout}
-        disabled={phase === "creating"}
-      >
-        {phase === "creating" ? (
-          <>
-            <Loading /> Gerando PIX...
           </>
         ) : (
           <>
-            <QrCode className="size-4" /> Comprar por {formatBRL(priceCents)}
+            {phase === "error" && error && (
+              <p className="text-destructive text-sm font-semibold" role="alert">
+                {error}
+              </p>
+            )}
+            <p className="text-muted-foreground text-sm">
+              Pague com PIX e tenha acesso imediato ao conteúdo.
+            </p>
+            <Button
+              className="w-full max-w-xs"
+              onClick={startCheckout}
+              disabled={phase === "creating"}
+            >
+              {phase === "creating" ? (
+                <>
+                  <Loading /> Gerando PIX...
+                </>
+              ) : (
+                <>
+                  <QrCode className="size-4" /> Comprar por {formatBRL(priceCents)}
+                </>
+              )}
+            </Button>
           </>
         )}
-      </Button>
-    </div>
+      </div>
+
+      <Dialog
+        open={qrModalOpen && phase === "awaiting" && Boolean(order)}
+        onOpenChange={setQrModalOpen}
+      >
+        <DialogContent className="max-w-md">
+          <div className="flex flex-col gap-4">
+            <DialogHeader className="items-center text-center sm:text-center">
+              <DialogTitle>Escaneie o QR Code para pagar</DialogTitle>
+              {order && (
+                <DialogDescription>
+                  Valor: {formatBRL(order.amountCents)}
+                </DialogDescription>
+              )}
+            </DialogHeader>
+            {order && (
+              <PixQrPanel order={order} copied={copied} onCopy={copyCode} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

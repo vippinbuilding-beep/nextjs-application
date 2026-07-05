@@ -70,6 +70,18 @@ async function grantAccess(order: Order): Promise<void> {
   }
 }
 
+/** Retries the creator repass for a paid order (used by the transfer retry worker). */
+export async function repassOrderToCreator(
+  orderId: string
+): Promise<Order | null> {
+  const orders = getOrderRepository();
+  const order = await orders.getById(orderId);
+  if (!order) return null;
+  if (order.status !== "paid") return order;
+  if (order.transferStatus === "sent") return order;
+  return repassToCreator(order);
+}
+
 /**
  * Sends the creator's 90% to their registered PIX key. Failures here never block
  * the buyer's access: we record `transfer_status = 'failed'` for manual retry.

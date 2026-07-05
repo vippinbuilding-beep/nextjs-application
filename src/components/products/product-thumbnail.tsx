@@ -14,6 +14,8 @@ interface ProductThumbnailProps {
   /** Rounded corners preset; defaults to `rounded-xl`. */
   rounded?: string;
   sizes?: string;
+  /** When set, reserves the correct banner height before the image loads. */
+  aspectRatio?: number;
 }
 
 /**
@@ -27,8 +29,10 @@ export function ProductThumbnail({
   iconClassName = "size-6",
   rounded = "rounded-xl",
   sizes = "96px",
+  aspectRatio,
 }: ProductThumbnailProps) {
   const Icon = type === "single_lesson" ? PlayCircle : FileText;
+  const aspectStyle = aspectRatio ? { aspectRatio } : undefined;
 
   if (thumbnailUrl) {
     return (
@@ -38,6 +42,7 @@ export function ProductThumbnail({
           rounded,
           className
         )}
+        style={aspectStyle}
       >
         <Image
           src={thumbnailUrl}
@@ -57,6 +62,7 @@ export function ProductThumbnail({
         rounded,
         className
       )}
+      style={aspectStyle}
     >
       <Icon className={iconClassName} />
     </span>

@@ -19,6 +19,8 @@ export interface UserSocials {
 // to the payment gateway without any extra mapping.
 export type PixKeyType = "CPF" | "CNPJ" | "EMAIL" | "PHONE" | "RANDOM";
 
+export type UserRole = "creator" | "consumer";
+
 export interface User {
   id: string;
   email: string;
@@ -35,4 +37,12 @@ export interface User {
   slug?: string;
   socials?: UserSocials;
   onboardingCompleted?: boolean;
+  role?: UserRole;
+  avatarPath?: string | null;
+  avatarMime?: string | null;
+  /** External avatar URL (e.g. Google OAuth picture) when no upload exists. */
+  avatarUrl?: string | null;
+  /** Optional paid Q&A ("Me Pergunte"). */
+  askMeEnabled?: boolean;
+  askMePriceCents?: number | null;
 }

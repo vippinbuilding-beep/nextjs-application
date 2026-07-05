@@ -7,6 +7,7 @@ import { ProductForm } from "@/components/products/product-form";
 import { useAuth } from "@/components/providers/auth-provider";
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
+import { isCreator } from "@/lib/user-role";
 import { isProductType } from "@/lib/products";
 
 export default function NewProductDetailsPage() {
@@ -23,6 +24,8 @@ export default function NewProductDetailsPage() {
       router.replace("/login");
     } else if (!user.onboardingCompleted) {
       router.replace("/onboarding");
+    } else if (!isCreator(user)) {
+      router.replace("/");
     } else if (!validType) {
       router.replace("/products/new");
     }

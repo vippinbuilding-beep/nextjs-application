@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Rotas que exigem usuário autenticado.
-const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile"];
+const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile", "/my-products", "/my-questions", "/explore"];
 
 /**
  * Refreshes the Supabase auth session (rotating cookies) and enforces
@@ -42,6 +42,20 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  if (user && pathname.startsWith("/products")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.role === "consumer") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   return response;

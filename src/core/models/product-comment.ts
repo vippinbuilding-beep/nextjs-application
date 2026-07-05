@@ -7,4 +7,6 @@ export interface ProductComment {
   createdAt: Date;
   authorSlug?: string;
   authorName?: string;
+  authorAvatarPath?: string | null;
+  authorAvatarUrl?: string | null;
 }
