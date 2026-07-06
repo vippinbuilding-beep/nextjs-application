@@ -23,16 +23,10 @@ import { isConsumer } from "@/lib/user-role";
 
 const MENU_OPTIONS = [
   {
-    href: "/profile/edit",
-    icon: Pencil,
-    title: "Editar perfil",
-    description: "Atualize seu nome e foto de perfil.",
-  },
-  {
-    href: "/explore",
-    icon: Compass,
-    title: "Explorar produtos",
-    description: "Descubra aulas e materiais dos criadores.",
+    href: "/my-products",
+    icon: Library,
+    title: "Ver meus produtos",
+    description: "Acesse o que você comprou ou recebeu.",
   },
   {
     href: "/my-questions",
@@ -41,11 +35,17 @@ const MENU_OPTIONS = [
     description: "Perguntas pagas enviadas a criadores.",
   },
   {
-    href: "/my-products",
-    icon: Library,
-    title: "Ver meus produtos",
-    description: "Acesse o que você comprou ou recebeu.",
+    href: "/explore",
+    icon: Compass,
+    title: "Explorar produtos",
+    description: "Descubra aulas e materiais dos criadores.",
   },
+  {
+    href: "/profile/edit",
+    icon: Pencil,
+    title: "Editar perfil",
+    description: "Atualize seu nome e foto de perfil.",
+  }
 ] as const;
 
 export default function ConsumerHomePage() {
@@ -84,7 +84,7 @@ export default function ConsumerHomePage() {
       className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
     >
       <Card className="relative w-full max-w-md">
-        <div className="absolute top-4 right-4 flex items-center gap-2">
+        <div className="absolute top-4 right-4  items-center gap-2 flex">
           <NotificationBell />
           <Button
             size="sm"
@@ -92,7 +92,7 @@ export default function ConsumerHomePage() {
             onClick={handleSignOut}
           >
             <LogOut className="size-4" />
-            Sair
+
           </Button>
         </div>
         <CardHeader className="items-center text-center">

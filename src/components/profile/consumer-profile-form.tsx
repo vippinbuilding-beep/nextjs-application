@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import { ONBOARDING_LIMITS, formatPixKey, inferPixKeyType } from "@/components/onboarding/validation";
+import { ONBOARDING_LIMITS, validateConsumerName } from "@/components/onboarding/validation";
 import {
   AvatarPicker,
   persistAvatarSelection,
@@ -21,25 +21,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveConsumerDisplayName } from "@/lib/profile/display-name";
 import { userRepository } from "@/services/repository-factory";
-
-function validateName(name: string): string | null {
-  const trimmed = name.trim();
-  if (trimmed.length < ONBOARDING_LIMITS.name.min) {
-    return `O nome precisa ter pelo menos ${ONBOARDING_LIMITS.name.min} caracteres`;
-  }
-  if (trimmed.length > ONBOARDING_LIMITS.name.max) {
-    return `O nome pode ter no máximo ${ONBOARDING_LIMITS.name.max} caracteres`;
-  }
-  return null;
-}
+import { ScreenLoading } from "../ui/screen-loading";
+import { LayoutBackground } from "../ui/layout-background";
 
 export function ConsumerProfileForm() {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
 
-  const [name, setName] = useState("");
-  const [pixKey, setPixKey] = useState("");
+  const [consumerName, setConsumerName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -47,7 +38,7 @@ export function ConsumerProfileForm() {
     kind: "none",
   });
   const [profileAvatarPath, setProfileAvatarPath] = useState<string | null>(null);
-  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileAvatarFromGoogle, setProfileAvatarFromGoogle] = useState(false);
 
   const handleAvatarChange = useCallback((selection: AvatarSelection) => {
     setAvatarSelection(selection);
@@ -64,10 +55,13 @@ export function ConsumerProfileForm() {
       if (cancelled) return;
 
       if (profile) {
-        setName(profile.name ?? profile.displayName ?? "");
-        setPixKey(formatPixKey(profile.pixKey ?? ""));
+        setConsumerName(
+          profile.consumerName ??
+          profile.displayName ??
+          ""
+        );
         setProfileAvatarPath(profile.avatarPath ?? null);
-        setProfileAvatarUrl(profile.avatarUrl ?? null);
+        setProfileAvatarFromGoogle(profile.avatarFromGoogle ?? false);
       }
 
       if (!cancelled) setHydrated(true);
@@ -85,7 +79,7 @@ export function ConsumerProfileForm() {
 
     setError(null);
 
-    const validationError = validateName(name);
+    const validationError = validateConsumerName(consumerName);
     if (validationError) {
       setError(validationError);
       return;
@@ -95,9 +89,7 @@ export function ConsumerProfileForm() {
 
     try {
       await userRepository.update(user.id, {
-        name: name.trim(),
-        pixKey: formatPixKey(pixKey),
-        pixKeyType: inferPixKeyType(formatPixKey(pixKey)) || undefined,
+        consumerName: consumerName.trim(),
       });
       await persistAvatarSelection(user.id, avatarSelection);
       await refreshUser();
@@ -110,78 +102,73 @@ export function ConsumerProfileForm() {
   }
 
   if (!hydrated) {
-    return null;
+    return <ScreenLoading background="primary" />
   }
 
+  const previewName =
+    consumerName.trim() ||
+    (user ? resolveConsumerDisplayName(user) : "Usuário");
+
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Editar perfil</CardTitle>
-        <CardDescription>
-          Atualize como você aparece na plataforma.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <AvatarPicker
-            userId={user!.id}
-            displayName={name}
-            avatarPath={profileAvatarPath}
-            avatarUrl={profileAvatarUrl}
-            onChange={handleAvatarChange}
-          />
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="consumer-profile-name">Seu nome</Label>
-            <Input
-              id="consumer-profile-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Como quer ser chamado"
-              autoComplete="name"
-              maxLength={ONBOARDING_LIMITS.name.max}
+    <LayoutBackground
+      element="main"
+      background="primary"
+      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
+    >
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Editar perfil</CardTitle>
+          <CardDescription>
+            Atualize como você aparece na plataforma.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <AvatarPicker
+              userId={user!.id}
+              displayName={previewName}
+              avatarPath={profileAvatarPath}
+              avatarFromGoogle={profileAvatarFromGoogle}
+              avatarFallbackLabel="Usuário"
+              onChange={handleAvatarChange}
             />
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="consumer-profile-pix">Chave PIX (para estornos)</Label>
-            <Input
-              id="consumer-profile-pix"
-              value={pixKey}
-              onChange={(event) => setPixKey(formatPixKey(event.target.value))}
-              placeholder="CPF, e-mail, telefone ou chave aleatória"
-              autoComplete="off"
-              maxLength={ONBOARDING_LIMITS.pixKey.max}
-            />
-            <p className="text-muted-foreground text-xs">
-              Necessária para usar Me pergunte e receber estornos se o criador não
-              responder.
-            </p>
-          </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="consumer-profile-name">Como quer ser chamado?</Label>
+              <Input
+                id="consumer-profile-name"
+                value={consumerName}
+                onChange={(event) => setConsumerName(event.target.value)}
+                placeholder="Seu nome na plataforma"
+                autoComplete="nickname"
+                maxLength={ONBOARDING_LIMITS.consumerName.max}
+              />
+            </div>
 
-          {error && (
-            <p className="text-destructive text-sm" role="alert">
-              {error}
-            </p>
-          )}
+            {error && (
+              <p className="text-destructive text-sm" role="alert">
+                {error}
+              </p>
+            )}
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => router.push("/")}
-              disabled={submitting}
-            >
-              <ArrowLeft className="size-4" />
-              Voltar
-            </Button>
-            <Button type="submit" className="flex-1" disabled={submitting}>
-              {submitting ? "Salvando..." : "Salvar"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            <div className="flex gap-2 flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => router.push("/")}
+                disabled={submitting}
+              >
+                <ArrowLeft className="size-4" />
+                Voltar
+              </Button>
+              <Button type="submit" className="flex-1" disabled={submitting}>
+                {submitting ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </LayoutBackground>
   );
 }

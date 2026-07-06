@@ -1,26 +1,31 @@
 import type { PixKeyType, UserSocials } from "@/core/models/user";
 
-export interface OnboardingFormData {
+export interface CreatorOnboardingFormData {
   name: string;
   birthDate: string;
   pixKey: string;
   pixKeyType: PixKeyType | "";
   creatorName: string;
+  bio: string;
   socials: Partial<UserSocials>;
 }
 
-export const INITIAL_ONBOARDING_FORM: OnboardingFormData = {
+/** @deprecated Use CreatorOnboardingFormData */
+export type OnboardingFormData = CreatorOnboardingFormData;
+
+export const INITIAL_ONBOARDING_FORM: CreatorOnboardingFormData = {
   name: "",
   birthDate: "",
   pixKey: "",
   pixKeyType: "",
   creatorName: "",
+  bio: "",
   socials: {},
 };
 
 export interface OnboardingDraft {
   step: number;
-  form: OnboardingFormData;
+  form: CreatorOnboardingFormData;
   slug: string;
 }
 

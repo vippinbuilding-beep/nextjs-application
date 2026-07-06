@@ -13,10 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loading } from "@/components/ui/loading";
 import { Textarea } from "@/components/ui/textarea";
-import { ASK_ME_LIMITS, validateAskMeQuestion } from "@/lib/ask-me";
+import {
+  ASK_ME_LIMITS,
+  validateAskMeQuestion,
+  validateRefundPixKey,
+} from "@/lib/ask-me";
 import { formatBRL } from "@/lib/money";
 
 interface AskMeDialogProps {
@@ -24,7 +29,6 @@ interface AskMeDialogProps {
   creatorName: string;
   priceCents: number;
   isAuthenticated: boolean;
-  hasPixKey: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -48,12 +52,12 @@ export function AskMeDialog({
   creatorName,
   priceCents,
   isAuthenticated,
-  hasPixKey,
   open,
   onOpenChange,
 }: AskMeDialogProps) {
   const pathname = usePathname();
   const [questionText, setQuestionText] = useState("");
+  const [refundPixKey, setRefundPixKey] = useState("");
   const [phase, setPhase] = useState<Phase>("form");
   const [checkout, setCheckout] = useState<CheckoutResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +79,7 @@ export function AskMeDialog({
       setCheckout(null);
       setError(null);
       setQuestionText("");
+      setRefundPixKey("");
       stopPolling();
     }
   }, [open, stopPolling]);
@@ -112,12 +117,18 @@ export function AskMeDialog({
       return;
     }
 
+    const pixError = validateRefundPixKey(refundPixKey);
+    if (pixError) {
+      setError(pixError);
+      return;
+    }
+
     setPhase("creating");
     try {
       const res = await fetch(`/api/ask-me/${creatorId}/checkout`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ questionText }),
+        body: JSON.stringify({ questionText, refundPixKey }),
       });
       const body = (await res.json()) as CheckoutResponse;
       if (!res.ok) {
@@ -162,25 +173,6 @@ export function AskMeDialog({
     );
   }
 
-  if (!hasPixKey) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Chave PIX necessária</DialogTitle>
-            <DialogDescription>
-              Cadastre uma chave PIX no seu perfil para receber estornos, caso o
-              criador não responda em até {ASK_ME_LIMITS.responseDeadlineHours}h.
-            </DialogDescription>
-          </DialogHeader>
-          <Button asChild className="w-full">
-            <Link href="/profile/edit">Ir para editar perfil</Link>
-          </Button>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -219,6 +211,24 @@ export function AskMeDialog({
                 responder em até {ASK_ME_LIMITS.responseDeadlineHours}h.
               </DialogDescription>
             </DialogHeader>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="ask-me-refund-pix">
+                Chave PIX para reembolso (se necessário)
+              </Label>
+              <Input
+                id="ask-me-refund-pix"
+                value={refundPixKey}
+                onChange={(e) => setRefundPixKey(e.target.value)}
+                placeholder="CPF, e-mail, telefone ou chave aleatória"
+                autoComplete="off"
+                disabled={phase === "creating"}
+              />
+              <p className="text-muted-foreground text-xs">
+                Usada só se o criador não responder em até{" "}
+                {ASK_ME_LIMITS.responseDeadlineHours}h.
+              </p>
+            </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="ask-me-question">Sua pergunta</Label>
@@ -309,7 +319,6 @@ interface AskMeProfileButtonProps {
   creatorName: string;
   priceCents: number;
   isAuthenticated: boolean;
-  hasPixKey: boolean;
   isOwner: boolean;
 }
 
@@ -318,7 +327,6 @@ export function AskMeProfileButton({
   creatorName,
   priceCents,
   isAuthenticated,
-  hasPixKey,
   isOwner,
 }: AskMeProfileButtonProps) {
   const [open, setOpen] = useState(false);
@@ -345,7 +353,6 @@ export function AskMeProfileButton({
         creatorName={creatorName}
         priceCents={priceCents}
         isAuthenticated={isAuthenticated}
-        hasPixKey={hasPixKey}
         open={open}
         onOpenChange={setOpen}
       />

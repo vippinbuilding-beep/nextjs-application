@@ -1,12 +1,19 @@
+"use client";
+
 import { FileText, Link2, PlayCircle } from "lucide-react";
 
-import { ProductTabs } from "@/components/products/product-tabs";
+import ProductCard from "@/components/products/product-card";
 import { AnimatedHeight } from "@/components/ui/animated-height";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProfileLink } from "@/core/models/profile-link";
 import type { ProductType } from "@/core/models/product";
+import {
+  getAvailableCreatorTabs,
+  resolveCreatorDefaultTab,
+  type CreatorProfileTab,
+} from "@/lib/creator-profile-tabs";
 
-import { CreatorLinksList } from "./creator-links-list";
+import { CreatorLinkCard } from "./creator-links-list";
 
 interface ProductListItem {
   id: string;
@@ -29,21 +36,30 @@ interface CreatorPageTabsProps {
     id: string;
   };
   mode?: "public" | "manage";
+  defaultTab?: CreatorProfileTab | null;
 }
 
 /**
- * Top-level tabs on a creator profile: products (lessons/docs) and custom links.
+ * Creator profile tabs: "Tudo" shows links, lessons and documents together;
+ * optional filters per category when more than one type is published.
  */
 export function CreatorPageTabs({
   products,
   links,
   profile,
   mode = "public",
+  defaultTab,
 }: CreatorPageTabsProps) {
-  const hasProducts = products.length > 0;
   const hasLinks = links.length > 0;
+  const lessons = products.filter((product) => product.type === "single_lesson");
+  const documents = products.filter((product) => product.type === "document");
+  const hasLessons = lessons.length > 0;
+  const hasDocuments = documents.length > 0;
+  const hasAnyContent = hasLinks || hasLessons || hasDocuments;
 
-  if (!hasProducts && !hasLinks) {
+  const categoryCount = [hasLinks, hasLessons, hasDocuments].filter(Boolean).length;
+
+  if (!hasAnyContent) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
         <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
@@ -56,45 +72,152 @@ export function CreatorPageTabs({
     );
   }
 
-  if (hasProducts && !hasLinks) {
+  if (categoryCount <= 1) {
     return (
-      <ProductTabs products={products} profile={profile} mode={mode} />
+      <CreatorFeed
+        links={hasLinks ? links : []}
+        products={products}
+        profile={profile}
+        mode={mode}
+        layout="unified"
+      />
     );
   }
 
-  if (!hasProducts && hasLinks) {
-    return <CreatorLinksList links={links} />;
+  const tabs = getAvailableCreatorTabs({
+    hasLinks,
+    hasLessons,
+    hasDocuments,
+  });
+
+  const defaultValue = resolveCreatorDefaultTab(defaultTab, tabs);
+
+  if (!defaultValue) {
+    return null;
   }
 
-  const defaultTab = hasProducts ? "products" : "links";
-
   return (
-    <Tabs defaultValue={defaultTab}>
-      <TabsList className="max-w-none sm:max-w-80">
-        <TabsTrigger value="products">
-          <PlayCircle className="size-4" />
-          Produtos
-        </TabsTrigger>
-        <TabsTrigger value="links">
-          <Link2 className="size-4" />
-          Links
-        </TabsTrigger>
+    <Tabs defaultValue={defaultValue}>
+      <TabsList className="max-w-none">
+        {tabs.includes("lessons") && (
+          <TabsTrigger value="lessons">
+            <PlayCircle className="size-4" />
+            Aulas
+          </TabsTrigger>
+        )}
+        {tabs.includes("documents") && (
+          <TabsTrigger value="documents">
+            <FileText className="size-4" />
+            Vips
+          </TabsTrigger>
+        )}
+        {tabs.includes("links") && (
+          <TabsTrigger value="links">
+            <Link2 className="size-4" />
+            Links
+          </TabsTrigger>
+        )}
       </TabsList>
 
       <AnimatedHeight>
-        <TabsContent value="products">
-          <ProductTabs
-            products={products}
-            profile={profile}
-            mode={mode}
-            emptyAllLabel="Nenhum produto publicado ainda."
-          />
-        </TabsContent>
-
-        <TabsContent value="links">
-          <CreatorLinksList links={links} />
-        </TabsContent>
+        {hasLessons && (
+          <TabsContent value="lessons">
+            <CreatorFeed
+              links={[]}
+              products={lessons}
+              profile={profile}
+              mode={mode}
+              layout="lessons-grid"
+              emptyLabel="Nenhuma aula publicada ainda."
+            />
+          </TabsContent>
+        )}
+        {hasLinks && (
+          <TabsContent value="links">
+            <CreatorFeed
+              links={links}
+              products={[]}
+              profile={profile}
+              mode={mode}
+              layout="unified"
+              emptyLabel="Nenhum link publicado ainda."
+            />
+          </TabsContent>
+        )}
+        {hasDocuments && (
+          <TabsContent value="documents">
+            <CreatorFeed
+              links={[]}
+              products={documents}
+              profile={profile}
+              mode={mode}
+              layout="unified"
+              emptyLabel="Nenhum vip publicado ainda."
+            />
+          </TabsContent>
+        )}
       </AnimatedHeight>
     </Tabs>
+  );
+}
+
+function CreatorFeed({
+  links,
+  products,
+  profile,
+  mode,
+  layout,
+  emptyLabel = "Nenhum conteúdo nesta categoria.",
+}: {
+  links: ProfileLink[];
+  products: ProductListItem[];
+  profile: CreatorPageTabsProps["profile"];
+  mode: "public" | "manage";
+  layout: "unified" | "lessons-grid";
+  emptyLabel?: string;
+}) {
+  if (links.length === 0 && products.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-center">
+        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
+          <FileText className="size-6" />
+        </span>
+        <p className="text-muted-foreground text-sm">{emptyLabel}</p>
+      </div>
+    );
+  }
+
+  const productListClassName =
+    layout === "lessons-grid"
+      ? "grid grid-cols-1 gap-4 sm:grid-cols-2"
+      : "flex flex-col gap-3";
+
+  return (
+    <div className="flex flex-col gap-3">
+      {links.length > 0 && (
+        <ul className="flex flex-col gap-3">
+          {links.map((link) => (
+            <li key={`link-${link.id}`}>
+              <CreatorLinkCard link={link} />
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {products.length > 0 && (
+        <ul className={productListClassName}>
+          {products.map((product) => (
+            <li key={product.id}>
+              <ProductCard
+                product={product}
+                profile={profile}
+                type={product.type}
+                mode={mode}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

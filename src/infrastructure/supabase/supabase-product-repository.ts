@@ -252,16 +252,30 @@ export class SupabaseProductRepository implements ProductRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase.from(TABLE).delete().eq("id", id);
-    if (error) throw new Error(error.message);
+    const response = await fetch(`/api/products/${id}`, { method: "DELETE" });
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao excluir o produto.");
+    }
   }
 
   async generateUniqueSlug(base: string): Promise<string> {
-    const { data, error } = await supabase.rpc("claim_product_slug", {
-      desired: base,
+    const response = await fetch("/api/products/claim-slug", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ desired: base }),
     });
-    if (error) throw new Error(error.message);
-    return data as string;
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao gerar slug.");
+    }
+    const { slug } = (await response.json()) as { slug: string };
+    return slug;
   }
 
   async uploadFile(

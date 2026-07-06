@@ -27,6 +27,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SiteLogo } from "@/components/ui/site-logo";
 import { cn } from "@/lib/utils";
 
 import { LandingNavbar } from "./landing-navbar";
@@ -132,11 +133,11 @@ export function LandingPage() {
       {/* HERO */}
       <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-20">
         {/* Formas decorativas de fundo */}
-        <DecorShape className="md:block hidden left-[6%] top-[22%] size-24 -rotate-12 rounded-3xl border-2 border-border bg-primary shadow-cartoon sm:size-32" />
-        <DecorShape className="md:block hidden right-[8%] top-[18%] size-16 rounded-full border-2 border-border bg-[#4dd2ff] shadow-cartoon-sm sm:size-24" />
-        <DecorShape className="md:block hidden left-[14%] bottom-[16%] size-14 rounded-full border-2 border-border bg-[#9b5de5] shadow-cartoon-sm sm:size-20" />
-        <DecorShape className="md:block hidden right-[14%] bottom-[20%] size-20 rotate-10 rounded-2xl border-2 border-border bg-[#ff4d4d] shadow-cartoon sm:size-24" />
-        <DecorShape className="md:block left-[42%] top-[12%] hidden size-12 rotate-45 border-2 border-border bg-primary shadow-cartoon-sm lg:block" />
+        <DecorShape className="lg:block hidden left-[6%] top-[22%] size-24 -rotate-12 rounded-3xl border-2 border-border bg-primary shadow-cartoon sm:size-32" />
+        <DecorShape className="lg:block hidden right-[8%] top-[18%] size-16 rounded-full border-2 border-border bg-[#4dd2ff] shadow-cartoon-sm sm:size-24" />
+        <DecorShape className="lg:block hidden left-[14%] bottom-[16%] size-14 rounded-full border-2 border-border bg-[#9b5de5] shadow-cartoon-sm sm:size-20" />
+        <DecorShape className="lg:block hidden right-[14%] bottom-[20%] size-20 rotate-10 rounded-2xl border-2 border-border bg-[#ff4d4d] shadow-cartoon sm:size-24" />
+        <DecorShape className="lg:block hidden left-[42%] top-[12%] size-12 rotate-45 border-2 border-border bg-primary shadow-cartoon-sm" />
 
         <div className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-cartoon-sm">
@@ -166,7 +167,7 @@ export function LandingPage() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-              <Link href="/login?role=consumer">
+              <Link href="explore">
                 Explorar conteúdos
                 <ArrowRight className="size-5" />
               </Link>
@@ -188,7 +189,7 @@ export function LandingPage() {
 
         <div
           aria-hidden
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-muted-foreground"
+          className="absolute bottom-0 lg:bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-muted-foreground"
         >
           <div className="flex h-10 w-6 items-start justify-center rounded-full border-2 border-border p-1">
             <div className="h-2 w-1 rounded-full bg-border" />
@@ -283,8 +284,8 @@ export function LandingPage() {
 
       {/* COMO FUNCIONA */}
       <section className="relative overflow-hidden py-16 sm:py-24">
-        <DecorShape className="md:block hidden right-[6%] top-[45%] size-28 rounded-full border-2 border-border bg-primary/40 shadow-cartoon-sm" />
-        <DecorShape className="md:block hidden left-[4%] bottom-[10%] size-20 rounded-2xl border-2 border-border bg-[#9b5de5]/40" />
+        <DecorShape className="lg:block hidden right-[6%] top-[45%] size-28 rounded-full border-2 border-border bg-primary/40 shadow-cartoon-sm" />
+        <DecorShape className="lg:block hidden left-[4%] bottom-[10%] size-20 rounded-2xl border-2 border-border bg-[#9b5de5]/40" />
         <div className="relative z-10 mx-auto w-full max-w-5xl px-4">
           <div className="flex flex-col items-center gap-3 text-center">
             <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -340,7 +341,7 @@ export function LandingPage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                <Link href="/login?role=consumer">
+                <Link href="explore">
                   <Link2 className="size-5" />
                   Quero aprender
                 </Link>
@@ -353,9 +354,7 @@ export function LandingPage() {
       {/* FOOTER */}
       <footer className="border-t-2 border-border bg-background">
         <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-tight">Vippin</span>
-          </div>
+          <SiteLogo size={32} nameClassName="text-lg" />
           <p className="text-sm font-medium text-muted-foreground">
             © {new Date().getFullYear()} Vippin. Conhecimento que gera renda.
           </p>

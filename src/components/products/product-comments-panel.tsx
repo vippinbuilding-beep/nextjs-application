@@ -67,10 +67,22 @@ export function ProductCommentsPanel({
     setError(null);
 
     try {
-      await productCommentRepository.create(productId, {
-        body: bodyText.trim(),
-        parentId,
+      const response = await fetch(`/api/products/${productId}/comments`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          body: bodyText.trim(),
+          parentId,
+        }),
       });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        throw new Error(payload?.error ?? "Não foi possível enviar o comentário.");
+      }
+
       if (!parentId) setBody("");
       setReplyingToId(null);
       await loadComments();

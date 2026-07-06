@@ -108,9 +108,6 @@ export default function AskMeProfilePage() {
     >
       <Card className="relative w-full max-w-2xl">
         <CardHeader>
-          <div className="absolute top-4 right-4">
-            <NotificationBell />
-          </div>
           <CardTitle>Me pergunte</CardTitle>
           <CardDescription>
             Permita que sua audiência envie perguntas pagas. O valor fica retido
@@ -150,7 +147,7 @@ export default function AskMeProfilePage() {
                       inputMode="decimal"
                       value={priceInput}
                       onChange={(e) => setPriceInput(e.target.value)}
-                      placeholder="3,00"
+                      placeholder="2,00"
                     />
                     <p className="text-muted-foreground text-xs">
                       Mínimo {formatBRL(ASK_ME_LIMITS.minPriceCents)}. Padrão{" "}

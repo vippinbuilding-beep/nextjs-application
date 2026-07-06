@@ -1,8 +1,8 @@
 "use client";
 
-import { ExternalLink, UploadCloud } from "lucide-react";
+import { ExternalLink, FileText, Film, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -22,6 +22,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  FileUploadField,
+  ImageUploadField,
+} from "@/components/ui/file-upload-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PriceInput } from "@/components/ui/price-input";
@@ -73,9 +77,9 @@ export function ProductForm({ type, product }: ProductFormProps) {
   );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [showFreeConfirm, setShowFreeConfirm] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (!thumbnailFile) return;
@@ -84,34 +88,23 @@ export function ProductForm({ type, product }: ProductFormProps) {
     return () => URL.revokeObjectURL(url);
   }, [thumbnailFile]);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0] ?? null;
+  function handleFileChange(selected: File | null) {
     if (!selected) {
       setFile(null);
-      return;
-    }
-    const fileError = validateProductFile(type, selected);
-    if (fileError) {
-      setError(fileError);
-      setFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
     setError(null);
     setFile(selected);
   }
 
-  function handleThumbnailChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0] ?? null;
+  function handleThumbnailChange(selected: File | null) {
     if (!selected) {
       setThumbnailFile(null);
-      return;
-    }
-    const thumbnailError = validateThumbnailFile(selected);
-    if (thumbnailError) {
-      setError(thumbnailError);
-      setThumbnailFile(null);
-      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+      if (!product?.thumbnailPath) {
+        setThumbnailPreview(null);
+      } else if (product?.id) {
+        setThumbnailPreview(getProductThumbnailUrl(product.id));
+      }
       return;
     }
     setError(null);
@@ -280,6 +273,24 @@ export function ProductForm({ type, product }: ProductFormProps) {
     }
   }
 
+  async function handleDeleteProduct() {
+    if (!product) return;
+
+    setError(null);
+    setDeleting(true);
+
+    try {
+      await productRepository.delete(product.id);
+      setShowDeleteConfirm(false);
+      router.replace("/");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao excluir o produto."
+      );
+      setDeleting(false);
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-2xl">
       <Card className="w-full">
@@ -307,27 +318,20 @@ export function ProductForm({ type, product }: ProductFormProps) {
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="thumbnail">Miniatura do produto (opcional)</Label>
-            <div className="flex items-center gap-3">
-              <ProductThumbnail
-                type={type}
-                thumbnailUrl={thumbnailPreview}
-                className="size-16"
-                iconClassName="size-7"
-                sizes="64px"
-              />
-              <Input
-                id="thumbnail"
-                ref={thumbnailInputRef}
-                type="file"
-                accept={THUMBNAIL_ACCEPT}
-                onChange={handleThumbnailChange}
-                className="flex-1"
-              />
-            </div>
-            <p className="text-muted-foreground text-xs">
-              PNG, JPG, WEBP ou GIF. Máx. {formatFileSize(THUMBNAIL_MAX_SIZE)}.
-              Se não enviar, usamos um ícone genérico do tipo de produto.
-            </p>
+            <ImageUploadField
+              id="thumbnail"
+              accept={THUMBNAIL_ACCEPT}
+              file={thumbnailFile}
+              onFileChange={handleThumbnailChange}
+              validate={validateThumbnailFile}
+              onValidationError={setError}
+              existingFileName={
+                isEdit && product?.thumbnailPath && !thumbnailFile
+                  ? "Miniatura atual"
+                  : null
+              }
+              hint={`PNG, JPG, WEBP ou GIF. Máx. ${formatFileSize(THUMBNAIL_MAX_SIZE)}. Se não enviar, usamos um ícone genérico do tipo de produto.`}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -377,22 +381,23 @@ export function ProductForm({ type, product }: ProductFormProps) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="file">{config.uploadLabel}</Label>
-            <Input
+            <FileUploadField
               id="file"
-              ref={fileInputRef}
-              type="file"
               accept={config.accept}
-              onChange={handleFileChange}
+              file={file}
+              onFileChange={handleFileChange}
+              validate={(selected) => validateProductFile(type, selected)}
+              onValidationError={setError}
+              title={
+                type === "single_lesson"
+                  ? "Escolher vídeo da aula"
+                  : "Escolher documento"
+              }
+              description="Clique ou arraste o arquivo para esta área"
+              existingFileName={isEdit && product?.fileName && !file ? product.fileName : null}
+              icon={type === "single_lesson" ? Film : FileText}
+              hint={`${config.allowedHint}. Máx. ${formatFileSize(config.maxSize)}.`}
             />
-            <p className="text-muted-foreground text-xs">
-              {config.allowedHint}. Máx. {formatFileSize(config.maxSize)}.
-            </p>
-            {isEdit && product?.fileName && !file && (
-              <p className="flex items-center gap-1.5 text-xs font-medium">
-                <UploadCloud className="size-3.5" />
-                Arquivo atual: {product.fileName}
-              </p>
-            )}
           </div>
 
           {error && (
@@ -401,17 +406,37 @@ export function ProductForm({ type, product }: ProductFormProps) {
             </p>
           )}
 
+          {isEdit && product && (
+            <div className="rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 p-4">
+              <p className="text-sm font-bold text-destructive">Zona de perigo</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Excluir remove o produto, comentários e acessos de compradores.
+                Esta ação não pode ser desfeita.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3 w-full border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive sm:w-auto"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={submitting || deleting}
+              >
+                <Trash2 className="size-4" />
+                Excluir produto
+              </Button>
+            </div>
+          )}
+
           <div className="mt-2 flex gap-3">
             <Button
               type="button"
               variant="outline"
               className="flex-1"
               onClick={() => router.back()}
-              disabled={submitting}
+              disabled={submitting || deleting}
             >
               Voltar
             </Button>
-            <Button type="submit" className="flex-1" disabled={submitting}>
+            <Button type="submit" className="flex-1" disabled={submitting || deleting}>
               {submitting
                 ? "Salvando..."
                 : isEdit
@@ -450,6 +475,37 @@ export function ProductForm({ type, product }: ProductFormProps) {
               }}
             >
               {isEdit ? "Salvar de graça" : "Publicar de graça"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir produto?</DialogTitle>
+            <DialogDescription>
+              {product?.title
+                ? `"${product.title}" será removido permanentemente. Compradores perderão o acesso e todos os comentários serão apagados.`
+                : "Este produto será removido permanentemente."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => void handleDeleteProduct()}
+              disabled={deleting}
+            >
+              {deleting ? "Excluindo..." : "Excluir permanentemente"}
             </Button>
           </DialogFooter>
         </DialogContent>

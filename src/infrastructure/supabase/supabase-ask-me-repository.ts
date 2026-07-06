@@ -49,7 +49,7 @@ type AskMeRow = {
 type ProfilePreviewRow = {
   id: string;
   name: string | null;
-  display_name: string | null;
+  consumer_name: string | null;
   creator_name: string | null;
   slug: string | null;
   avatar_path: string | null;
@@ -106,6 +106,17 @@ export class SupabaseAskMeQuestionRepository implements AskMeQuestionRepository 
       ...toQuestion(row),
       creator: toCreatorPreview(creators.get(row.creator_id)),
     }));
+  }
+
+  async countAwaitingResponseByCreator(creatorId: string): Promise<number> {
+    const { count, error } = await this.client
+      .from(TABLE)
+      .select("*", { count: "exact", head: true })
+      .eq("creator_id", creatorId)
+      .eq("status", "awaiting_response");
+
+    if (error) throw new Error(error.message);
+    return count ?? 0;
   }
 
   async create(input: CreateAskMeQuestionInput): Promise<AskMeQuestion> {
@@ -217,8 +228,8 @@ export class SupabaseAskMeQuestionRepository implements AskMeQuestionRepository 
     if (ids.length === 0) return new Map();
 
     const { data, error } = await this.client
-      .from("profiles")
-      .select("id, name, display_name, creator_name, slug, avatar_path, avatar_url")
+      .from("public_profile_previews")
+      .select("id, name, consumer_name, creator_name, slug, avatar_path, avatar_url")
       .in("id", ids);
     if (error) throw new Error(error.message);
 
@@ -305,7 +316,7 @@ function toQuestion(row: AskMeRow): AskMeQuestion {
 function toAskerPreview(row: ProfilePreviewRow | undefined) {
   return {
     id: row?.id ?? "",
-    name: row?.name ?? row?.display_name ?? "Usuário",
+    name: row?.consumer_name ?? row?.name ?? "Usuário",
     avatarPath: row?.avatar_path ?? undefined,
     avatarUrl: row?.avatar_url ?? undefined,
   };

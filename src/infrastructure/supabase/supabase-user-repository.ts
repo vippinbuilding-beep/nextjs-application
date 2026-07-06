@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 import { AVATARS_BUCKET } from "@/lib/supabase/storage";
 import type { PixKeyType, User, UserRole, UserSocials } from "@/core/models/user";
+import { isCreatorProfileTab } from "@/lib/creator-profile-tabs";
 import type {
   AvatarMetadata,
   UserRepository,
@@ -13,6 +14,7 @@ type ProfileRow = {
   email: string | null;
   display_name: string | null;
   name: string | null;
+  consumer_name: string | null;
   birth_date: string | null;
   pix_key: string | null;
   pix_key_type: string | null;
@@ -24,26 +26,13 @@ type ProfileRow = {
   avatar_path: string | null;
   avatar_mime: string | null;
   avatar_url: string | null;
+  avatar_from_google: boolean | null;
   ask_me_enabled: boolean | null;
   ask_me_price_cents: number | null;
+  bio: string | null;
+  profile_default_tab: string | null;
   created_at: string | null;
 };
-
-/**
- * Maps a Postgres unique-violation (code 23505) to a friendly, domain-level
- * message so the onboarding UI can tell the user exactly what to fix.
- */
-function mapWriteError(error: { code?: string; message: string }): Error {
-  if (error.code === "23505") {
-    if (error.message.includes("creator_name")) {
-      return new Error("Esse nome de criador já está em uso. Escolha outro.");
-    }
-    if (error.message.includes("slug")) {
-      return new Error("Não foi possível gerar um link único. Tente novamente.");
-    }
-  }
-  return new Error(error.message);
-}
 
 function mapStorageError(error: { message: string }): Error {
   const msg = error.message.toLowerCase();
@@ -94,14 +83,17 @@ async function uploadAvatarViaSignedUrl(userId: string, file: File): Promise<str
  */
 export class SupabaseUserRepository implements UserRepository {
   async getById(id: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!data) return null;
-    return toUser(data as ProfileRow);
+    const response = await fetch("/api/profile/me");
+    if (response.status === 401) return null;
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao carregar perfil.");
+    }
+    const data = (await response.json()) as ProfileRow;
+    if (data.id !== id) return null;
+    return toUser(data);
   }
 
   async list(): Promise<User[]> {
@@ -111,60 +103,36 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async upsert(id: string, data: Partial<Omit<User, "id">>): Promise<void> {
-    const row: Partial<ProfileRow> & { id: string } = { id };
-    if (data.email !== undefined) row.email = data.email;
-    if (data.displayName !== undefined) row.display_name = data.displayName;
-    if (data.name !== undefined) row.name = data.name;
-    if (data.birthDate !== undefined) row.birth_date = data.birthDate;
-    if (data.pixKey !== undefined) row.pix_key = data.pixKey;
-    if (data.pixKeyType !== undefined)
-      row.pix_key_type = data.pixKeyType ? data.pixKeyType.toLowerCase() : null;
-    if (data.creatorName !== undefined) row.creator_name = data.creatorName;
-    if (data.slug !== undefined) row.slug = data.slug;
-    if (data.socials !== undefined) row.socials = data.socials;
-    if (data.onboardingCompleted !== undefined)
-      row.onboarding_completed = data.onboardingCompleted;
-    if (data.role !== undefined) row.role = data.role;
-    if (data.avatarPath !== undefined) row.avatar_path = data.avatarPath;
-    if (data.avatarMime !== undefined) row.avatar_mime = data.avatarMime;
-    if (data.avatarUrl !== undefined) row.avatar_url = data.avatarUrl;
-    if (data.askMeEnabled !== undefined) row.ask_me_enabled = data.askMeEnabled;
-    if (data.askMePriceCents !== undefined)
-      row.ask_me_price_cents = data.askMePriceCents;
-
-    const { error } = await supabase.from(TABLE).upsert(row, {
-      onConflict: "id",
+    const response = await fetch("/api/profile/me", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
     });
-    if (error) throw mapWriteError(error);
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao salvar perfil.");
+    }
   }
 
   async update(
     id: string,
     data: Partial<Omit<User, "id" | "createdAt">>
   ): Promise<void> {
-    const row: Partial<ProfileRow> = {};
-    if (data.email !== undefined) row.email = data.email;
-    if (data.displayName !== undefined) row.display_name = data.displayName;
-    if (data.name !== undefined) row.name = data.name;
-    if (data.birthDate !== undefined) row.birth_date = data.birthDate;
-    if (data.pixKey !== undefined) row.pix_key = data.pixKey;
-    if (data.pixKeyType !== undefined)
-      row.pix_key_type = data.pixKeyType ? data.pixKeyType.toLowerCase() : null;
-    if (data.creatorName !== undefined) row.creator_name = data.creatorName;
-    if (data.slug !== undefined) row.slug = data.slug;
-    if (data.socials !== undefined) row.socials = data.socials;
-    if (data.onboardingCompleted !== undefined)
-      row.onboarding_completed = data.onboardingCompleted;
-    if (data.role !== undefined) row.role = data.role;
-    if (data.avatarPath !== undefined) row.avatar_path = data.avatarPath;
-    if (data.avatarMime !== undefined) row.avatar_mime = data.avatarMime;
-    if (data.avatarUrl !== undefined) row.avatar_url = data.avatarUrl;
-    if (data.askMeEnabled !== undefined) row.ask_me_enabled = data.askMeEnabled;
-    if (data.askMePriceCents !== undefined)
-      row.ask_me_price_cents = data.askMePriceCents;
+    const response = await fetch("/api/profile/me", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-    const { error } = await supabase.from(TABLE).update(row).eq("id", id);
-    if (error) throw mapWriteError(error);
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao salvar perfil.");
+    }
   }
 
   async delete(id: string): Promise<void> {
@@ -173,11 +141,19 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async generateUniqueSlug(base: string): Promise<string> {
-    const { data, error } = await supabase.rpc("claim_profile_slug", {
-      desired: base,
+    const response = await fetch("/api/profile/claim-slug", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ desired: base }),
     });
-    if (error) throw new Error(error.message);
-    return data as string;
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao gerar slug.");
+    }
+    const { slug } = (await response.json()) as { slug: string };
+    return slug;
   }
 
   async uploadAvatar(userId: string, file: File): Promise<AvatarMetadata> {
@@ -196,6 +172,7 @@ function toUser(row: ProfileRow): User {
     displayName: row.display_name ?? null,
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     name: row.name ?? undefined,
+    consumerName: row.consumer_name ?? undefined,
     birthDate: row.birth_date ?? undefined,
     pixKey: row.pix_key ?? undefined,
     pixKeyType: row.pix_key_type
@@ -209,7 +186,13 @@ function toUser(row: ProfileRow): User {
     avatarPath: row.avatar_path ?? undefined,
     avatarMime: row.avatar_mime ?? undefined,
     avatarUrl: row.avatar_url ?? undefined,
+    avatarFromGoogle: row.avatar_from_google ?? false,
     askMeEnabled: row.ask_me_enabled ?? false,
     askMePriceCents: row.ask_me_price_cents ?? undefined,
+    bio: row.bio ?? undefined,
+    profileDefaultTab:
+      row.profile_default_tab && isCreatorProfileTab(row.profile_default_tab)
+        ? row.profile_default_tab
+        : undefined,
   };
 }

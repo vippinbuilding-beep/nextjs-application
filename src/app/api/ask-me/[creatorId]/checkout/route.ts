@@ -3,8 +3,10 @@ import type { NextRequest } from "next/server";
 import { SupabaseAskMeQuestionRepository } from "@/infrastructure/supabase/supabase-ask-me-repository";
 import {
   ASK_ME_LIMITS,
+  inferRefundPixKeyType,
   resolveAskMePriceCents,
   validateAskMeQuestion,
+  validateRefundPixKey,
 } from "@/lib/ask-me";
 import { splitAmount } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -18,6 +20,7 @@ const CHARGE_TTL_SECONDS = 60 * 60;
 
 interface CheckoutBody {
   questionText?: string;
+  refundPixKey?: string;
 }
 
 /**
@@ -59,6 +62,18 @@ export async function POST(
     return Response.json({ error: questionError }, { status: 400 });
   }
 
+  const refundPixKey =
+    typeof body.refundPixKey === "string" ? body.refundPixKey.trim() : "";
+  const refundPixError = validateRefundPixKey(refundPixKey);
+  if (refundPixError) {
+    return Response.json({ error: refundPixError }, { status: 400 });
+  }
+
+  const refundPixKeyType = inferRefundPixKeyType(refundPixKey);
+  if (!refundPixKeyType) {
+    return Response.json({ error: "Chave PIX de reembolso inválida." }, { status: 400 });
+  }
+
   const admin = createSupabaseAdminClient();
 
   const { data: creator } = await admin
@@ -77,22 +92,6 @@ export async function POST(
   if (!creator.pix_key) {
     return Response.json(
       { error: "O criador ainda não pode receber pagamentos." },
-      { status: 400 }
-    );
-  }
-
-  const { data: asker } = await admin
-    .from("profiles")
-    .select("pix_key, pix_key_type")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (!asker?.pix_key || !asker.pix_key_type) {
-    return Response.json(
-      {
-        error:
-          "Cadastre uma chave PIX no seu perfil para receber estornos, se necessário.",
-      },
       { status: 400 }
     );
   }
@@ -134,8 +133,8 @@ export async function POST(
     amountCents: split.amountCents,
     platformFeeCents: split.platformFeeCents,
     creatorAmountCents: split.creatorAmountCents,
-    refundPixKey: asker.pix_key,
-    refundPixKeyType: asker.pix_key_type,
+    refundPixKey,
+    refundPixKeyType: refundPixKeyType.toLowerCase(),
   });
 
   const gateway = getPaymentGateway();

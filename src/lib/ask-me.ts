@@ -1,6 +1,10 @@
+import { cpf, cnpj } from "cpf-cnpj-validator";
+
+import type { PixKeyType } from "@/core/models/user";
+
 export const ASK_ME_LIMITS = {
-  minPriceCents: 300,
-  defaultPriceCents: 300,
+  minPriceCents: 200,
+  defaultPriceCents: 200,
   maxPriceCents: 500_00,
   question: { min: 10, max: 500 },
   answerText: { min: 1, max: 2000 },
@@ -86,4 +90,33 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function getAskMeStatusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status;
+}
+
+/** Infers PIX key type for ask-me refund keys (broader than creator CPF/CNPJ). */
+export function inferRefundPixKeyType(value: string): PixKeyType | "" {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length === 11 && cpf.isValid(digits)) return "CPF";
+  if (digits.length === 14 && cnpj.isValid(digits)) return "CNPJ";
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return "EMAIL";
+  if (digits.length >= 10 && digits.length <= 11) return "PHONE";
+  if (
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      trimmed
+    )
+  ) {
+    return "RANDOM";
+  }
+  if (trimmed.length >= 32) return "RANDOM";
+
+  return "";
+}
+
+export function validateRefundPixKey(value: string): string | null {
+  if (!inferRefundPixKeyType(value)) {
+    return "Informe uma chave PIX válida para reembolso (CPF, CNPJ, e-mail, telefone ou aleatória).";
+  }
+  return null;
 }

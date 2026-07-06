@@ -3,17 +3,16 @@
 import {
   ChevronDown,
   ChevronUp,
-  ImagePlus,
   Link2,
   Pencil,
   Plus,
   Trash2,
-  X,
 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ImageUploadField } from "@/components/ui/file-upload-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ProfileLink } from "@/core/models/profile-link";
@@ -60,8 +59,6 @@ export function ProfileLinksEditor({
   const [draft, setDraft] = useState<LinkDraft>(EMPTY_DRAFT);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<LinkDraft>(EMPTY_DRAFT);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const loadLinks = useCallback(async () => {
     setLoading(true);
@@ -89,7 +86,19 @@ export function ProfileLinksEditor({
   }
 
   function handleDraftImage(file: File | null, isEdit = false) {
-    if (!file) return;
+    const setTarget = isEdit ? setEditDraft : setDraft;
+    const current = isEdit ? editDraft : draft;
+
+    if (!file) {
+      revokePreview(current.imagePreview);
+      setTarget((prev) => ({
+        ...prev,
+        imageFile: null,
+        imagePreview: null,
+      }));
+      setError(null);
+      return;
+    }
 
     const imageError = validateProfileLinkImage(file);
     if (imageError) {
@@ -97,22 +106,13 @@ export function ProfileLinksEditor({
       return;
     }
 
+    revokePreview(current.imagePreview);
     const preview = URL.createObjectURL(file);
-    if (isEdit) {
-      revokePreview(editDraft.imagePreview);
-      setEditDraft((prev) => ({
-        ...prev,
-        imageFile: file,
-        imagePreview: preview,
-      }));
-    } else {
-      revokePreview(draft.imagePreview);
-      setDraft((prev) => ({
-        ...prev,
-        imageFile: file,
-        imagePreview: preview,
-      }));
-    }
+    setTarget((prev) => ({
+      ...prev,
+      imageFile: file,
+      imagePreview: preview,
+    }));
     setError(null);
   }
 
@@ -281,17 +281,8 @@ export function ProfileLinksEditor({
                   onUrlChange={(value) =>
                     setEditDraft((prev) => ({ ...prev, url: value }))
                   }
-                  onPickImage={() => editFileInputRef.current?.click()}
-                  onClearImage={() => {
-                    revokePreview(editDraft.imagePreview);
-                    setEditDraft((prev) => ({
-                      ...prev,
-                      imageFile: null,
-                      imagePreview: null,
-                    }));
-                  }}
-                  fileInputRef={editFileInputRef}
-                  onImageSelected={(file) => handleDraftImage(file, true)}
+                  onImageChange={(file) => handleDraftImage(file, true)}
+                  onImageValidationError={setError}
                   onSubmit={handleUpdate}
                   onCancel={() => clearDraft(true)}
                   submitLabel={busy ? "Salvando..." : "Salvar"}
@@ -374,17 +365,8 @@ export function ProfileLinksEditor({
             onUrlChange={(value) =>
               setDraft((prev) => ({ ...prev, url: value }))
             }
-            onPickImage={() => fileInputRef.current?.click()}
-            onClearImage={() => {
-              revokePreview(draft.imagePreview);
-              setDraft((prev) => ({
-                ...prev,
-                imageFile: null,
-                imagePreview: null,
-              }));
-            }}
-            fileInputRef={fileInputRef}
-            onImageSelected={(file) => handleDraftImage(file, false)}
+            onImageChange={(file) => handleDraftImage(file, false)}
+            onImageValidationError={setError}
             onSubmit={handleCreate}
             onCancel={() => clearDraft(false)}
             submitLabel={busy ? "Adicionando..." : "Adicionar link"}
@@ -428,10 +410,8 @@ interface LinkFormProps {
   draft: LinkDraft;
   onTitleChange: (value: string) => void;
   onUrlChange: (value: string) => void;
-  onPickImage: () => void;
-  onClearImage: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onImageSelected: (file: File) => void;
+  onImageChange: (file: File | null) => void;
+  onImageValidationError?: (message: string | null) => void;
   onSubmit: () => void | Promise<void>;
   onCancel: () => void;
   submitLabel: string;
@@ -442,15 +422,18 @@ function LinkForm({
   draft,
   onTitleChange,
   onUrlChange,
-  onPickImage,
-  onClearImage,
-  fileInputRef,
-  onImageSelected,
+  onImageChange,
+  onImageValidationError,
   onSubmit,
   onCancel,
   submitLabel,
   disabled,
 }: LinkFormProps) {
+  const hasExistingImage =
+    Boolean(draft.imagePreview) &&
+    !draft.imageFile &&
+    !draft.imagePreview?.startsWith("blob:");
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
@@ -478,65 +461,36 @@ function LinkForm({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label>Imagem (opcional)</Label>
-        <div className="flex items-center gap-3">
-          {draft.imagePreview ? (
-            <span className="relative size-14 overflow-hidden rounded-lg border-2 border-border">
-              <Image
-                src={draft.imagePreview}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="56px"
-                unoptimized
-              />
-            </span>
-          ) : (
-            <span className="flex size-14 items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted">
-              <Link2 className="size-5 text-muted-foreground" />
-            </span>
-          )}
-
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onPickImage}
-              disabled={disabled}
-            >
-              <ImagePlus className="size-4" />
-              Escolher imagem
-            </Button>
-            {draft.imagePreview && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onClearImage}
-                disabled={disabled}
-              >
-                <X className="size-4" />
-                Remover
-              </Button>
-            )}
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={PROFILE_LINK_IMAGE_ACCEPT}
-            className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onImageSelected(file);
-              e.target.value = "";
-            }}
-          />
-        </div>
-        <p className="text-muted-foreground text-xs">
-          PNG, JPG, WEBP ou GIF. Máximo 5 MB.
-        </p>
+        <Label htmlFor="link-image">Imagem (opcional)</Label>
+        <ImageUploadField
+          id="link-image"
+          accept={PROFILE_LINK_IMAGE_ACCEPT}
+          file={draft.imageFile}
+          onFileChange={onImageChange}
+          validate={validateProfileLinkImage}
+          onValidationError={onImageValidationError}
+          disabled={disabled}
+          existingFileName={hasExistingImage ? "Imagem atual" : null}
+          hint="PNG, JPG, WEBP ou GIF. Máximo 5 MB."
+          preview={
+            draft.imagePreview ? (
+              <span className="relative size-14 shrink-0 overflow-hidden rounded-lg border-2 border-border">
+                <Image
+                  src={draft.imagePreview}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  sizes="56px"
+                  unoptimized
+                />
+              </span>
+            ) : (
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted">
+                <Link2 className="size-5 text-muted-foreground" />
+              </span>
+            )
+          }
+        />
       </div>
 
       <div className="flex gap-2">

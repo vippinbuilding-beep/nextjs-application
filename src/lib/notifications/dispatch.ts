@@ -30,6 +30,15 @@ export async function createNotification(
   }
 }
 
+export function productPublicPath(
+  creatorSlug: string,
+  productSlug: string
+): string {
+  return `/@${creatorSlug}/${productSlug}`;
+}
+
+// ── Me Pergunte ─────────────────────────────────────────────────────────────
+
 export async function notifyAskMeNewQuestion(input: {
   creatorId: string;
   questionId: string;
@@ -94,5 +103,178 @@ export async function notifyAskMePaymentConfirmed(input: {
     body: `Pagamento confirmado! @${input.creatorName} tem até 72h para responder.`,
     href: "/my-questions",
     metadata: { questionId: input.questionId },
+  });
+}
+
+// ── Produtos ────────────────────────────────────────────────────────────────
+
+export async function notifyProductPurchaseConfirmed(input: {
+  buyerId: string;
+  orderId: string;
+  productId: string;
+  productTitle: string;
+  productHref: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.buyerId,
+    type: "product_purchase_confirmed",
+    title: "Compra confirmada",
+    body: `Você agora tem acesso a "${input.productTitle}".`,
+    href: input.productHref,
+    metadata: {
+      orderId: input.orderId,
+      productId: input.productId,
+    },
+  });
+}
+
+export async function notifyProductSale(input: {
+  creatorId: string;
+  orderId: string;
+  productId: string;
+  productTitle: string;
+  buyerName: string;
+  amountCents: number;
+}): Promise<void> {
+  await createNotification({
+    userId: input.creatorId,
+    type: "product_sale",
+    title: "Nova venda",
+    body: `${input.buyerName} comprou "${input.productTitle}" por ${formatBRL(input.amountCents)}.`,
+    href: "/my-products",
+    metadata: {
+      orderId: input.orderId,
+      productId: input.productId,
+    },
+  });
+}
+
+export async function notifyProductNewComment(input: {
+  creatorId: string;
+  productId: string;
+  commentId: string;
+  productTitle: string;
+  productHref: string;
+  authorName: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.creatorId,
+    type: "product_new_comment",
+    title: "Novo comentário",
+    body: `${input.authorName} comentou em "${input.productTitle}".`,
+    href: input.productHref,
+    metadata: {
+      productId: input.productId,
+      commentId: input.commentId,
+    },
+  });
+}
+
+export async function notifyProductCommentReply(input: {
+  recipientId: string;
+  productId: string;
+  commentId: string;
+  productTitle: string;
+  productHref: string;
+  authorName: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.recipientId,
+    type: "product_comment_reply",
+    title: "Resposta ao seu comentário",
+    body: `${input.authorName} respondeu seu comentário em "${input.productTitle}".`,
+    href: input.productHref,
+    metadata: {
+      productId: input.productId,
+      commentId: input.commentId,
+    },
+  });
+}
+
+// ── Perfil ──────────────────────────────────────────────────────────────────
+
+export async function notifyProfileOnboardingComplete(input: {
+  userId: string;
+  role: "creator" | "consumer";
+  href: string;
+}): Promise<void> {
+  const body =
+    input.role === "creator"
+      ? "Seu perfil de criador está pronto. Compartilhe seu link e comece a vender."
+      : "Seu perfil está pronto. Explore criadores e produtos.";
+
+  await createNotification({
+    userId: input.userId,
+    type: "profile_onboarding_complete",
+    title: "Bem-vindo ao Vippin",
+    body,
+    href: input.href,
+    metadata: { role: input.role },
+  });
+}
+
+export async function notifyProfileUpdated(input: {
+  userId: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.userId,
+    type: "profile_updated",
+    title: "Perfil atualizado",
+    body: "Suas alterações foram salvas com sucesso.",
+    href: "/profile/edit",
+  });
+}
+
+// ── Repasse PIX ─────────────────────────────────────────────────────────────
+
+export type PixTransferKind = "order" | "ask_me";
+
+export async function notifyPixTransferSent(input: {
+  creatorId: string;
+  kind: PixTransferKind;
+  entityId: string;
+  amountCents: number;
+  label: string;
+}): Promise<void> {
+  const context =
+    input.kind === "order" ? "venda de produto" : "Me pergunte";
+
+  await createNotification({
+    userId: input.creatorId,
+    type: "pix_transfer_sent",
+    title: "Repasse PIX enviado",
+    body: `${formatBRL(input.amountCents)} da ${context} "${input.label}" foi transferido para sua chave PIX.`,
+    href: input.kind === "order" ? "/my-products" : "/profile/ask-me",
+    metadata: {
+      kind: input.kind,
+      entityId: input.entityId,
+      amountCents: input.amountCents,
+    },
+  });
+}
+
+export async function notifyPixTransferFailed(input: {
+  creatorId: string;
+  kind: PixTransferKind;
+  entityId: string;
+  amountCents: number;
+  label: string;
+  error: string;
+}): Promise<void> {
+  const context =
+    input.kind === "order" ? "venda de produto" : "Me pergunte";
+
+  await createNotification({
+    userId: input.creatorId,
+    type: "pix_transfer_failed",
+    title: "Repasse PIX falhou",
+    body: `Não foi possível transferir ${formatBRL(input.amountCents)} da ${context} "${input.label}": ${input.error}`,
+    href: "/profile/edit",
+    metadata: {
+      kind: input.kind,
+      entityId: input.entityId,
+      amountCents: input.amountCents,
+      error: input.error,
+    },
   });
 }

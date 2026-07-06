@@ -29,7 +29,7 @@ import {
   formatPixKey,
   inferPixKeyType,
   normalizeOnboardingForm,
-  validateProfileStep,
+  validateCreatorProfileStep,
   validateSocialsStep,
 } from "./validation";
 
@@ -44,6 +44,7 @@ function formFromUser(user: User): OnboardingFormData {
     pixKey,
     pixKeyType: user.pixKeyType ?? inferPixKeyType(pixKey),
     creatorName: user.creatorName ?? "",
+    bio: user.bio ?? "",
     socials: user.socials ?? {},
   };
 }
@@ -69,7 +70,7 @@ export function OnboardingForm() {
     kind: "none",
   });
   const [profileAvatarPath, setProfileAvatarPath] = useState<string | null>(null);
-  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileAvatarFromGoogle, setProfileAvatarFromGoogle] = useState(false);
 
   const handleAvatarChange = useCallback((selection: AvatarSelection) => {
     setAvatarSelection(selection);
@@ -95,7 +96,7 @@ export function OnboardingForm() {
         setStep(inferStepFromUser(profile));
         setSlug(profile.slug ?? "");
         setProfileAvatarPath(profile.avatarPath ?? null);
-        setProfileAvatarUrl(profile.avatarUrl ?? null);
+        setProfileAvatarFromGoogle(profile.avatarFromGoogle ?? false);
       }
 
       await refreshUser();
@@ -161,7 +162,7 @@ export function OnboardingForm() {
     const normalizedForm = normalizeOnboardingForm(form);
     const validationError =
       step === 1
-        ? validateProfileStep(normalizedForm)
+        ? validateCreatorProfileStep(normalizedForm)
         : step === 2
           ? validateSocialsStep(normalizedForm.socials)
           : null;
@@ -175,16 +176,13 @@ export function OnboardingForm() {
 
     try {
       if (step === 1) {
-        await userRepository.upsert(user.id, {
-          email: user.email,
-          displayName: user.displayName,
-          createdAt: user.createdAt,
+        await userRepository.update(user.id, {
           name: normalizedForm.name,
           birthDate: normalizedForm.birthDate,
           pixKey: normalizedForm.pixKey,
           pixKeyType: normalizedForm.pixKeyType || undefined,
           creatorName: normalizedForm.creatorName,
-          role: "creator",
+          bio: normalizedForm.bio || null,
           onboardingCompleted: false,
         });
         await persistAvatarSelection(user.id, avatarSelection);
@@ -197,7 +195,7 @@ export function OnboardingForm() {
         const uniqueSlug = await userRepository.generateUniqueSlug(
           normalizedForm.creatorName
         );
-        await userRepository.upsert(user.id, {
+        await userRepository.update(user.id, {
           socials: normalizedForm.socials,
           slug: uniqueSlug,
           onboardingCompleted: false,
@@ -208,7 +206,7 @@ export function OnboardingForm() {
         return;
       }
 
-      await userRepository.upsert(user.id, {
+      await userRepository.update(user.id, {
         onboardingCompleted: true,
       });
       clearOnboardingDraft(user.id);
@@ -296,7 +294,7 @@ export function OnboardingForm() {
               userId={user!.id}
               displayName={form.creatorName || form.name}
               avatarPath={profileAvatarPath}
-              avatarUrl={profileAvatarUrl}
+              avatarFromGoogle={profileAvatarFromGoogle}
               onChange={handleAvatarChange}
             />
 

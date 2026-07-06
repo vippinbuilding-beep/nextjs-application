@@ -77,13 +77,6 @@ export default function MyProductsPage() {
             <CardDescription>
               Aulas e materiais que você comprou ou recebeu acesso.
             </CardDescription>
-            <CardAction className="flex gap-2">
-              <NotificationBell />
-              <Button size="sm" variant="outline" onClick={() => router.back()}>
-                <ArrowLeft className="size-4" />
-                Voltar
-              </Button>
-            </CardAction>
           </CardHeader>
           <CardContent>
             {productsLoading ? (
@@ -96,6 +89,11 @@ export default function MyProductsPage() {
                 emptyLabel="Você ainda não tem nenhum produto na sua biblioteca."
               />
             )}
+
+            <Button size="sm" variant="outline" className="w-full" onClick={() => router.back()}>
+              <ArrowLeft className="size-4" />
+              Voltar
+            </Button>
           </CardContent>
         </Card>
       </div>

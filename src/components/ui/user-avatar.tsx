@@ -30,8 +30,9 @@ export interface UserAvatarProps {
   sizes?: string;
 }
 
-function isAppImageSrc(url: string): boolean {
-  return url.startsWith("/");
+function shouldUseNextImage(url: string): boolean {
+  // API routes are dynamic and may require session cookies — bypass the optimizer.
+  return url.startsWith("/") && !url.startsWith("/api/");
 }
 
 /**
@@ -74,7 +75,7 @@ export function UserAvatar({
         )}
       >
         {hasAvatar && resolvedSrc ? (
-          isAppImageSrc(resolvedSrc) ? (
+          shouldUseNextImage(resolvedSrc) ? (
             <Image
               src={resolvedSrc}
               alt=""

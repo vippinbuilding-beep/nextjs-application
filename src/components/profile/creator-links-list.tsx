@@ -9,6 +9,23 @@ interface CreatorLinksListProps {
   emptyLabel?: string;
 }
 
+export function CreatorLinkCard({ link }: { link: ProfileLink }) {
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
+    >
+      <LinkCover link={link} />
+      <span className="min-w-0 flex-1 text-left font-semibold leading-tight">
+        {link.title}
+      </span>
+      <ExternalLink className="size-4 shrink-0 opacity-60 transition-opacity group-hover:opacity-100" />
+    </a>
+  );
+}
+
 /**
  * Linktree-style vertical list of outbound links for a creator profile.
  */
@@ -31,18 +48,7 @@ export function CreatorLinksList({
     <ul className="flex flex-col gap-3">
       {links.map((link) => (
         <li key={link.id}>
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
-          >
-            <LinkCover link={link} />
-            <span className="min-w-0 flex-1 text-left font-semibold leading-tight">
-              {link.title}
-            </span>
-            <ExternalLink className="size-4 shrink-0 opacity-60 transition-opacity group-hover:opacity-100" />
-          </a>
+          <CreatorLinkCard link={link} />
         </li>
       ))}
     </ul>

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { SITE_LOGO_PATH } from "@/lib/metadata";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Vippin",
@@ -16,21 +18,21 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["business", "education"],
     icons: [
       {
-        src: "/icon",
+        src: SITE_LOGO_PATH,
         sizes: "512x512",
-        type: "image/png",
+        type: "image/jpeg",
         purpose: "any",
       },
       {
-        src: "/icon",
+        src: SITE_LOGO_PATH,
         sizes: "512x512",
-        type: "image/png",
+        type: "image/jpeg",
         purpose: "maskable",
       },
       {
-        src: "/apple-icon",
+        src: SITE_LOGO_PATH,
         sizes: "180x180",
-        type: "image/png",
+        type: "image/jpeg",
       },
     ],
   };

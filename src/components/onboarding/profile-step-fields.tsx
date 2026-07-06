@@ -5,10 +5,13 @@ import { format, parse } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 
+import { getLatestAllowedBirthDate } from "@/lib/profile/birth-date";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Popover,
   PopoverContent,
@@ -17,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import type { OnboardingFormData } from "./types";
-import { ONBOARDING_LIMITS } from "./validation";
+import { ONBOARDING_LIMITS, stripAtSign } from "./validation";
 
 interface ProfileStepFieldsProps {
   data: OnboardingFormData;
@@ -35,6 +38,7 @@ function parseBirthDate(value: string): Date | undefined {
 export function ProfileStepFields({ data, onChange }: ProfileStepFieldsProps) {
   const [open, setOpen] = useState(false);
   const selectedDate = parseBirthDate(data.birthDate);
+  const latestAllowedBirthDate = getLatestAllowedBirthDate();
 
   return (
     <>
@@ -45,7 +49,7 @@ export function ProfileStepFields({ data, onChange }: ProfileStepFieldsProps) {
           type="text"
           placeholder="Seu nome completo"
           value={data.name}
-          onChange={(e) => onChange("name", e.target.value)}
+          onChange={(e) => onChange("name", stripAtSign(e.target.value))}
           minLength={ONBOARDING_LIMITS.name.min}
           maxLength={ONBOARDING_LIMITS.name.max}
           autoComplete="name"
@@ -58,13 +62,29 @@ export function ProfileStepFields({ data, onChange }: ProfileStepFieldsProps) {
         <Input
           id="creatorName"
           type="text"
-          placeholder="Seu @ ou nome público"
+          placeholder="Seu nome público"
           value={data.creatorName}
-          onChange={(e) => onChange("creatorName", e.target.value)}
+          onChange={(e) => onChange("creatorName", stripAtSign(e.target.value))}
           minLength={ONBOARDING_LIMITS.creatorName.min}
           maxLength={ONBOARDING_LIMITS.creatorName.max}
           required
         />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="bio">Bio (opcional)</Label>
+        <Textarea
+          id="bio"
+          placeholder="Conte um pouco sobre você para quem visita seu perfil"
+          value={data.bio}
+          onChange={(e) => onChange("bio", e.target.value)}
+          maxLength={ONBOARDING_LIMITS.bio.max}
+          rows={3}
+          className="min-h-20 resize-none"
+        />
+        <p className="text-muted-foreground text-xs text-right">
+          {data.bio.length}/{ONBOARDING_LIMITS.bio.max}
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -92,8 +112,8 @@ export function ProfileStepFields({ data, onChange }: ProfileStepFieldsProps) {
               locale={ptBR}
               captionLayout="dropdown"
               defaultMonth={selectedDate}
-              endMonth={new Date()}
-              disabled={{ after: new Date() }}
+              endMonth={latestAllowedBirthDate}
+              disabled={{ after: latestAllowedBirthDate }}
               selected={selectedDate}
               onSelect={(date) => {
                 onChange("birthDate", date ? format(date, DATE_FORMAT) : "");
@@ -102,6 +122,9 @@ export function ProfileStepFields({ data, onChange }: ProfileStepFieldsProps) {
             />
           </PopoverContent>
         </Popover>
+        <p className="text-muted-foreground text-xs">
+          É necessário ter pelo menos {ONBOARDING_LIMITS.minAgeYears} anos.
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">

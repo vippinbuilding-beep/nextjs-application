@@ -1,17 +1,21 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { CountBadge } from "@/components/ui/count-badge";
 import type { AppNotification } from "@/core/models/notification";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { supabase } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { notificationRepository } from "@/services/repository-factory";
@@ -31,8 +35,168 @@ interface NotificationBellProps {
   className?: string;
 }
 
+const notificationRealtimeState = new Map<
+  string,
+  {
+    channel: ReturnType<typeof supabase.channel>;
+    listeners: Set<() => void>;
+  }
+>();
+
+function subscribeToNotificationInserts(
+  userId: string,
+  listener: () => void
+): () => void {
+  let state = notificationRealtimeState.get(userId);
+
+  if (!state) {
+    const listeners = new Set<() => void>();
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          listeners.forEach((fn) => fn());
+        }
+      )
+      .subscribe();
+
+    state = { channel, listeners };
+    notificationRealtimeState.set(userId, state);
+  }
+
+  state.listeners.add(listener);
+
+  return () => {
+    state!.listeners.delete(listener);
+    if (state!.listeners.size === 0) {
+      void supabase.removeChannel(state!.channel);
+      notificationRealtimeState.delete(userId);
+    }
+  };
+}
+
+interface NotificationListProps {
+  items: AppNotification[];
+  loading: boolean;
+  unread: number;
+  onItemClick: (item: AppNotification) => void;
+  onMarkAllRead: () => void;
+  showCloseButton?: boolean;
+  className?: string;
+}
+
+function NotificationList({
+  items,
+  loading,
+  unread,
+  onItemClick,
+  onMarkAllRead,
+  showCloseButton = false,
+  className,
+}: NotificationListProps) {
+  return (
+    <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b-2 border-border px-4 py-3">
+        <DialogTitle className="min-w-0 shrink text-base font-bold sm:text-lg">
+          Notificações
+        </DialogTitle>
+        <div className="flex shrink-0 items-center gap-3">
+          {unread > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto shrink-0 px-2 py-1 text-xs whitespace-nowrap"
+              onClick={() => void onMarkAllRead()}
+            >
+              Marcar todas como lidas
+            </Button>
+          )}
+          {showCloseButton && (
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                aria-label="Fechar"
+              >
+                <X className="size-4" />
+              </Button>
+            </DialogClose>
+          )}
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {loading && items.length === 0 ? (
+          <p className="text-muted-foreground px-4 py-10 text-center text-sm">
+            Carregando...
+          </p>
+        ) : items.length === 0 ? (
+          <p className="text-muted-foreground px-4 py-10 text-center text-sm">
+            Nenhuma notificação ainda.
+          </p>
+        ) : (
+          <ul className="flex flex-col">
+            {items.map((item) => {
+              const content = (
+                <>
+                  <p className="text-sm font-bold leading-tight">{item.title}</p>
+                  <p className="text-muted-foreground mt-0.5 text-xs leading-snug">
+                    {item.body}
+                  </p>
+                  <p className="text-muted-foreground mt-1 text-[10px]">
+                    {formatRelativeTime(item.createdAt)}
+                  </p>
+                </>
+              );
+
+              return (
+                <li key={item.id}>
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      onClick={() => void onItemClick(item)}
+                      className={cn(
+                        "block border-b border-border px-4 py-3.5 transition-colors hover:bg-muted/50 active:bg-muted/50",
+                        !item.readAt && "bg-primary/10"
+                      )}
+                    >
+                      {content}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void onItemClick(item)}
+                      className={cn(
+                        "w-full border-b border-border px-4 py-3.5 text-left transition-colors hover:bg-muted/50 active:bg-muted/50",
+                        !item.readAt && "bg-primary/10"
+                      )}
+                    >
+                      {content}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function NotificationBell({ className }: NotificationBellProps) {
   const { user } = useAuth();
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -55,6 +219,9 @@ export function NotificationBell({ className }: NotificationBellProps) {
     }
   }, [user?.id]);
 
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
+
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -62,26 +229,10 @@ export function NotificationBell({ className }: NotificationBellProps) {
   useEffect(() => {
     if (!user?.id) return;
 
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          void refresh();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [user?.id, refresh]);
+    return subscribeToNotificationInserts(user.id, () => {
+      void refreshRef.current();
+    });
+  }, [user?.id]);
 
   if (!user?.onboardingCompleted) {
     return null;
@@ -117,8 +268,8 @@ export function NotificationBell({ className }: NotificationBellProps) {
   }
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         <Button
           type="button"
           variant="outline"
@@ -131,85 +282,28 @@ export function NotificationBell({ className }: NotificationBellProps) {
           }
         >
           <Bell className="size-4" />
-          {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border-2 border-border bg-primary text-[10px] font-bold text-primary-foreground">
-              {unread > 9 ? "9+" : unread}
-            </span>
-          )}
+          <CountBadge count={unread} />
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b-2 border-border px-3 py-2">
-          <p className="text-sm font-bold">Notificações</p>
-          {unread > 0 && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-auto px-2 py-1 text-xs"
-              onClick={() => void handleMarkAllRead()}
-            >
-              Marcar todas como lidas
-            </Button>
-          )}
-        </div>
+      </DialogTrigger>
 
-        <div className="max-h-80 overflow-y-auto">
-          {loading && items.length === 0 ? (
-            <p className="text-muted-foreground px-3 py-6 text-center text-sm">
-              Carregando...
-            </p>
-          ) : items.length === 0 ? (
-            <p className="text-muted-foreground px-3 py-6 text-center text-sm">
-              Nenhuma notificação ainda.
-            </p>
-          ) : (
-            <ul className="flex flex-col">
-              {items.map((item) => {
-                const content = (
-                  <>
-                    <p className="text-sm font-bold leading-tight">{item.title}</p>
-                    <p className="text-muted-foreground mt-0.5 text-xs leading-snug">
-                      {item.body}
-                    </p>
-                    <p className="text-muted-foreground mt-1 text-[10px]">
-                      {formatRelativeTime(item.createdAt)}
-                    </p>
-                  </>
-                );
-
-                return (
-                  <li key={item.id}>
-                    {item.href ? (
-                      <Link
-                        href={item.href}
-                        onClick={() => void handleClick(item)}
-                        className={cn(
-                          "block border-b border-border px-3 py-3 transition-colors hover:bg-muted/50",
-                          !item.readAt && "bg-primary/10"
-                        )}
-                      >
-                        {content}
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => void handleClick(item)}
-                        className={cn(
-                          "w-full border-b border-border px-3 py-3 text-left transition-colors hover:bg-muted/50",
-                          !item.readAt && "bg-primary/10"
-                        )}
-                      >
-                        {content}
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
+      <DialogContent
+        showCloseButton={false}
+        className={cn(
+          "flex flex-col gap-0 overflow-hidden p-0",
+          isMobile
+            ? "fixed inset-0 top-0 left-0 z-50 h-svh max-h-svh w-full max-w-none translate-x-0 translate-y-0 rounded-none border-0 shadow-none"
+            : "max-h-[min(85vh,640px)] w-full max-w-md"
+        )}
+      >
+        <NotificationList
+          items={items}
+          loading={loading}
+          unread={unread}
+          onItemClick={handleClick}
+          onMarkAllRead={handleMarkAllRead}
+          showCloseButton
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
