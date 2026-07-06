@@ -12,6 +12,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import type { User, UserSocials } from "@/core/models/user";
 import { userRepository } from "@/services/repository-factory";
+import { toast } from "@/lib/toast";
 
 import { LinkStepFields } from "./link-step-fields";
 import { OnboardingStep } from "./onboarding-step";
@@ -211,9 +212,10 @@ export function OnboardingForm() {
       });
       clearOnboardingDraft(user.id);
       await refreshUser();
+      toast.saved();
       router.push("/");
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
           : step === 1
@@ -222,8 +224,9 @@ export function OnboardingForm() {
               ? "Erro ao salvar redes sociais"
               : step === 3
                 ? "Erro ao continuar"
-                : "Erro ao concluir cadastro"
-      );
+                : "Erro ao concluir cadastro";
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -277,7 +280,7 @@ export function OnboardingForm() {
                 disabled={submitting}
                 onClick={() => void advanceFromLinksStep()}
               >
-                Continuar
+                {submitting ? "Continuando..." : "Continuar"}
               </Button>
             </div>
           </OnboardingStep>

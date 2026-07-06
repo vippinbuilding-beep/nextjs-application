@@ -19,6 +19,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { supabase } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { notificationRepository } from "@/services/repository-factory";
+import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 function formatRelativeTime(date: Date): string {
   const diffMs = Date.now() - date.getTime();
@@ -88,6 +89,7 @@ interface NotificationListProps {
   unread: number;
   onItemClick: (item: AppNotification) => void;
   onMarkAllRead: () => void;
+  markingAllRead?: boolean;
   showCloseButton?: boolean;
   className?: string;
 }
@@ -98,6 +100,7 @@ function NotificationList({
   unread,
   onItemClick,
   onMarkAllRead,
+  markingAllRead = false,
   showCloseButton = false,
   className,
 }: NotificationListProps) {
@@ -114,9 +117,10 @@ function NotificationList({
               variant="ghost"
               size="sm"
               className="h-auto shrink-0 px-2 py-1 text-xs whitespace-nowrap"
+              disabled={markingAllRead}
               onClick={() => void onMarkAllRead()}
             >
-              Marcar todas como lidas
+              {markingAllRead ? "Marcando..." : "Marcar todas como lidas"}
             </Button>
           )}
           {showCloseButton && (
@@ -201,6 +205,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [markingAllRead, setMarkingAllRead] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!user?.id) return;
@@ -259,12 +264,21 @@ export function NotificationBell({ className }: NotificationBellProps) {
   }
 
   async function handleMarkAllRead() {
-    if (!user?.id || unread === 0) return;
-    await notificationRepository.markAllAsRead(user.id);
-    setUnread(0);
-    setItems((prev) =>
-      prev.map((row) => ({ ...row, readAt: row.readAt ?? new Date() }))
-    );
+    if (!user?.id || unread === 0 || markingAllRead) return;
+
+    setMarkingAllRead(true);
+    try {
+      await notificationRepository.markAllAsRead(user.id);
+      setUnread(0);
+      setItems((prev) =>
+        prev.map((row) => ({ ...row, readAt: row.readAt ?? new Date() }))
+      );
+      toast.success(TOAST_MESSAGES.notificationsRead);
+    } catch {
+      toast.error("Não foi possível marcar as notificações como lidas.");
+    } finally {
+      setMarkingAllRead(false);
+    }
   }
 
   return (
@@ -301,6 +315,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
           unread={unread}
           onItemClick={handleClick}
           onMarkAllRead={handleMarkAllRead}
+          markingAllRead={markingAllRead}
           showCloseButton
         />
       </DialogContent>

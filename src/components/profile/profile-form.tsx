@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/card";
 import type { User, UserSocials } from "@/core/models/user";
 import { userRepository } from "@/services/repository-factory";
+import { toast } from "@/lib/toast";
 import { ScreenLoading } from "../ui/screen-loading";
 import { LayoutBackground } from "../ui/layout-background";
 
@@ -164,11 +165,13 @@ export function ProfileForm() {
       }
 
       await refreshUser();
+      toast.saved();
       router.back();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao salvar alterações do perfil"
-      );
+      const message =
+        err instanceof Error ? err.message : "Erro ao salvar alterações do perfil";
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }

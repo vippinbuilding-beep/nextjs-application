@@ -27,6 +27,7 @@ import {
 import { centsToReaisInput, formatBRL, parseReaisToCents } from "@/lib/money";
 import { isCreator } from "@/lib/user-role";
 import { userRepository } from "@/services/repository-factory";
+import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 export default function AskMeProfilePage() {
   const router = useRouter();
@@ -87,8 +88,12 @@ export default function AskMeProfilePage() {
         askMePriceCents: enabled ? priceCents : null,
       });
       await refreshUser();
+      toast.success(TOAST_MESSAGES.settingsSaved);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar configurações");
+      const message =
+        err instanceof Error ? err.message : "Erro ao salvar configurações";
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -130,6 +135,7 @@ export default function AskMeProfilePage() {
                     checked={enabled}
                     onChange={(e) => setEnabled(e.target.checked)}
                     className="size-4 accent-primary"
+                    disabled={submitting}
                   />
                   <span className="flex flex-col gap-0.5 text-left">
                     <span className="font-bold">Ativar Me pergunte</span>
@@ -148,6 +154,7 @@ export default function AskMeProfilePage() {
                       value={priceInput}
                       onChange={(e) => setPriceInput(e.target.value)}
                       placeholder="2,00"
+                      disabled={submitting}
                     />
                     <p className="text-muted-foreground text-xs">
                       Mínimo {formatBRL(ASK_ME_LIMITS.minPriceCents)}. Padrão{" "}
@@ -172,6 +179,7 @@ export default function AskMeProfilePage() {
                     variant="outline"
                     className="flex-1"
                     onClick={() => router.back()}
+                    disabled={submitting}
                   >
                     Voltar
                   </Button>

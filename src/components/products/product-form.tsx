@@ -43,6 +43,7 @@ import {
 } from "@/lib/products";
 import { readImageDimensions, readVideoDimensions } from "@/lib/media-dimensions";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
+import { toast } from "@/lib/toast";
 import { productRepository } from "@/services/repository-factory";
 
 interface ProductFormProps {
@@ -213,6 +214,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
               : {}),
           });
         }
+        toast.saved();
         router.back();
         return;
       }
@@ -264,11 +266,13 @@ export function ProductForm({ type, product }: ProductFormProps) {
         });
       }
 
+      toast.published();
       router.back();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao salvar o produto."
-      );
+      const message =
+        err instanceof Error ? err.message : "Erro ao salvar o produto.";
+      setError(message);
+      toast.error(message);
       setSubmitting(false);
     }
   }
@@ -282,11 +286,13 @@ export function ProductForm({ type, product }: ProductFormProps) {
     try {
       await productRepository.delete(product.id);
       setShowDeleteConfirm(false);
+      toast.deleted();
       router.replace("/");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao excluir o produto."
-      );
+      const message =
+        err instanceof Error ? err.message : "Erro ao excluir o produto.";
+      setError(message);
+      toast.error(message);
       setDeleting(false);
     }
   }
@@ -464,17 +470,23 @@ export function ProductForm({ type, product }: ProductFormProps) {
               type="button"
               variant="outline"
               onClick={() => setShowFreeConfirm(false)}
+              disabled={submitting}
             >
               Voltar e definir preço
             </Button>
             <Button
               type="button"
+              disabled={submitting}
               onClick={() => {
                 setShowFreeConfirm(false);
                 void submitProduct({ confirmedFree: true });
               }}
             >
-              {isEdit ? "Salvar de graça" : "Publicar de graça"}
+              {submitting
+                ? "Salvando..."
+                : isEdit
+                  ? "Salvar de graça"
+                  : "Publicar de graça"}
             </Button>
           </DialogFooter>
         </DialogContent>

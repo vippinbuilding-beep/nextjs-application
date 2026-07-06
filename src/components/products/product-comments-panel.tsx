@@ -15,6 +15,7 @@ import {
   validateCommentBody,
 } from "@/lib/comments";
 import { productCommentRepository } from "@/services/repository-factory";
+import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 interface ProductCommentsPanelProps {
   productId: string;
@@ -86,11 +87,15 @@ export function ProductCommentsPanel({
       if (!parentId) setBody("");
       setReplyingToId(null);
       await loadComments();
+      toast.success(
+        parentId ? "Resposta enviada." : TOAST_MESSAGES.commentSent
+      );
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Não foi possível enviar o comentário.";
       if (parentId) throw new Error(message);
       setFormError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -111,10 +116,12 @@ export function ProductCommentsPanel({
       await productCommentRepository.delete(commentId);
       if (replyingToId === commentId) setReplyingToId(null);
       await loadComments();
+      toast.success(TOAST_MESSAGES.commentDeleted);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Não foi possível apagar o comentário."
-      );
+      const message =
+        err instanceof Error ? err.message : "Não foi possível apagar o comentário.";
+      setError(message);
+      toast.error(message);
       throw err;
     }
   }

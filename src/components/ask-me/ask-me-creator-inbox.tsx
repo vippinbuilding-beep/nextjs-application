@@ -23,6 +23,7 @@ import { formatBRL } from "@/lib/money";
 import { getAskMeAnswerVideoUrl, ASK_ME_ANSWERS_BUCKET } from "@/lib/supabase/storage";
 import { supabase } from "@/lib/supabase/client";
 import { askMeQuestionRepository } from "@/services/repository-factory";
+import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 interface AskMeCreatorInboxProps {
   creatorId: string;
@@ -121,8 +122,11 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
         throw new Error(body?.error ?? "Falha ao enviar resposta");
       }
       await load();
+      toast.success(TOAST_MESSAGES.answerSent);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao responder");
+      const message = err instanceof Error ? err.message : "Erro ao responder";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusyId(null);
     }
@@ -143,8 +147,11 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
         throw new Error(body?.error ?? "Falha ao recusar");
       }
       await load();
+      toast.success(TOAST_MESSAGES.declined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao recusar");
+      const message = err instanceof Error ? err.message : "Erro ao recusar";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusyId(null);
     }
@@ -254,7 +261,13 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
                   disabled={busyId === q.id}
                   onClick={() => void handleDecline(q.id)}
                 >
-                  Recusar e estornar
+                  {busyId === q.id ? (
+                    <>
+                      <Loading /> Enviando...
+                    </>
+                  ) : (
+                    "Recusar e estornar"
+                  )}
                 </Button>
                 <Button
                   type="button"

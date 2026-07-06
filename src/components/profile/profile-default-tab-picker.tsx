@@ -9,6 +9,7 @@ import {
 } from "@/lib/creator-profile-tabs";
 import { cn } from "@/lib/utils";
 import { userRepository } from "@/services/repository-factory";
+import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 interface ProfileDefaultTabPickerProps {
   userId: string;
@@ -54,11 +55,13 @@ export function ProfileDefaultTabPicker({
     try {
       await userRepository.update(userId, { profileDefaultTab: tab });
       setSelected(tab);
+      toast.success(TOAST_MESSAGES.defaultTab);
       onSaved?.(tab);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Não foi possível salvar a preferência."
-      );
+      const message =
+        err instanceof Error ? err.message : "Não foi possível salvar a preferência.";
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

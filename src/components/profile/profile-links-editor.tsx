@@ -26,6 +26,7 @@ import {
 } from "@/lib/profile-links";
 import { getProfileLinkImageUrl } from "@/lib/supabase/storage";
 import { profileLinkRepository } from "@/services/repository-factory";
+import { toast } from "@/lib/toast";
 
 interface ProfileLinksEditorProps {
   creatorId: string;
@@ -157,8 +158,11 @@ export function ProfileLinksEditor({
 
       clearDraft(false);
       await loadLinks();
+      toast.added();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao adicionar link.");
+      const message = err instanceof Error ? err.message : "Erro ao adicionar link.";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -208,8 +212,11 @@ export function ProfileLinksEditor({
 
       clearDraft(true);
       await loadLinks();
+      toast.saved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar link.");
+      const message = err instanceof Error ? err.message : "Erro ao salvar link.";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -224,8 +231,11 @@ export function ProfileLinksEditor({
       await profileLinkRepository.delete(id);
       if (editingId === id) clearDraft(true);
       await loadLinks();
+      toast.removed();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao remover link.");
+      const message = err instanceof Error ? err.message : "Erro ao remover link.";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
@@ -248,7 +258,9 @@ export function ProfileLinksEditor({
         reordered.map((link) => link.id)
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao reordenar.");
+      const message = err instanceof Error ? err.message : "Erro ao reordenar.";
+      setError(message);
+      toast.error(message);
       await loadLinks();
     } finally {
       setBusy(false);
@@ -333,7 +345,7 @@ export function ProfileLinksEditor({
                     variant="outline"
                     size="icon"
                     onClick={() => startEdit(link)}
-                    disabled={busy}
+                    disabled={busy || editingId !== null}
                     aria-label="Editar link"
                   >
                     <Pencil className="size-4" />

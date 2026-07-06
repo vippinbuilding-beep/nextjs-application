@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resolveConsumerDisplayName } from "@/lib/profile/display-name";
 import { userRepository } from "@/services/repository-factory";
+import { toast } from "@/lib/toast";
 import { ScreenLoading } from "../ui/screen-loading";
 import { LayoutBackground } from "../ui/layout-background";
 
@@ -93,9 +94,12 @@ export function ConsumerProfileForm() {
       });
       await persistAvatarSelection(user.id, avatarSelection);
       await refreshUser();
+      toast.saved();
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar dados");
+      const message = err instanceof Error ? err.message : "Erro ao salvar dados";
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -142,6 +146,7 @@ export function ConsumerProfileForm() {
                 placeholder="Seu nome na plataforma"
                 autoComplete="nickname"
                 maxLength={ONBOARDING_LIMITS.consumerName.max}
+                disabled={submitting}
               />
             </div>
 
