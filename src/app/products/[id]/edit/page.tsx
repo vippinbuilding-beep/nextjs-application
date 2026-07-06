@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { ProductForm } from "@/components/products/product-form";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { Product } from "@/core/models/product";
@@ -13,6 +14,7 @@ import { productRepository } from "@/services/repository-factory";
 
 export default function EditProductPage() {
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const params = useParams<{ id: string }>();
   const { user, loading } = useAuth();
 
@@ -22,7 +24,7 @@ export default function EditProductPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      redirectToLogin();
       return;
     }
     if (!user.onboardingCompleted) {
@@ -54,7 +56,7 @@ export default function EditProductPage() {
     return () => {
       active = false;
     };
-  }, [loading, user, params.id, router]);
+  }, [loading, user, params.id, router, redirectToLogin]);
 
   if (loading || !user || fetching || !product) {
     return <ScreenLoading />;

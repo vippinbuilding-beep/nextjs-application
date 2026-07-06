@@ -7,6 +7,7 @@ import { useCallback, useEffect } from "react";
 import { AskMeConsumerInbox } from "@/components/ask-me/ask-me-consumer-inbox";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,18 +22,19 @@ import { ArrowLeft } from "lucide-react";
 
 export default function MyQuestionsPage() {
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { user, loading } = useAuth();
 
   const guard = useCallback(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      redirectToLogin();
       return;
     }
     if (!user.onboardingCompleted) {
       router.replace("/onboarding");
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, redirectToLogin]);
 
   useEffect(() => {
     guard();

@@ -1,10 +1,10 @@
 "use client";
 
 import { Check, Copy, QrCode } from "lucide-react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { LoginRolePicker } from "@/components/auth/login-role-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -183,13 +183,9 @@ export function PixCheckout({
           <QrCode className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">
-          Entre na sua conta para comprar este conteúdo com PIX.
+          Escolha como quer entrar para comprar este conteúdo com PIX.
         </p>
-        <Button asChild className="w-full max-w-xs">
-          <Link href={`/login?next=${encodeURIComponent(pathname)}`}>
-            Entrar para comprar
-          </Link>
-        </Button>
+        <LoginRolePicker next={pathname} className="max-w-xs" />
       </div>
     );
   }
