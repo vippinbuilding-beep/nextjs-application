@@ -3,6 +3,8 @@
 import { Check, Copy, MessageCircleQuestion, QrCode } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { LoginRolePicker } from "@/components/auth/login-role-picker";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -160,14 +162,10 @@ export function AskMeDialog({
           <DialogHeader>
             <DialogTitle>Me pergunte</DialogTitle>
             <DialogDescription>
-              Entre na sua conta para enviar uma pergunta paga a @{creatorName}.
+              Escolha como quer entrar para enviar uma pergunta paga a @{creatorName}.
             </DialogDescription>
           </DialogHeader>
-          <Button asChild className="w-full">
-            <Link href={`/login?next=${encodeURIComponent(pathname)}`}>
-              Entrar para perguntar
-            </Link>
-          </Button>
+          <LoginRolePicker next={pathname} />
         </DialogContent>
       </Dialog>
     );

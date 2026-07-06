@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,18 +23,19 @@ import ProductTypeIcon from "@/components/icons/ProductTypeIcon";
 
 export default function NewProductPage() {
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { user, loading } = useAuth();
 
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      redirectToLogin();
     } else if (!user.onboardingCompleted) {
       router.replace("/onboarding");
     } else if (!isCreator(user)) {
       router.replace("/");
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, redirectToLogin]);
 
   if (loading || !user) {
     return <ScreenLoading />;

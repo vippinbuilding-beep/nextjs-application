@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ProductFeed } from "@/components/products/product-feed";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +28,7 @@ import {
 
 export default function MyProductsPage() {
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { user, loading } = useAuth();
 
   const [products, setProducts] = useState<ProductWithCreator[]>([]);
@@ -35,13 +37,13 @@ export default function MyProductsPage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      redirectToLogin();
       return;
     }
     if (!user.onboardingCompleted) {
       router.replace("/onboarding");
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, redirectToLogin]);
 
   const loadProducts = useCallback(async () => {
     setProductsLoading(true);

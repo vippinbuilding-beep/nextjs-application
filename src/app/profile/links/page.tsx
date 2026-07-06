@@ -8,6 +8,7 @@ import { LayoutDashboard } from "lucide-react";
 
 import { ProfileLinksEditor } from "@/components/profile/profile-links-editor";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,12 +24,13 @@ import { isConsumer } from "@/lib/user-role";
 
 export default function ProfileLinksPage() {
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { user, loading } = useAuth();
 
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      redirectToLogin();
       return;
     }
     if (!user.onboardingCompleted) {
@@ -38,7 +40,7 @@ export default function ProfileLinksPage() {
     if (isConsumer(user)) {
       router.replace("/");
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, redirectToLogin]);
 
   if (loading || !user || isConsumer(user)) {
     return <ScreenLoading />;

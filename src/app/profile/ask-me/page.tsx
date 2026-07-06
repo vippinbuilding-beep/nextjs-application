@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AskMeCreatorInbox } from "@/components/ask-me/ask-me-creator-inbox";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,6 +32,7 @@ import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 export default function AskMeProfilePage() {
   const router = useRouter();
+  const redirectToLogin = useLoginRedirect();
   const { user, loading, refreshUser } = useAuth();
 
   const [enabled, setEnabled] = useState(false);
@@ -44,7 +46,7 @@ export default function AskMeProfilePage() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      router.replace("/login");
+      redirectToLogin();
       return;
     }
     if (!user.onboardingCompleted) {
@@ -54,7 +56,7 @@ export default function AskMeProfilePage() {
     if (!isCreator(user)) {
       router.replace("/");
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, redirectToLogin]);
 
   useEffect(() => {
     if (!user?.id) return;

@@ -1,8 +1,10 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { LoginRolePicker } from "@/components/auth/login-role-picker";
 import { CommentThread } from "@/components/products/comment-thread";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ export function ProductCommentsPanel({
   isOwner,
   formId = "comment-body",
 }: ProductCommentsPanelProps) {
+  const pathname = usePathname();
   const { user } = useAuth();
   const [tree, setTree] = useState<CommentNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,36 +139,45 @@ export function ProductCommentsPanel({
 
   return (
     <div className="flex flex-col gap-4 overflow-x-hidden px-1 py-0.5 h-full">
-      <form onSubmit={(e) => void handleRootSubmit(e)} className="flex flex-col gap-2">
-        <Label htmlFor={formId}>Novo comentário</Label>
-        <Textarea
-          id={formId}
-          value={body}
-          onChange={(e) => setBody(e.target.value.slice(0, COMMENT_BODY_MAX))}
-          maxLength={COMMENT_BODY_MAX}
-          placeholder="Compartilhe sua dúvida ou feedback..."
-          rows={3}
-          disabled={submitting}
-        />
-        <p className="text-muted-foreground text-right text-xs">
-          {body.length}/{COMMENT_BODY_MAX}
-        </p>
-        {formError && (
-          <p className="text-destructive text-sm" role="alert">
-            {formError}
+      {!user ? (
+        <div className="flex flex-col gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-4 py-5">
+          <p className="text-muted-foreground text-sm">
+            Escolha como quer entrar para comentar neste conteúdo.
           </p>
-        )}
-        <Button type="submit" className="self-end" disabled={submitting}>
-          {submitting && !replyingToId ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-              Enviando...
-            </>
-          ) : (
-            "Comentar"
+          <LoginRolePicker next={pathname} />
+        </div>
+      ) : (
+        <form onSubmit={(e) => void handleRootSubmit(e)} className="flex flex-col gap-2">
+          <Label htmlFor={formId}>Novo comentário</Label>
+          <Textarea
+            id={formId}
+            value={body}
+            onChange={(e) => setBody(e.target.value.slice(0, COMMENT_BODY_MAX))}
+            maxLength={COMMENT_BODY_MAX}
+            placeholder="Compartilhe sua dúvida ou feedback..."
+            rows={3}
+            disabled={submitting}
+          />
+          <p className="text-muted-foreground text-right text-xs">
+            {body.length}/{COMMENT_BODY_MAX}
+          </p>
+          {formError && (
+            <p className="text-destructive text-sm" role="alert">
+              {formError}
+            </p>
           )}
-        </Button>
-      </form>
+          <Button type="submit" className="self-end" disabled={submitting}>
+            {submitting && !replyingToId ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              "Comentar"
+            )}
+          </Button>
+        </form>
+      )}
 
       {error && (
         <p className="text-destructive text-sm" role="alert">
