@@ -1,12 +1,17 @@
 "use client";
 
-import { Download, Share, X } from "lucide-react";
+import { Share, X } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { SITE_LOGO_PATH, SITE_NAME } from "@/lib/metadata";
+import {
+  dismissInstallPromptPermanently,
+  shouldShowInstallPrompt,
+  snoozeInstallPromptOneWeek,
+} from "@/lib/pwa/install-prompt-storage";
 import { cn } from "@/lib/utils";
-
-const DISMISS_KEY = "vippin:pwa-install-dismissed";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -41,7 +46,7 @@ export function InstallAppPrompt() {
 
   useEffect(() => {
     if (isStandaloneMode()) return;
-    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+    if (!shouldShowInstallPrompt()) return;
 
     if (isIosSafari()) {
       setIosHint(true);
@@ -50,6 +55,8 @@ export function InstallAppPrompt() {
     }
 
     const onBeforeInstallPrompt = (event: Event) => {
+      if (!shouldShowInstallPrompt()) return;
+
       event.preventDefault();
       setInstallEvent(event as BeforeInstallPromptEvent);
       setVisible(true);
@@ -60,23 +67,19 @@ export function InstallAppPrompt() {
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
   }, []);
 
-  function dismiss() {
-    localStorage.setItem(DISMISS_KEY, "1");
+  function dismissForOneWeek() {
+    snoozeInstallPromptOneWeek();
     setVisible(false);
   }
 
   async function install() {
+    dismissInstallPromptPermanently();
+    setVisible(false);
+
     if (!installEvent) return;
 
     await installEvent.prompt();
-    const { outcome } = await installEvent.userChoice;
-
-    if (outcome === "accepted") {
-      setVisible(false);
-      return;
-    }
-
-    dismiss();
+    await installEvent.userChoice;
   }
 
   if (!visible) return null;
@@ -90,11 +93,17 @@ export function InstallAppPrompt() {
       aria-label="Instalar aplicativo"
     >
       <div className="flex w-full max-w-md items-start gap-3 rounded-2xl border-2 border-border bg-background p-4 shadow-cartoon-lg">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary">
+        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-border bg-primary">
           {iosHint ? (
             <Share className="size-5" aria-hidden />
           ) : (
-            <Download className="size-5" aria-hidden />
+            <Image
+              src={SITE_LOGO_PATH}
+              alt={SITE_NAME}
+              width={40}
+              height={40}
+              className="size-full object-cover"
+            />
           )}
         </div>
 
@@ -120,7 +129,7 @@ export function InstallAppPrompt() {
           variant="ghost"
           size="icon"
           className="size-8 shrink-0"
-          onClick={dismiss}
+          onClick={dismissForOneWeek}
           aria-label="Fechar aviso de instalação"
         >
           <X className="size-4" />

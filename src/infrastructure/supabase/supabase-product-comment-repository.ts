@@ -20,9 +20,16 @@ type PublicProfileRow = {
   id: string;
   slug: string | null;
   creator_name: string | null;
+  consumer_name: string | null;
+  name: string | null;
   avatar_path: string | null;
   avatar_url: string | null;
 };
+
+function resolveAuthorName(profile: PublicProfileRow | undefined): string | undefined {
+  if (!profile) return undefined;
+  return profile.creator_name ?? profile.consumer_name ?? profile.name ?? undefined;
+}
 
 function mapWriteError(error: { code?: string; message: string }): Error {
   const msg = error.message.toLowerCase();
@@ -45,8 +52,8 @@ async function fetchAuthorMap(
   if (unique.length === 0) return new Map();
 
   const { data, error } = await supabase
-    .from("public_profiles")
-    .select("id, slug, creator_name, avatar_path, avatar_url")
+    .from("public_profile_previews")
+    .select("id, slug, creator_name, consumer_name, name, avatar_path, avatar_url")
     .in("id", unique);
 
   if (error) throw new Error(error.message);
@@ -69,7 +76,7 @@ function toProductComment(
     body: row.body,
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     authorSlug: author?.slug ?? undefined,
-    authorName: author?.creator_name ?? undefined,
+    authorName: resolveAuthorName(author),
     authorAvatarPath: author?.avatar_path ?? null,
     authorAvatarUrl: author?.avatar_url ?? null,
   };

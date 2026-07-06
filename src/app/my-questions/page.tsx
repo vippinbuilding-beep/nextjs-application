@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
+import { ArrowLeft } from "lucide-react";
 
 export default function MyQuestionsPage() {
   const router = useRouter();
@@ -48,9 +49,6 @@ export default function MyQuestionsPage() {
     >
       <Card className="relative w-full max-w-2xl">
         <CardHeader>
-          <div className="absolute top-4 right-4">
-            <NotificationBell />
-          </div>
           <CardTitle>Minhas perguntas</CardTitle>
           <CardDescription>
             Acompanhe perguntas enviadas a criadores. Se não houver resposta em
@@ -59,11 +57,9 @@ export default function MyQuestionsPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <AskMeConsumerInbox askerId={user.id} />
-          <Button type="button" variant="outline" className="w-full" onClick={() => router.back()}>
+          <Button size="sm" variant="outline" className="w-full" onClick={() => router.back()}>
+            <ArrowLeft className="size-4" />
             Voltar
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/explore">Explorar criadores</Link>
           </Button>
         </CardContent>
       </Card>

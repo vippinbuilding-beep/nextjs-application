@@ -3,13 +3,20 @@ import { cpf, cnpj } from "cpf-cnpj-validator";
 import type { PixKeyType, UserSocials } from "@/core/models/user";
 
 import type { OnboardingFormData } from "./types";
+import {
+  PROFILE_MIN_AGE_YEARS,
+  validateBirthDateAge,
+} from "@/lib/profile/birth-date";
 
 export const ONBOARDING_LIMITS = {
   name: { min: 3, max: 80 },
+  consumerName: { min: 3, max: 80 },
   creatorName: { min: 2, max: 40 },
+  bio: { max: 120 },
   // CPF formatado tem 14 caracteres, CNPJ formatado tem 18.
   pixKey: { min: 14, max: 18 },
   social: { min: 3, max: 120 },
+  minAgeYears: PROFILE_MIN_AGE_YEARS,
 } as const;
 
 const SOCIAL_LABELS: Record<keyof UserSocials, string> = {
@@ -78,6 +85,19 @@ const KNOWN_SOCIAL_HOSTS = new Set(
 
 function isBetween(value: string, min: number, max: number): boolean {
   return value.length >= min && value.length <= max;
+}
+
+export const ONBOARDING_AT_SIGN_ERROR = "O caractere @ não é permitido";
+
+export function stripAtSign(value: string): string {
+  return value.replace(/@/g, "");
+}
+
+function validateNoAtSign(value: string): string | null {
+  if (value.includes("@")) {
+    return ONBOARDING_AT_SIGN_ERROR;
+  }
+  return null;
 }
 
 /** Insere separadores nas posições indicadas (0-indexed pelos caracteres crus). */
@@ -203,12 +223,34 @@ export function normalizeOnboardingForm(form: OnboardingFormData): OnboardingFor
     pixKey: form.pixKey.trim(),
     pixKeyType: form.pixKeyType,
     creatorName: form.creatorName.trim(),
+    bio: form.bio.trim(),
     socials,
   };
 }
 
-export function validateProfileStep(form: OnboardingFormData): string | null {
+export function validateConsumerName(name: string): string | null {
+  const trimmed = name.trim();
+
+  const atSignError = validateNoAtSign(trimmed);
+  if (atSignError) return atSignError;
+
+  if (trimmed.length < ONBOARDING_LIMITS.consumerName.min) {
+    return `O nome precisa ter pelo menos ${ONBOARDING_LIMITS.consumerName.min} caracteres`;
+  }
+  if (trimmed.length > ONBOARDING_LIMITS.consumerName.max) {
+    return `O nome pode ter no máximo ${ONBOARDING_LIMITS.consumerName.max} caracteres`;
+  }
+  return null;
+}
+
+export function validateCreatorProfileStep(form: OnboardingFormData): string | null {
   const normalizedForm = normalizeOnboardingForm(form);
+
+  const nameAtSignError = validateNoAtSign(normalizedForm.name);
+  if (nameAtSignError) return nameAtSignError;
+
+  const creatorNameAtSignError = validateNoAtSign(normalizedForm.creatorName);
+  if (creatorNameAtSignError) return creatorNameAtSignError;
 
   if (!isBetween(normalizedForm.name, ONBOARDING_LIMITS.name.min, ONBOARDING_LIMITS.name.max)) {
     return `O nome precisa ter entre ${ONBOARDING_LIMITS.name.min} e ${ONBOARDING_LIMITS.name.max} caracteres`;
@@ -224,9 +266,16 @@ export function validateProfileStep(form: OnboardingFormData): string | null {
     return `O nome público precisa ter entre ${ONBOARDING_LIMITS.creatorName.min} e ${ONBOARDING_LIMITS.creatorName.max} caracteres`;
   }
 
+  if (normalizedForm.bio.length > ONBOARDING_LIMITS.bio.max) {
+    return `A bio pode ter no máximo ${ONBOARDING_LIMITS.bio.max} caracteres`;
+  }
+
   if (!normalizedForm.birthDate) {
     return "Selecione sua data de nascimento";
   }
+
+  const birthDateError = validateBirthDateAge(normalizedForm.birthDate);
+  if (birthDateError) return birthDateError;
 
   if (!inferPixKeyType(normalizedForm.pixKey)) {
     return "Informe um CPF ou CNPJ válido";
@@ -234,6 +283,9 @@ export function validateProfileStep(form: OnboardingFormData): string | null {
 
   return null;
 }
+
+/** @deprecated Use validateCreatorProfileStep */
+export const validateProfileStep = validateCreatorProfileStep;
 
 export function validateSocialsStep(socials: Partial<UserSocials>): string | null {
   const entries = Object.entries(socials).filter(([, value]) => value?.trim());

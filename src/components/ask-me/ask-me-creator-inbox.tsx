@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Film } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
+import { FileUploadField } from "@/components/ui/file-upload-field";
 import { Label } from "@/components/ui/label";
 import { Loading } from "@/components/ui/loading";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +23,7 @@ import { formatBRL } from "@/lib/money";
 import { getAskMeAnswerVideoUrl, ASK_ME_ANSWERS_BUCKET } from "@/lib/supabase/storage";
 import { supabase } from "@/lib/supabase/client";
 import { askMeQuestionRepository } from "@/services/repository-factory";
+import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
 interface AskMeCreatorInboxProps {
   creatorId: string;
@@ -33,7 +36,6 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
   const [videoFiles, setVideoFiles] = useState<Record<string, File | null>>({});
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -120,8 +122,11 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
         throw new Error(body?.error ?? "Falha ao enviar resposta");
       }
       await load();
+      toast.success(TOAST_MESSAGES.answerSent);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao responder");
+      const message = err instanceof Error ? err.message : "Erro ao responder";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusyId(null);
     }
@@ -142,8 +147,11 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
         throw new Error(body?.error ?? "Falha ao recusar");
       }
       await load();
+      toast.success(TOAST_MESSAGES.declined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao recusar");
+      const message = err instanceof Error ? err.message : "Erro ao recusar";
+      setError(message);
+      toast.error(message);
     } finally {
       setBusyId(null);
     }
@@ -229,19 +237,20 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Ou enviar vídeo</Label>
-                <input
-                  ref={(el) => {
-                    fileInputRefs.current[q.id] = el;
-                  }}
-                  type="file"
+                <Label htmlFor={`ask-me-video-${q.id}`}>Ou enviar vídeo</Label>
+                <FileUploadField
+                  id={`ask-me-video-${q.id}`}
                   accept={ASK_ME_VIDEO_ACCEPT}
-                  className="text-sm"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] ?? null;
-                    setVideoFiles((prev) => ({ ...prev, [q.id]: file }));
-                  }}
+                  file={videoFiles[q.id] ?? null}
+                  onFileChange={(file) =>
+                    setVideoFiles((prev) => ({ ...prev, [q.id]: file }))
+                  }
+                  validate={validateAskMeVideo}
                   disabled={busyId === q.id}
+                  title="Escolher vídeo de resposta"
+                  description="Clique ou arraste um MP4 aqui"
+                  icon={Film}
+                  hint="MP4 (H.264 recomendado)."
                 />
               </div>
               <div className="flex gap-2">
@@ -252,7 +261,13 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
                   disabled={busyId === q.id}
                   onClick={() => void handleDecline(q.id)}
                 >
-                  Recusar e estornar
+                  {busyId === q.id ? (
+                    <>
+                      <Loading /> Enviando...
+                    </>
+                  ) : (
+                    "Recusar e estornar"
+                  )}
                 </Button>
                 <Button
                   type="button"

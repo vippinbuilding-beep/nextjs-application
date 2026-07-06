@@ -81,8 +81,14 @@ function CommentCard({
       return;
     }
     setReplyError(null);
-    await onSubmitReply(node.id, replyBody.trim());
-    setReplyBody("");
+    try {
+      await onSubmitReply(node.id, replyBody.trim());
+      setReplyBody("");
+    } catch (err) {
+      setReplyError(
+        err instanceof Error ? err.message : "Não foi possível enviar a resposta."
+      );
+    }
   }
 
   async function handleDelete() {

@@ -4,16 +4,8 @@ import Link from "next/link";
 
 import { UserAvatar } from "@/components/ui/user-avatar";
 import type { User } from "@/core/models/user";
+import { resolveConsumerDisplayName } from "@/lib/profile/display-name";
 import { cn } from "@/lib/utils";
-
-function getDisplayName(user: User): string {
-  return (
-    user.name?.trim() ||
-    user.displayName?.trim() ||
-    user.email.split("@")[0] ||
-    "Perfil"
-  );
-}
 
 interface ConsumerNavProfileProps {
   user: User;
@@ -24,15 +16,12 @@ interface ConsumerNavProfileProps {
  * Navbar link to edit profile: avatar + display name.
  */
 export function ConsumerNavProfile({ user, className }: ConsumerNavProfileProps) {
-  const displayName = getDisplayName(user);
+  const displayName = resolveConsumerDisplayName(user);
 
   return (
     <Link
       href="/profile/edit"
-      className={cn(
-        "flex items-center gap-2",
-        className
-      )}
+      className={cn("flex items-center gap-2", className)}
       aria-label={`Editar perfil de ${displayName}`}
     >
       <UserAvatar
@@ -47,4 +36,4 @@ export function ConsumerNavProfile({ user, className }: ConsumerNavProfileProps)
   );
 }
 
-export { getDisplayName as getConsumerDisplayName };
+export { resolveConsumerDisplayName as getConsumerDisplayName };

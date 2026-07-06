@@ -4,6 +4,7 @@ import { Fredoka, Geist_Mono } from "next/font/google";
 import { InstallAppPrompt } from "@/components/pwa/install-app-prompt";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { Toaster } from "@/components/ui/toaster";
 import { createRootMetadata } from "@/lib/metadata";
 import "./globals.css";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
         className={`${fredoka.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>{children}</AuthProvider>
+        <Toaster />
         <ServiceWorkerRegister />
         <InstallAppPrompt />
       </body>

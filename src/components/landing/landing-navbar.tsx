@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { SiteLogo } from "@/components/ui/site-logo";
 import { cn } from "@/lib/utils";
 
 export function LandingNavbar() {
@@ -27,8 +28,8 @@ export function LandingNavbar() {
             : "border-transparent bg-transparent shadow-none"
         )}
       >
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
-          Vippin
+        <Link href="/" className="flex items-center gap-2">
+          <SiteLogo size={36} priority nameClassName="text-xl" />
         </Link>
 
         <div className="flex items-center gap-2">

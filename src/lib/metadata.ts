@@ -5,6 +5,8 @@ const LOCAL_SITE_URL = "http://localhost:3000";
 
 export const SITE_NAME = "Vippin";
 
+export const SITE_LOGO_PATH = "/icon-logo.jpg";
+
 export const DEFAULT_DESCRIPTION =
   "Venda aulas e materiais digitais com Pix. Sua vitrine, seu link, sua renda.";
 
@@ -30,6 +32,17 @@ export function truncateDescription(text: string, maxLength = 160): string {
   return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
+/** Meta tags for Facebook (Sharing Debugger expects fb:app_id when configured). */
+function facebookAppMetadata(): Pick<Metadata, "other"> | undefined {
+  const appId = process.env.FACEBOOK_APP_ID?.trim();
+  if (!appId) return undefined;
+  return {
+    other: {
+      "fb:app_id": appId,
+    },
+  };
+}
+
 export function createRootMetadata(): Metadata {
   return {
     metadataBase: new URL(getSiteUrl()),
@@ -47,18 +60,34 @@ export function createRootMetadata(): Metadata {
     formatDetection: {
       telephone: false,
     },
+    alternates: {
+      canonical: "/",
+    },
+    icons: {
+      icon: SITE_LOGO_PATH,
+      apple: SITE_LOGO_PATH,
+    },
     openGraph: {
       type: "website",
       locale: "pt_BR",
       siteName: SITE_NAME,
       title: SITE_NAME,
       description: DEFAULT_DESCRIPTION,
+      url: "/",
+      images: [
+        {
+          url: SITE_LOGO_PATH,
+          alt: SITE_NAME,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: SITE_NAME,
       description: DEFAULT_DESCRIPTION,
+      images: [SITE_LOGO_PATH],
     },
+    ...facebookAppMetadata(),
   };
 }
 
@@ -117,6 +146,7 @@ export function createCreatorMetadata({
       description,
       ...(ogImage ? { images: [ogImage] } : {}),
     },
+    ...facebookAppMetadata(),
   };
 }
 
@@ -182,5 +212,6 @@ export function createProductMetadata({
       description: metaDescription,
       ...(ogImage ? { images: [ogImage] } : {}),
     },
+    ...facebookAppMetadata(),
   };
 }

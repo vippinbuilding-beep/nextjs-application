@@ -2,6 +2,11 @@ import "server-only";
 
 import type { Order } from "@/core/models/order";
 import type { PixKeyType } from "@/core/models/user";
+import {
+  notifyPixTransferFailed,
+  notifyPixTransferSent,
+} from "@/lib/notifications/dispatch";
+import { fetchOrderProductLabel, sendOrderPaidNotifications } from "@/lib/notifications/order-events";
 import { getOrderRepository, getPaymentGateway } from "@/services/payment-factory";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -49,6 +54,7 @@ export async function finalizeOrder(orderId: string): Promise<Order | null> {
   if (!paidOrder) return orders.getById(orderId);
 
   await grantAccess(paidOrder);
+  await sendOrderPaidNotifications(paidOrder);
   return repassToCreator(paidOrder);
 }
 
@@ -89,17 +95,33 @@ export async function repassOrderToCreator(
 async function repassToCreator(order: Order): Promise<Order> {
   const orders = getOrderRepository();
   const gateway = getPaymentGateway();
+  const previousTransferStatus = order.transferStatus;
+  const productLabel =
+    (await fetchOrderProductLabel(order.productId)) ?? "produto";
 
-  const fail = (message: string) =>
-    orders.update(order.id, {
-      transferStatus: "failed",
-      transferError: message,
-    });
+  const fail = async (message: string) => {
+    const updated =
+      (await orders.update(order.id, {
+        transferStatus: "failed",
+        transferError: message,
+      })) ?? order;
+
+    if (previousTransferStatus !== "failed") {
+      await notifyPixTransferFailed({
+        creatorId: order.creatorId,
+        kind: "order",
+        entityId: order.id,
+        amountCents: order.creatorAmountCents,
+        label: productLabel,
+        error: message,
+      });
+    }
+
+    return updated;
+  };
 
   if (order.creatorAmountCents < MIN_TRANSFER_CENTS) {
-    return (
-      (await fail("Valor do repasse abaixo do mínimo de R$ 1,00.")) ?? order
-    );
+    return fail("Valor do repasse abaixo do mínimo de R$ 1,00.");
   }
 
   const admin = createSupabaseAdminClient();
@@ -109,9 +131,9 @@ async function repassToCreator(order: Order): Promise<Order> {
     .eq("id", order.creatorId)
     .maybeSingle();
 
-  if (error) return (await fail(error.message)) ?? order;
+  if (error) return fail(error.message);
   if (!profile?.pix_key || !profile.pix_key_type) {
-    return (await fail("Criador sem chave PIX cadastrada.")) ?? order;
+    return fail("Criador sem chave PIX cadastrada.");
   }
 
   try {
@@ -123,15 +145,24 @@ async function repassToCreator(order: Order): Promise<Order> {
       pixKeyType: profile.pix_key_type.toUpperCase() as PixKeyType,
     });
 
-    return (
+    const updated =
       (await orders.update(order.id, {
         transferStatus: "sent",
         abacateTransferId: transfer.id,
         transferError: null,
-      })) ?? order
-    );
+      })) ?? order;
+
+    await notifyPixTransferSent({
+      creatorId: order.creatorId,
+      kind: "order",
+      entityId: order.id,
+      amountCents: order.creatorAmountCents,
+      label: productLabel,
+    });
+
+    return updated;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha no repasse PIX.";
-    return (await fail(message)) ?? order;
+    return fail(message);
   }
 }

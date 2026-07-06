@@ -1,3 +1,4 @@
+import type { CreatorRepository } from "@/core/repositories/creator-repository";
 import type { AskMeQuestionRepository } from "@/core/repositories/ask-me-repository";
 import type { AuthRepository } from "@/core/repositories/auth-repository";
 import type { NotificationRepository } from "@/core/repositories/notification-repository";
@@ -9,6 +10,7 @@ import type { ProductRepository } from "@/core/repositories/product-repository";
 import type { UserRepository } from "@/core/repositories/user-repository";
 import { SupabaseAskMeQuestionRepository } from "@/infrastructure/supabase/supabase-ask-me-repository";
 import { SupabaseAuthRepository } from "@/infrastructure/supabase/supabase-auth-repository";
+import { SupabaseCreatorRepository } from "@/infrastructure/supabase/supabase-creator-repository";
 import { supabase } from "@/lib/supabase/client";
 import { SupabaseNotificationRepository } from "@/infrastructure/supabase/supabase-notification-repository";
 import { SupabaseProfileLinkRepository } from "@/infrastructure/supabase/supabase-profile-link-repository";
@@ -27,6 +29,7 @@ import { SupabaseUserRepository } from "@/infrastructure/supabase/supabase-user-
  *   2. Swap the constructor calls below. Nothing else in the app changes.
  */
 export const authRepository: AuthRepository = new SupabaseAuthRepository();
+export const creatorRepository: CreatorRepository = new SupabaseCreatorRepository();
 export const userRepository: UserRepository = new SupabaseUserRepository();
 export const productRepository: ProductRepository = new SupabaseProductRepository();
 export const productProgressRepository: ProductProgressRepository =

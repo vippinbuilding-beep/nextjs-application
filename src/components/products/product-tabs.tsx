@@ -120,7 +120,7 @@ export function ProductTabs({
 
 function EmptyTabState({ label }: { label: string }) {
     return (
-        <div className="flex flex-col items-center gap-2 py-6 text-center">
+        <div className="flex flex-col items-center gap-2 py-6 text-center justify-center h-full">
             <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
                 <FileText className="size-6" />
             </span>

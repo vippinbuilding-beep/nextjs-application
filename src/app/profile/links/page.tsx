@@ -54,16 +54,9 @@ export default function ProfileLinksPage() {
         <CardHeader>
           <CardTitle>Meus links</CardTitle>
           <CardDescription>
-            Crie links personalizados com título e imagem — como um Linktree —
+            Crie links personalizados com título e imagem como um Linktree
             para aparecer na aba Links do seu perfil público.
           </CardDescription>
-          <CardAction>
-            <Button size="sm" variant="outline" asChild>
-              <Link href="/">
-                <LayoutDashboard className="size-4" /> Gerenciar produtos
-              </Link>
-            </Button>
-          </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <ProfileLinksEditor creatorId={user.id} />

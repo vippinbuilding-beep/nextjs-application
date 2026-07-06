@@ -4,7 +4,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { OnboardingStep } from "@/components/onboarding/onboarding-step";
-import { ONBOARDING_LIMITS } from "@/components/onboarding/validation";
+import {
+  ONBOARDING_LIMITS,
+  stripAtSign,
+  validateConsumerName,
+} from "@/components/onboarding/validation";
 import {
   AvatarPicker,
   persistAvatarSelection,
@@ -14,24 +18,15 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { resolveConsumerDisplayName } from "@/lib/profile/display-name";
 import { userRepository } from "@/services/repository-factory";
-
-function validateName(name: string): string | null {
-  const trimmed = name.trim();
-  if (trimmed.length < ONBOARDING_LIMITS.name.min) {
-    return `O nome precisa ter pelo menos ${ONBOARDING_LIMITS.name.min} caracteres`;
-  }
-  if (trimmed.length > ONBOARDING_LIMITS.name.max) {
-    return `O nome pode ter no máximo ${ONBOARDING_LIMITS.name.max} caracteres`;
-  }
-  return null;
-}
+import { toast } from "@/lib/toast";
 
 export function ConsumerOnboardingForm() {
   const router = useRouter();
   const { user, refreshUser, signOut } = useAuth();
 
-  const [name, setName] = useState("");
+  const [consumerName, setConsumerName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -39,7 +34,7 @@ export function ConsumerOnboardingForm() {
     kind: "none",
   });
   const [profileAvatarPath, setProfileAvatarPath] = useState<string | null>(null);
-  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileAvatarFromGoogle, setProfileAvatarFromGoogle] = useState(false);
 
   const handleAvatarChange = useCallback((selection: AvatarSelection) => {
     setAvatarSelection(selection);
@@ -56,9 +51,13 @@ export function ConsumerOnboardingForm() {
       if (cancelled) return;
 
       if (profile) {
-        setName(profile.name ?? profile.displayName ?? "");
+        setConsumerName(
+          profile.consumerName ??
+            profile.displayName ??
+            ""
+        );
         setProfileAvatarPath(profile.avatarPath ?? null);
-        setProfileAvatarUrl(profile.avatarUrl ?? null);
+        setProfileAvatarFromGoogle(profile.avatarFromGoogle ?? false);
       }
 
       await refreshUser();
@@ -77,7 +76,7 @@ export function ConsumerOnboardingForm() {
 
     setError(null);
 
-    const validationError = validateName(name);
+    const validationError = validateConsumerName(consumerName);
     if (validationError) {
       setError(validationError);
       return;
@@ -86,19 +85,18 @@ export function ConsumerOnboardingForm() {
     setSubmitting(true);
 
     try {
-      await userRepository.upsert(user.id, {
-        email: user.email,
-        displayName: user.displayName,
-        createdAt: user.createdAt,
-        name: name.trim(),
-        role: "consumer",
+      await userRepository.update(user.id, {
+        consumerName: consumerName.trim(),
         onboardingCompleted: true,
       });
       await persistAvatarSelection(user.id, avatarSelection);
       await refreshUser();
+      toast.saved();
       router.push("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao salvar dados");
+      const message = err instanceof Error ? err.message : "Erro ao salvar dados";
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -113,6 +111,10 @@ export function ConsumerOnboardingForm() {
     return null;
   }
 
+  const previewName =
+    consumerName.trim() ||
+    (user ? resolveConsumerDisplayName(user) : "Usuário");
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
       <OnboardingStep
@@ -123,21 +125,23 @@ export function ConsumerOnboardingForm() {
       >
         <AvatarPicker
           userId={user!.id}
-          displayName={name}
+          displayName={previewName}
           avatarPath={profileAvatarPath}
-          avatarUrl={profileAvatarUrl}
+          avatarFromGoogle={profileAvatarFromGoogle}
+          avatarFallbackLabel="Usuário"
           onChange={handleAvatarChange}
         />
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="consumer-name">Seu nome</Label>
+          <Label htmlFor="consumer-name">Como quer ser chamado?</Label>
           <Input
             id="consumer-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Como quer ser chamado"
-            autoComplete="name"
-            maxLength={ONBOARDING_LIMITS.name.max}
+            value={consumerName}
+            onChange={(event) => setConsumerName(stripAtSign(event.target.value))}
+            placeholder="Seu nome na plataforma"
+            autoComplete="nickname"
+            maxLength={ONBOARDING_LIMITS.consumerName.max}
+            disabled={submitting}
           />
         </div>
 

@@ -38,6 +38,7 @@ export interface AskMeQuestionRepository {
   getById(id: string): Promise<AskMeQuestion | null>;
   listByCreator(creatorId: string): Promise<AskMeQuestionWithAsker[]>;
   listByAsker(askerId: string): Promise<AskMeQuestionWithCreator[]>;
+  countAwaitingResponseByCreator(creatorId: string): Promise<number>;
   create(input: CreateAskMeQuestionInput): Promise<AskMeQuestion>;
   update(id: string, patch: UpdateAskMeQuestionInput): Promise<AskMeQuestion | null>;
   transitionToAwaitingResponse(id: string): Promise<AskMeQuestion | null>;

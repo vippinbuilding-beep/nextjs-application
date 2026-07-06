@@ -11,11 +11,19 @@ import {
   notifyAskMeNewQuestion,
   notifyAskMePaymentConfirmed,
   notifyAskMeRefunded,
+  notifyPixTransferFailed,
+  notifyPixTransferSent,
 } from "@/lib/notifications/dispatch";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPaymentGateway } from "@/services/payment-factory";
 
 const MIN_TRANSFER_CENTS = 100;
+
+function askMeQuestionLabel(questionText: string): string {
+  const trimmed = questionText.trim();
+  if (trimmed.length <= 60) return trimmed;
+  return `${trimmed.slice(0, 57)}...`;
+}
 
 function getRepo() {
   return new SupabaseAskMeQuestionRepository(createSupabaseAdminClient());
@@ -157,13 +165,32 @@ export async function repassAskMeToCreator(
   if (question.status !== "answered") return question;
   if (question.transferStatus === "sent") return question;
 
-  if (question.creatorAmountCents < MIN_TRANSFER_CENTS) {
-    return (
+  const previousTransferStatus = question.transferStatus;
+  const label = askMeQuestionLabel(question.questionText);
+
+  const fail = async (message: string) => {
+    const updated =
       (await repo.update(questionId, {
         transferStatus: "failed",
-        transferError: "Valor do repasse abaixo do mínimo de R$ 1,00.",
-      })) ?? question
-    );
+        transferError: message,
+      })) ?? question;
+
+    if (previousTransferStatus !== "failed") {
+      await notifyPixTransferFailed({
+        creatorId: question.creatorId,
+        kind: "ask_me",
+        entityId: question.id,
+        amountCents: question.creatorAmountCents,
+        label,
+        error: message,
+      });
+    }
+
+    return updated;
+  };
+
+  if (question.creatorAmountCents < MIN_TRANSFER_CENTS) {
+    return fail("Valor do repasse abaixo do mínimo de R$ 1,00.");
   }
 
   const { data: profile, error } = await admin
@@ -173,12 +200,7 @@ export async function repassAskMeToCreator(
     .maybeSingle();
 
   if (error || !profile?.pix_key || !profile.pix_key_type) {
-    return (
-      (await repo.update(questionId, {
-        transferStatus: "failed",
-        transferError: "Criador sem chave PIX cadastrada.",
-      })) ?? question
-    );
+    return fail("Criador sem chave PIX cadastrada.");
   }
 
   try {
@@ -190,21 +212,25 @@ export async function repassAskMeToCreator(
       pixKeyType: profile.pix_key_type.toUpperCase() as PixKeyType,
     });
 
-    return (
+    const updated =
       (await repo.update(questionId, {
         transferStatus: "sent",
         abacateTransferId: transfer.id,
         transferError: null,
-      })) ?? question
-    );
+      })) ?? question;
+
+    await notifyPixTransferSent({
+      creatorId: question.creatorId,
+      kind: "ask_me",
+      entityId: question.id,
+      amountCents: question.creatorAmountCents,
+      label,
+    });
+
+    return updated;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha no repasse PIX.";
-    return (
-      (await repo.update(questionId, {
-        transferStatus: "failed",
-        transferError: message,
-      })) ?? question
-    );
+    return fail(message);
   }
 }
 
