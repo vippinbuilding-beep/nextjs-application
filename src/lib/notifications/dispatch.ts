@@ -229,7 +229,7 @@ export async function notifyProfileUpdated(input: {
 
 export type PixTransferKind = "order" | "ask_me";
 
-export async function notifyWeeklyCreatorPayoutSent(input: {
+export async function notifyCreatorWithdrawSent(input: {
   creatorId: string;
   netCents: number;
   orderCount: number;
@@ -254,11 +254,11 @@ export async function notifyWeeklyCreatorPayoutSent(input: {
   await createNotification({
     userId: input.creatorId,
     type: "pix_transfer_sent",
-    title: "Repasse semanal enviado",
+    title: "Saque enviado",
     body: `${formatBRL(input.netCents)} transferidos para sua chave PIX (${context}).`,
     href: "/",
     metadata: {
-      kind: "weekly_batch",
+      kind: "manual_withdraw",
       netCents: input.netCents,
       orderCount: input.orderCount,
       askMeCount: input.askMeCount,
@@ -266,7 +266,7 @@ export async function notifyWeeklyCreatorPayoutSent(input: {
   });
 }
 
-export async function notifyWeeklyCreatorPayoutFailed(input: {
+export async function notifyCreatorWithdrawFailed(input: {
   creatorId: string;
   netCents: number;
   orderCount: number;
@@ -276,11 +276,11 @@ export async function notifyWeeklyCreatorPayoutFailed(input: {
   await createNotification({
     userId: input.creatorId,
     type: "pix_transfer_failed",
-    title: "Repasse semanal falhou",
+    title: "Saque falhou",
     body: `Não foi possível transferir ${formatBRL(input.netCents)}: ${input.error}`,
     href: "/profile/edit",
     metadata: {
-      kind: "weekly_batch",
+      kind: "manual_withdraw",
       netCents: input.netCents,
       orderCount: input.orderCount,
       askMeCount: input.askMeCount,

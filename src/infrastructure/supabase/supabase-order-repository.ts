@@ -99,14 +99,14 @@ export class SupabaseOrderRepository implements OrderRepository {
     return toOrder(data as OrderRow);
   }
 
-  async listPendingCreatorRepasses(limit: number): Promise<Order[]> {
+  async listPendingCreatorRepassesByCreator(creatorId: string): Promise<Order[]> {
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("status", "paid")
+      .eq("creator_id", creatorId)
       .in("transfer_status", ["pending", "failed"])
-      .order("paid_at", { ascending: true })
-      .limit(limit);
+      .order("paid_at", { ascending: true });
 
     if (error) throw new Error(error.message);
     return ((data as OrderRow[]) ?? []).map(toOrder);

@@ -38,6 +38,6 @@ export interface OrderRepository {
    * race each other.
    */
   transitionToPaid(id: string): Promise<Order | null>;
-  /** Paid orders awaiting (or retrying) the weekly creator repass batch. */
-  listPendingCreatorRepasses(limit: number): Promise<Order[]>;
+  /** Paid orders awaiting manual withdrawal for a given creator. */
+  listPendingCreatorRepassesByCreator(creatorId: string): Promise<Order[]>;
 }

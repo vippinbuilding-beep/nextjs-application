@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { CreatorWithdrawCard } from "@/components/creator/creator-withdraw-card";
 import { useAuth } from "@/components/providers/auth-provider";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ProfileDefaultTabPicker } from "@/components/profile/profile-default-tab-picker";
@@ -249,6 +250,8 @@ export default function DashboardPage() {
                     {/* Left column: link + quick actions */}
                     <div className="flex flex-col gap-4 lg:col-span-2 lg:gap-6">
                         {user.slug && <CreatorLinkCard slug={user.slug} />}
+
+                        <CreatorWithdrawCard />
 
                         {showDefaultTabPicker && (
                             <Card>

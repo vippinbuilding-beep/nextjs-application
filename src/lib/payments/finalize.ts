@@ -8,7 +8,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 /**
  * Confirms an order against the payment provider and, if paid, runs the
  * post-payment side effects exactly once: grant the buyer access. Creator
- * repasses are batched weekly (see `runWeeklyCreatorPayouts`).
+ * repasses are manual — the creator withdraws from the dashboard when ready.
  *
  * This is intentionally idempotent and safe to call from BOTH the webhook and
  * the buyer's status poll — the `pending -> paid` transition is atomic. It

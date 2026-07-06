@@ -1,8 +1,1 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/weekly-creator-payouts",
-      "schedule": "0 13 * * 1"
-    }
-  ]
-}
+{}
