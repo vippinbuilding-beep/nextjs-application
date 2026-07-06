@@ -38,6 +38,6 @@ export interface OrderRepository {
    * race each other.
    */
   transitionToPaid(id: string): Promise<Order | null>;
-  /** Paid orders whose creator repass failed and is eligible for retry. */
-  listFailedRepasses(limit: number, minAgeMs: number): Promise<Order[]>;
+  /** Paid orders awaiting (or retrying) the weekly creator repass batch. */
+  listPendingCreatorRepasses(limit: number): Promise<Order[]>;
 }

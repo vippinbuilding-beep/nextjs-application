@@ -188,18 +188,13 @@ export class SupabaseAskMeQuestionRepository implements AskMeQuestionRepository 
     return ((data as AskMeRow[]) ?? []).map(toQuestion);
   }
 
-  async listFailedRepasses(
-    limit: number,
-    minAgeMs: number
-  ): Promise<AskMeQuestion[]> {
-    const cutoff = new Date(Date.now() - minAgeMs).toISOString();
+  async listPendingCreatorRepasses(limit: number): Promise<AskMeQuestion[]> {
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("status", "answered")
-      .eq("transfer_status", "failed")
-      .lt("updated_at", cutoff)
-      .order("updated_at", { ascending: true })
+      .in("transfer_status", ["pending", "failed"])
+      .order("answered_at", { ascending: true })
       .limit(limit);
     if (error) throw new Error(error.message);
     return ((data as AskMeRow[]) ?? []).map(toQuestion);

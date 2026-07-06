@@ -99,18 +99,13 @@ export class SupabaseOrderRepository implements OrderRepository {
     return toOrder(data as OrderRow);
   }
 
-  async listFailedRepasses(
-    limit: number,
-    minAgeMs: number
-  ): Promise<Order[]> {
-    const cutoff = new Date(Date.now() - minAgeMs).toISOString();
+  async listPendingCreatorRepasses(limit: number): Promise<Order[]> {
     const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("status", "paid")
-      .eq("transfer_status", "failed")
-      .lt("updated_at", cutoff)
-      .order("updated_at", { ascending: true })
+      .in("transfer_status", ["pending", "failed"])
+      .order("paid_at", { ascending: true })
       .limit(limit);
 
     if (error) throw new Error(error.message);

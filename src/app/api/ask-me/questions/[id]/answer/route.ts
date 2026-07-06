@@ -6,7 +6,6 @@ import { notifyAskMeAnswered } from "@/lib/notifications/dispatch";
 import {
   processExpiredAskMeQuestions,
   refundAskMeQuestion,
-  repassAskMeToCreator,
 } from "@/lib/payments/ask-me-finalize";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -94,13 +93,12 @@ export async function POST(
     answerVideoPath: answerVideoPath ?? null,
     answerVideoMime: answerVideoMime ?? null,
     answeredAt: new Date(),
+    transferStatus: "pending",
   });
 
   if (!answered) {
     return Response.json({ error: "Falha ao salvar resposta." }, { status: 500 });
   }
-
-  await repassAskMeToCreator(id);
 
   const { data: creator } = await admin
     .from("profiles")

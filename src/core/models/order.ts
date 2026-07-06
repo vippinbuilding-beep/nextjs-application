@@ -26,7 +26,7 @@ export interface Order {
   amountCents: number;
   // Our cut (10%, net of AbacatePay fees which the platform absorbs).
   platformFeeCents: number;
-  // The creator's cut (90%), repassed via PIX after payment is confirmed.
+  // The creator's cut (90%), repassed via weekly batched PIX.
   creatorAmountCents: number;
   status: OrderStatus;
   // AbacatePay transparent PIX charge (QR code) reference and artifacts.
