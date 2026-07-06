@@ -289,6 +289,66 @@ export async function notifyWeeklyCreatorPayoutFailed(input: {
   });
 }
 
+export async function notifyCreatorWithdrawSent(input: {
+  creatorId: string;
+  netCents: number;
+  orderCount: number;
+  askMeCount: number;
+}): Promise<void> {
+  const parts: string[] = [];
+  if (input.orderCount > 0) {
+    parts.push(
+      input.orderCount === 1 ? "1 venda" : `${input.orderCount} vendas`
+    );
+  }
+  if (input.askMeCount > 0) {
+    parts.push(
+      input.askMeCount === 1
+        ? "1 Me pergunte"
+        : `${input.askMeCount} Me pergunte`
+    );
+  }
+
+  const context = parts.length > 0 ? parts.join(" e ") : "repasses pendentes";
+
+  await createNotification({
+    userId: input.creatorId,
+    type: "pix_transfer_sent",
+    title: "Saque enviado",
+    body: `${formatBRL(input.netCents)} transferidos para sua chave PIX (${context}).`,
+    href: "/",
+    metadata: {
+      kind: "manual_withdraw",
+      netCents: input.netCents,
+      orderCount: input.orderCount,
+      askMeCount: input.askMeCount,
+    },
+  });
+}
+
+export async function notifyCreatorWithdrawFailed(input: {
+  creatorId: string;
+  netCents: number;
+  orderCount: number;
+  askMeCount: number;
+  error: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.creatorId,
+    type: "pix_transfer_failed",
+    title: "Saque falhou",
+    body: `Não foi possível transferir ${formatBRL(input.netCents)}: ${input.error}`,
+    href: "/profile/edit",
+    metadata: {
+      kind: "manual_withdraw",
+      netCents: input.netCents,
+      orderCount: input.orderCount,
+      askMeCount: input.askMeCount,
+      error: input.error,
+    },
+  });
+}
+
 export async function notifyPixTransferSent(input: {
   creatorId: string;
   kind: PixTransferKind;

@@ -111,6 +111,19 @@ export class SupabaseOrderRepository implements OrderRepository {
     if (error) throw new Error(error.message);
     return ((data as OrderRow[]) ?? []).map(toOrder);
   }
+
+  async listPendingCreatorRepassesByCreator(creatorId: string): Promise<Order[]> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("creator_id", creatorId)
+      .eq("status", "paid")
+      .in("transfer_status", ["pending", "failed"])
+      .order("paid_at", { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return ((data as OrderRow[]) ?? []).map(toOrder);
+  }
 }
 
 function toRow(patch: UpdateOrderInput): Partial<OrderRow> {

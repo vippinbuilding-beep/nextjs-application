@@ -44,6 +44,10 @@ export interface AskMeQuestionRepository {
   transitionToAwaitingResponse(id: string): Promise<AskMeQuestion | null>;
   /** Answered questions awaiting (or retrying) the weekly creator repass batch. */
   listPendingCreatorRepasses(limit: number): Promise<AskMeQuestion[]>;
+  /** Answered questions awaiting repass for a single creator (manual withdraw). */
+  listPendingCreatorRepassesByCreator(
+    creatorId: string
+  ): Promise<AskMeQuestion[]>;
   /** Awaiting questions whose refund failed and is eligible for retry. */
   listFailedRefunds(limit: number, minAgeMs: number): Promise<AskMeQuestion[]>;
 }

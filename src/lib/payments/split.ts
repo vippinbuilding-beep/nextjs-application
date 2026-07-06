@@ -11,6 +11,19 @@ export const PLATFORM_FEE_RATE = 0.1;
 /** Fixed AbacatePay fee on each outbound `POST /v2/pix/send` (R$ 0,80). */
 export const ABACATEPAY_PIX_SEND_FEE_CENTS = 80;
 
+function parseCentsEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/** Minimum net balance before a creator can request a manual withdraw (default R$ 20,00). */
+export const CREATOR_MIN_WITHDRAWAL_CENTS = parseCentsEnv(
+  "CREATOR_MIN_WITHDRAWAL_CENTS",
+  2000
+);
+
 export interface AmountSplit {
   amountCents: number;
   platformFeeCents: number;
