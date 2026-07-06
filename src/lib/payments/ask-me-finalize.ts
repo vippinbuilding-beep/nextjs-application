@@ -11,19 +11,10 @@ import {
   notifyAskMeNewQuestion,
   notifyAskMePaymentConfirmed,
   notifyAskMeRefunded,
-  notifyPixTransferFailed,
-  notifyPixTransferSent,
 } from "@/lib/notifications/dispatch";
+import { pixSendGrossCents } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getPaymentGateway } from "@/services/payment-factory";
-
-const MIN_TRANSFER_CENTS = 100;
-
-function askMeQuestionLabel(questionText: string): string {
-  const trimmed = questionText.trim();
-  if (trimmed.length <= 60) return trimmed;
-  return `${trimmed.slice(0, 57)}...`;
-}
 
 function getRepo() {
   return new SupabaseAskMeQuestionRepository(createSupabaseAdminClient());
@@ -120,7 +111,7 @@ export async function refundAskMeQuestion(
 
   try {
     const transfer = await gateway.sendPix({
-      amountCents: question.amountCents,
+      amountCents: pixSendGrossCents(question.amountCents),
       externalId: `ask-me-refund-${questionId}`,
       description: "Estorno Me Pergunte — Vippin",
       pixKey: question.refundPixKey,
@@ -149,88 +140,6 @@ export async function refundAskMeQuestion(
         transferError: message,
       })) ?? question
     );
-  }
-}
-
-/** Repasses the creator's 90% after they answer. */
-export async function repassAskMeToCreator(
-  questionId: string
-): Promise<AskMeQuestion | null> {
-  const repo = getRepo();
-  const gateway = getPaymentGateway();
-  const admin = createSupabaseAdminClient();
-
-  const question = await repo.getById(questionId);
-  if (!question) return null;
-  if (question.status !== "answered") return question;
-  if (question.transferStatus === "sent") return question;
-
-  const previousTransferStatus = question.transferStatus;
-  const label = askMeQuestionLabel(question.questionText);
-
-  const fail = async (message: string) => {
-    const updated =
-      (await repo.update(questionId, {
-        transferStatus: "failed",
-        transferError: message,
-      })) ?? question;
-
-    if (previousTransferStatus !== "failed") {
-      await notifyPixTransferFailed({
-        creatorId: question.creatorId,
-        kind: "ask_me",
-        entityId: question.id,
-        amountCents: question.creatorAmountCents,
-        label,
-        error: message,
-      });
-    }
-
-    return updated;
-  };
-
-  if (question.creatorAmountCents < MIN_TRANSFER_CENTS) {
-    return fail("Valor do repasse abaixo do mínimo de R$ 1,00.");
-  }
-
-  const { data: profile, error } = await admin
-    .from("profiles")
-    .select("pix_key, pix_key_type")
-    .eq("id", question.creatorId)
-    .maybeSingle();
-
-  if (error || !profile?.pix_key || !profile.pix_key_type) {
-    return fail("Criador sem chave PIX cadastrada.");
-  }
-
-  try {
-    const transfer = await gateway.sendPix({
-      amountCents: question.creatorAmountCents,
-      externalId: `ask-me-${questionId}`,
-      description: "Me Pergunte — Vippin",
-      pixKey: profile.pix_key,
-      pixKeyType: profile.pix_key_type.toUpperCase() as PixKeyType,
-    });
-
-    const updated =
-      (await repo.update(questionId, {
-        transferStatus: "sent",
-        abacateTransferId: transfer.id,
-        transferError: null,
-      })) ?? question;
-
-    await notifyPixTransferSent({
-      creatorId: question.creatorId,
-      kind: "ask_me",
-      entityId: question.id,
-      amountCents: question.creatorAmountCents,
-      label,
-    });
-
-    return updated;
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Falha no repasse PIX.";
-    return fail(message);
   }
 }
 

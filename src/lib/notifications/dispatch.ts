@@ -229,6 +229,66 @@ export async function notifyProfileUpdated(input: {
 
 export type PixTransferKind = "order" | "ask_me";
 
+export async function notifyWeeklyCreatorPayoutSent(input: {
+  creatorId: string;
+  netCents: number;
+  orderCount: number;
+  askMeCount: number;
+}): Promise<void> {
+  const parts: string[] = [];
+  if (input.orderCount > 0) {
+    parts.push(
+      input.orderCount === 1 ? "1 venda" : `${input.orderCount} vendas`
+    );
+  }
+  if (input.askMeCount > 0) {
+    parts.push(
+      input.askMeCount === 1
+        ? "1 Me pergunte"
+        : `${input.askMeCount} Me pergunte`
+    );
+  }
+
+  const context = parts.length > 0 ? parts.join(" e ") : "repasses pendentes";
+
+  await createNotification({
+    userId: input.creatorId,
+    type: "pix_transfer_sent",
+    title: "Repasse semanal enviado",
+    body: `${formatBRL(input.netCents)} transferidos para sua chave PIX (${context}).`,
+    href: "/",
+    metadata: {
+      kind: "weekly_batch",
+      netCents: input.netCents,
+      orderCount: input.orderCount,
+      askMeCount: input.askMeCount,
+    },
+  });
+}
+
+export async function notifyWeeklyCreatorPayoutFailed(input: {
+  creatorId: string;
+  netCents: number;
+  orderCount: number;
+  askMeCount: number;
+  error: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.creatorId,
+    type: "pix_transfer_failed",
+    title: "Repasse semanal falhou",
+    body: `Não foi possível transferir ${formatBRL(input.netCents)}: ${input.error}`,
+    href: "/profile/edit",
+    metadata: {
+      kind: "weekly_batch",
+      netCents: input.netCents,
+      orderCount: input.orderCount,
+      askMeCount: input.askMeCount,
+      error: input.error,
+    },
+  });
+}
+
 export async function notifyPixTransferSent(input: {
   creatorId: string;
   kind: PixTransferKind;

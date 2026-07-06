@@ -1,10 +1,10 @@
 import type { NextRequest } from "next/server";
 
-import { retryFailedTransfers } from "@/lib/payments/retry-transfers";
+import { runWeeklyCreatorPayouts } from "@/lib/payments/weekly-creator-payouts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 function isAuthorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -17,19 +17,19 @@ function isAuthorized(request: NextRequest): boolean {
 }
 
 /**
- * Cron worker: retries failed AbacatePay PIX transfers (order repass, Me Pergunte
- * repass and refunds).
+ * Weekly cron: aggregates pending creator repasses (product sales + Me Pergunte)
+ * into one PIX per creator, then retries failed ask-me refunds.
  *
  * Schedule via Vercel Cron (see `vercel.json`) or call manually:
  *   curl -H "Authorization: Bearer $CRON_SECRET" \
- *     https://<domain>/api/cron/retry-transfers
+ *     https://<domain>/api/cron/weekly-creator-payouts
  */
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const summary = await retryFailedTransfers();
+  const summary = await runWeeklyCreatorPayouts();
 
   return Response.json(summary);
 }
