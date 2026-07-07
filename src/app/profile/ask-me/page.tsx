@@ -26,6 +26,7 @@ import {
   validateAskMePriceInput,
 } from "@/lib/ask-me";
 import { centsToReaisInput, formatBRL, parseReaisToCents } from "@/lib/money";
+import { creatorMePergunteFeeDescription } from "@/lib/payments/platform-fee";
 import { isCreator } from "@/lib/user-role";
 import { userRepository } from "@/services/repository-factory";
 import { toast, TOAST_MESSAGES } from "@/lib/toast";
@@ -160,9 +161,8 @@ export default function AskMeProfilePage() {
                     />
                     <p className="text-muted-foreground text-xs">
                       Mínimo {formatBRL(ASK_ME_LIMITS.minPriceCents)}. Padrão{" "}
-                      {formatBRL(ASK_ME_LIMITS.defaultPriceCents)}. No saque você
-                      recebe 90% menos R$ 0,80 de taxa PIX; a plataforma fica com
-                      10%.
+                      {formatBRL(ASK_ME_LIMITS.defaultPriceCents)}.{" "}
+                      {creatorMePergunteFeeDescription()}
                     </p>
                     <p className="text-xs font-medium">
                       Valor exibido no perfil: {formatBRL(effectivePrice)}

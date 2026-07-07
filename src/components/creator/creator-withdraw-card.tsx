@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatBRL } from "@/lib/money";
+import { creatorWithdrawBalanceDescription } from "@/lib/payments/platform-fee";
 import { toast } from "@/lib/toast";
 
 interface PayoutBalance {
@@ -79,7 +80,7 @@ export function CreatorWithdrawCard() {
     }
   }
 
-  const minLabel = formatBRL(balance?.minWithdrawalCents ?? 0);
+  const minWithdrawalLabel = formatBRL(balance?.minWithdrawalCents ?? 2000);
 
   return (
     <Card>
@@ -89,8 +90,7 @@ export function CreatorWithdrawCard() {
           Saldo para saque
         </CardTitle>
         <CardDescription>
-          Valor líquido no saque: 90% das vendas menos R$ 0,80 de taxa PIX.
-          Mínimo de {minLabel}.
+          {creatorWithdrawBalanceDescription()} Mínimo de {minWithdrawalLabel}.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">

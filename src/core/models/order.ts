@@ -24,9 +24,9 @@ export interface Order {
   creatorId: string;
   // Full price charged to the buyer.
   amountCents: number;
-  // Our cut (10%, net of AbacatePay fees which the platform absorbs).
+  // Our cut (see NEXT_PUBLIC_PLATFORM_FEE_PERCENT; AbacatePay fees absorbed by platform).
   platformFeeCents: number;
-  // The creator's cut (90%), repassed via weekly batched PIX.
+  // The creator's cut, repassed via manual withdraw or weekly batch.
   creatorAmountCents: number;
   status: OrderStatus;
   // AbacatePay transparent PIX charge (QR code) reference and artifacts.

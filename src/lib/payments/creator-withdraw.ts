@@ -20,7 +20,7 @@ import { getOrderRepository, getPaymentGateway } from "@/services/payment-factor
 const ABACATE_MIN_SEND_CENTS = 100;
 
 export interface CreatorPayoutBalance {
-  /** Líquido que cai no PIX no saque (90% acumulado − R$ 0,80). */
+  /** Líquido que cai no PIX no saque (parte do criador após taxa da plataforma). */
   netCents: number;
   orderCount: number;
   askMeCount: number;
@@ -88,7 +88,7 @@ export async function getCreatorPayoutBalance(
 
 /**
  * Withdraws all pending creator earnings (product sales + answered Me Pergunte)
- * in a single PIX transfer. Creator receives accrued 90% minus R$ 0,80 PIX fee.
+ * in a single PIX transfer. Creator receives the full accrued share.
  */
 export async function withdrawCreatorPayout(
   creatorId: string
