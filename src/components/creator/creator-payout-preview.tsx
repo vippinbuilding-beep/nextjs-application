@@ -1,7 +1,6 @@
 "use client";
 
 import { formatBRL } from "@/lib/money";
-import { formatPlatformFeePercent } from "@/lib/payments/platform-fee";
 import {
   getCreatorPayoutBreakdown,
   validateGrossCoversSaleFees,
@@ -35,7 +34,6 @@ export function CreatorPayoutPreview({
   }
 
   const breakdown = getCreatorPayoutBreakdown(grossCents);
-  const platformPercentLabel = formatPlatformFeePercent();
 
   return (
     <div className={cn("flex flex-col gap-1 text-xs font-medium", className)}>
@@ -45,12 +43,6 @@ export function CreatorPayoutPreview({
           {formatBRL(breakdown.netWithdrawCents)}
         </span>{" "}
         líquido no PIX por {unitLabel}.
-      </p>
-      <p className="text-muted-foreground leading-relaxed">
-        {formatBRL(breakdown.grossCents)} − {formatBRL(breakdown.salePixFeeCents)}{" "}
-        (PIX) − {formatBRL(breakdown.platformPercentFeeCents)} ({platformPercentLabel}{" "}
-        plataforma) = {formatBRL(breakdown.accruedCents)} no saldo; no saque, −{" "}
-        {formatBRL(breakdown.withdrawPixFeeCents)} (PIX).
       </p>
     </div>
   );
