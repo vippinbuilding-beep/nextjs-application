@@ -168,7 +168,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
                 />
 
                 <div className="flex flex-col items-center gap-2">
-                  <h1 className="text-3xl font-bold tracking-tight">@{handle}</h1>
+                  <h1 className="text-3xl font-bold tracking-tight">{handle}</h1>
                   {bio && (
                     <p className="text-muted-foreground max-w-prose text-sm leading-relaxed break-all">
                       {bio}

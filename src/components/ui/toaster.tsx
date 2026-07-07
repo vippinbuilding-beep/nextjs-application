@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CheckCircle2, X, XCircle } from "lucide-react";
+import { Bell, Banknote, CheckCircle2, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -9,6 +9,7 @@ import {
   subscribeToasts,
   type ToastItem,
 } from "@/lib/toast";
+import { NOTIFICATION_TONE_STYLES } from "@/lib/notifications/appearance";
 import { cn } from "@/lib/utils";
 
 export function Toaster() {
@@ -75,10 +76,24 @@ function ToastCard({ item }: { item: ToastItem }) {
 }
 
 function NotificationToastCard({ item }: { item: ToastItem }) {
+  const tone = item.notificationTone ?? "default";
+  const styles = NOTIFICATION_TONE_STYLES[tone];
+  const Icon =
+    tone === "financial"
+      ? Banknote
+      : tone === "financial-error"
+        ? XCircle
+        : Bell;
+
   const content = (
     <>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
-        <Bell className="size-4" aria-hidden />
+      <span
+        className={cn(
+          "flex size-9 shrink-0 items-center justify-center rounded-xl border-2 shadow-cartoon-sm",
+          styles.icon
+        )}
+      >
+        <Icon className="size-4" aria-hidden />
       </span>
 
       <div className="min-w-0 flex-1">
@@ -102,8 +117,9 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
   );
 
   const className = cn(
-    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-lg",
-    "animate-in fade-in slide-in-from-bottom-4 duration-200"
+    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border-2 p-4 shadow-cartoon-lg",
+    "animate-in fade-in slide-in-from-bottom-4 duration-200",
+    styles.toast
   );
 
   if (item.href) {

@@ -2,6 +2,7 @@ import "server-only";
 
 import type { User, UserRole, UserSocials } from "@/core/models/user";
 import { isCreatorProfileTab } from "@/lib/creator-profile-tabs";
+import { validateAskMePriceInput } from "@/lib/ask-me";
 import { validateBirthDateAge } from "@/lib/profile/birth-date";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -83,6 +84,10 @@ function toProfileRow(
   }
   if (data.askMeEnabled !== undefined) row.ask_me_enabled = data.askMeEnabled;
   if (data.askMePriceCents !== undefined) {
+    if (data.askMePriceCents != null) {
+      const priceError = validateAskMePriceInput(data.askMePriceCents);
+      if (priceError) throw new Error(priceError);
+    }
     row.ask_me_price_cents = data.askMePriceCents;
   }
   if (data.bio !== undefined) {

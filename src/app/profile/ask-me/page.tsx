@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { AskMeCreatorInbox } from "@/components/ask-me/ask-me-creator-inbox";
 import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
+import { CreatorPayoutPreview } from "@/components/creator/creator-payout-preview";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import { useCreatorPendingAskMe } from "@/hooks/use-creator-pending-ask-me";
@@ -163,17 +164,19 @@ export default function AskMeProfilePage() {
                       inputMode="decimal"
                       value={priceInput}
                       onChange={(e) => setPriceInput(e.target.value)}
-                      placeholder="2,00"
+                      placeholder="5,00"
                       disabled={submitting}
                     />
                     <p className="text-muted-foreground text-xs">
-                      Mínimo {formatBRL(ASK_ME_LIMITS.minPriceCents)}. Padrão{" "}
+                      De {formatBRL(ASK_ME_LIMITS.minPriceCents)} a{" "}
+                      {formatBRL(ASK_ME_LIMITS.maxPriceCents)}. Padrão{" "}
                       {formatBRL(ASK_ME_LIMITS.defaultPriceCents)}.{" "}
                       {creatorMePergunteFeeDescription()}
                     </p>
                     <p className="text-xs font-medium">
                       Valor exibido no perfil: {formatBRL(effectivePrice)}
                     </p>
+                    <CreatorPayoutPreview grossCents={effectivePrice} unitLabel="pergunta" />
                   </div>
                 )}
 

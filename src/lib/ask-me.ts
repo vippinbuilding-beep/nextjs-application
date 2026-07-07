@@ -1,7 +1,9 @@
+import { formatBRL } from "@/lib/money";
+
 export const ASK_ME_LIMITS = {
-  minPriceCents: 200,
-  defaultPriceCents: 200,
-  maxPriceCents: 500_00,
+  minPriceCents: 500,
+  defaultPriceCents: 500,
+  maxPriceCents: 10_000,
   question: { min: 10, max: 500 },
   answerText: { min: 1, max: 2000 },
   responseDeadlineHours: 72,
@@ -17,6 +19,9 @@ export function resolveAskMePriceCents(
   if (!enabled) return ASK_ME_LIMITS.defaultPriceCents;
   if (priceCents == null || priceCents < ASK_ME_LIMITS.minPriceCents) {
     return ASK_ME_LIMITS.defaultPriceCents;
+  }
+  if (priceCents > ASK_ME_LIMITS.maxPriceCents) {
+    return ASK_ME_LIMITS.maxPriceCents;
   }
   return priceCents;
 }
@@ -45,10 +50,10 @@ export function validateAskMeAnswerText(text: string): string | null {
 
 export function validateAskMePriceInput(cents: number): string | null {
   if (cents < ASK_ME_LIMITS.minPriceCents) {
-    return `O valor mínimo é R$ ${(ASK_ME_LIMITS.minPriceCents / 100).toFixed(2).replace(".", ",")}`;
+    return `O valor mínimo é ${formatBRL(ASK_ME_LIMITS.minPriceCents)}.`;
   }
   if (cents > ASK_ME_LIMITS.maxPriceCents) {
-    return "Valor muito alto";
+    return `O valor máximo é ${formatBRL(ASK_ME_LIMITS.maxPriceCents)}.`;
   }
   return null;
 }

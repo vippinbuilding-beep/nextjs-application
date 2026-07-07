@@ -58,7 +58,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
           <p className="truncate text-sm font-bold">{displayName}</p>
           {user?.slug && (
             <p className="text-muted-foreground truncate text-xs font-medium">
-              @{user.slug}
+              {user.slug}
             </p>
           )}
         </div>

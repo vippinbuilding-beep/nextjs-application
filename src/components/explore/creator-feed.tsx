@@ -53,7 +53,7 @@ export function CreatorFeed({
                 size="lg"
               />
               <span className="line-clamp-2 w-full text-center text-xs leading-snug font-bold">
-                @{creator.handle}
+                {creator.handle}
               </span>
             </Link>
           </li>
@@ -70,7 +70,7 @@ function CreatorFeedHeader({ searching }: { searching: boolean }) {
       <p className="text-muted-foreground text-xs font-medium">
         {searching
           ? "Perfis que batem com a sua busca. Toque para ver a vitrine."
-          : "Criadores com produtos publicados. Use a busca acima para filtrar por nome ou @."}
+          : "Criadores com produtos publicados. Use a busca acima para filtrar por nome."}
       </p>
     </div>
   );

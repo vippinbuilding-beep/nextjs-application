@@ -40,7 +40,7 @@ export function CreatorProfileLink({
           className="size-9"
         />
         <span className="truncate text-sm font-bold group-hover:underline">
-          @{handle}
+          {handle}
         </span>
       </Link>
     );
@@ -63,7 +63,7 @@ export function CreatorProfileLink({
       />
       <span className="min-w-0 flex flex-col gap-0.5">
         <span className="text-muted-foreground text-xs font-medium">Criador</span>
-        <span className="truncate font-bold group-hover:underline">@{handle}</span>
+        <span className="truncate font-bold group-hover:underline">{handle}</span>
       </span>
     </Link>
   );

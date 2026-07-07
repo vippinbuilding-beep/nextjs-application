@@ -5,6 +5,7 @@ import {
   ASK_ME_LIMITS,
   resolveAskMePriceCents,
   validateAskMeQuestion,
+  validateAskMePriceInput,
 } from "@/lib/ask-me";
 import { splitAmount, validateGrossCoversSaleFees } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -85,6 +86,10 @@ export async function POST(
     true,
     creator.ask_me_price_cents
   );
+  const priceError = validateAskMePriceInput(priceCents);
+  if (priceError) {
+    return Response.json({ error: priceError }, { status: 400 });
+  }
   const split = splitAmount(priceCents);
   const splitError = validateGrossCoversSaleFees(priceCents);
   if (splitError) {

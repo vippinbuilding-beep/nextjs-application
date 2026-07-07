@@ -113,7 +113,7 @@ export default async function ProductOpenGraphImage({
               color: "#4b4b4b",
             }}
           >
-            {typeLabel} · {priceLabel} · @{handle}
+            {typeLabel} · {priceLabel} · {handle}
           </div>
         </div>
       </div>

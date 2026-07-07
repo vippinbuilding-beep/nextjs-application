@@ -19,6 +19,7 @@ import {
   validateAskMeAnswerText,
   validateAskMeVideo,
 } from "@/lib/ask-me";
+import { refreshAskMePendingCount } from "@/lib/ask-me/pending-count";
 import { formatBRL } from "@/lib/money";
 import { getAskMeAnswerVideoUrl, ASK_ME_ANSWERS_BUCKET } from "@/lib/supabase/storage";
 import { supabase } from "@/lib/supabase/client";
@@ -128,6 +129,7 @@ export function AskMeCreatorInbox({
         throw new Error(body?.error ?? "Falha ao enviar resposta");
       }
       await load();
+      refreshAskMePendingCount();
       toast.success(TOAST_MESSAGES.answerSent);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao responder";
@@ -153,6 +155,7 @@ export function AskMeCreatorInbox({
         throw new Error(body?.error ?? "Falha ao recusar");
       }
       await load();
+      refreshAskMePendingCount();
       toast.success(TOAST_MESSAGES.declined);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao recusar";

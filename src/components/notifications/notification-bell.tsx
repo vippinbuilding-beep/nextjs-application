@@ -17,6 +17,10 @@ import { CountBadge } from "@/components/ui/count-badge";
 import { NavNotificationSkeleton } from "@/components/navigation/nav-user-actions-skeleton";
 import type { AppNotification } from "@/core/models/notification";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import {
+  getNotificationTone,
+  NOTIFICATION_TONE_STYLES,
+} from "@/lib/notifications/appearance";
 import { subscribeToNotificationInserts } from "@/lib/notifications/realtime";
 import { cn } from "@/lib/utils";
 import { notificationRepository } from "@/services/repository-factory";
@@ -105,6 +109,8 @@ function NotificationList({
         ) : (
           <ul className="flex flex-col">
             {items.map((item) => {
+              const tone = getNotificationTone(item.type);
+              const styles = NOTIFICATION_TONE_STYLES[tone];
               const content = (
                 <>
                   <p className="text-sm font-bold leading-tight">{item.title}</p>
@@ -117,16 +123,19 @@ function NotificationList({
                 </>
               );
 
+              const itemClassName = cn(
+                "block border-b border-border px-4 py-3.5 transition-colors",
+                styles.itemInteractive,
+                !item.readAt && styles.itemUnread
+              );
+
               return (
                 <li key={item.id}>
                   {item.href ? (
                     <Link
                       href={item.href}
                       onClick={() => void onItemClick(item)}
-                      className={cn(
-                        "block border-b border-border px-4 py-3.5 transition-colors hover:bg-muted/50 active:bg-muted/50",
-                        !item.readAt && "bg-primary/10"
-                      )}
+                      className={itemClassName}
                     >
                       {content}
                     </Link>
@@ -134,10 +143,7 @@ function NotificationList({
                     <button
                       type="button"
                       onClick={() => void onItemClick(item)}
-                      className={cn(
-                        "w-full border-b border-border px-4 py-3.5 text-left transition-colors hover:bg-muted/50 active:bg-muted/50",
-                        !item.readAt && "bg-primary/10"
-                      )}
+                      className={cn(itemClassName, "w-full text-left")}
                     >
                       {content}
                     </button>

@@ -113,7 +113,8 @@ export class SupabaseAskMeQuestionRepository implements AskMeQuestionRepository 
       .from(TABLE)
       .select("*", { count: "exact", head: true })
       .eq("creator_id", creatorId)
-      .eq("status", "awaiting_response");
+      .eq("status", "awaiting_response")
+      .gt("response_deadline_at", new Date().toISOString());
 
     if (error) throw new Error(error.message);
     return count ?? 0;

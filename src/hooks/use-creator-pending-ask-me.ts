@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { subscribeToCreatorAskMeChanges } from "@/lib/ask-me/realtime";
+import { subscribeAskMePendingCountRefresh } from "@/lib/ask-me/pending-count";
 import { askMeQuestionRepository } from "@/services/repository-factory";
 
 export function useCreatorPendingAskMe(creatorId: string | undefined): number {
@@ -37,17 +38,24 @@ export function useCreatorPendingAskMe(creatorId: string | undefined): number {
       }
     );
 
-    function handleVisibilityChange() {
+    const unsubscribeManualRefresh = subscribeAskMePendingCountRefresh(() => {
+      void loadRef.current(stableCreatorId);
+    });
+
+    function handleVisible() {
       if (document.visibilityState === "visible") {
         void loadRef.current(stableCreatorId);
       }
     }
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisible);
+    window.addEventListener("focus", handleVisible);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
       unsubscribeRealtime();
+      unsubscribeManualRefresh();
+      document.removeEventListener("visibilitychange", handleVisible);
+      window.removeEventListener("focus", handleVisible);
     };
   }, [creatorId]);
 

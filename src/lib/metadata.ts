@@ -106,7 +106,7 @@ export function createCreatorMetadata({
   avatarPath?: string | null;
   avatarUrl?: string | null;
 }): Metadata {
-  const displayHandle = `@${handle}`;
+  const displayHandle = handle;
   const title = displayHandle;
   const description =
     productCount > 0
@@ -174,8 +174,8 @@ export function createProductMetadata({
   const typeLabel = type === "single_lesson" ? "Aula" : "Material";
   const priceLabel = priceCents === 0 ? "Grátis" : undefined;
   const fallbackDescription = priceLabel
-    ? `${typeLabel} ${priceLabel} de @${creatorHandle} no Vippin.`
-    : `${typeLabel} de @${creatorHandle} no Vippin.`;
+    ? `${typeLabel} ${priceLabel} de ${creatorHandle} no Vippin.`
+    : `${typeLabel} de ${creatorHandle} no Vippin.`;
   const metaDescription = truncateDescription(
     description?.trim() || fallbackDescription,
   );

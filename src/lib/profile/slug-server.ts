@@ -1,14 +1,7 @@
 import "server-only";
 
+import { slugify, slugWithNumericSuffix } from "@/lib/slug";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-
-function slugify(desired: string, fallback: string): string {
-  const base = desired
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return base || fallback;
-}
 
 /** Mirrors `private.claim_profile_slug` — server-only, uses service role. */
 export async function claimProfileSlug(
@@ -31,7 +24,7 @@ export async function claimProfileSlug(
     if (!count) return candidate;
 
     suffix += 1;
-    candidate = `${base}-${suffix}`;
+    candidate = slugWithNumericSuffix(base, suffix);
   }
 }
 
@@ -56,6 +49,6 @@ export async function claimProductSlug(
     if (!count) return candidate;
 
     suffix += 1;
-    candidate = `${base}-${suffix}`;
+    candidate = slugWithNumericSuffix(base, suffix);
   }
 }

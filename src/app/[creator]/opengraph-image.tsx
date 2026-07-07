@@ -103,7 +103,7 @@ export default async function CreatorOpenGraphImage({
               color: "#000000",
             }}
           >
-            @{handle}
+            {handle}
           </div>
           <div
             style={{

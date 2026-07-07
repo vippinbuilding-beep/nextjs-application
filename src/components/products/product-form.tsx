@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { BackButton } from "@/components/navigation/back-button";
+import { CreatorPayoutPreview } from "@/components/creator/creator-payout-preview";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
@@ -384,6 +385,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
             <p className="text-muted-foreground text-xs">
               Grátis ou de {formatBRL(PRICE_MIN_CENTS)} a {formatBRL(PRICE_MAX_CENTS)}.
             </p>
+            <CreatorPayoutPreview grossCents={priceCents} />
           </div>
 
           <div className="flex flex-col gap-2">

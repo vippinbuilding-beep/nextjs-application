@@ -1,5 +1,7 @@
 export type ToastVariant = "success" | "error" | "notification";
 
+export type NotificationToastTone = "default" | "financial" | "financial-error";
+
 export interface ToastItem {
   id: string;
   message: string;
@@ -7,6 +9,7 @@ export interface ToastItem {
   title?: string;
   body?: string;
   href?: string;
+  notificationTone?: NotificationToastTone;
 }
 
 export const TOAST_MESSAGES = {
@@ -58,6 +61,7 @@ function pushNotification(input: {
   title: string;
   body?: string;
   href?: string;
+  notificationTone?: NotificationToastTone;
 }) {
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -73,6 +77,7 @@ function pushNotification(input: {
       title: input.title,
       body: input.body,
       href: input.href,
+      notificationTone: input.notificationTone ?? "default",
     },
   ];
   emit();
@@ -101,7 +106,12 @@ export const toast = {
   error(message: string) {
     push(message, "error");
   },
-  notification(input: { title: string; body?: string; href?: string }) {
+  notification(input: {
+    title: string;
+    body?: string;
+    href?: string;
+    notificationTone?: NotificationToastTone;
+  }) {
     pushNotification(input);
   },
   saved() {
