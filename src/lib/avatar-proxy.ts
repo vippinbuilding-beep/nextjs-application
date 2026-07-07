@@ -35,7 +35,7 @@ export async function fetchPlatformProfileImage(
       "User-Agent": "Mozilla/5.0 (compatible; Vippin/1.0; +https://vippin.app)",
       Referer: refererForSourcePage(sourcePageUrl),
     },
-    next: { revalidate: AVATAR_UPSTREAM_REVALIDATE_SECONDS },
+    cache: "no-store",
   });
 }
 

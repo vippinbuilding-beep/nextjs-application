@@ -4,9 +4,14 @@ import { detectProfileLinkPlatform } from "@/lib/profile-link-platforms";
 import { normalizeProfileLinkUrl } from "@/lib/profile-links";
 
 const FETCH_HEADERS = {
-  "User-Agent": "Mozilla/5.0 (compatible; VippinBot/1.0)",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
   "Accept-Language": "pt-BR,en;q=0.9",
+  Accept:
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
 } as const;
+
+const INSTAGRAM_WEB_APP_ID = "936619743392459";
 
 const PREVIEW_FETCH_TIMEOUT_MS = 8_000;
 
@@ -35,7 +40,7 @@ async function fetchHtml(url: string): Promise<string | null> {
       headers: FETCH_HEADERS,
       signal: controller.signal,
       redirect: "follow",
-      next: { revalidate: 3600 },
+      cache: "no-store",
     });
     if (!response.ok) return null;
     return await response.text();
@@ -126,6 +131,10 @@ async function resolveInstagramProfileImage(url: URL): Promise<string | null> {
   if (!username) return null;
 
   const profileUrl = `https://www.instagram.com/${username}/`;
+
+  const fromApi = await resolveInstagramProfileImageViaApi(username, profileUrl);
+  if (fromApi) return fromApi;
+
   const html = await fetchHtml(profileUrl);
   if (!html) return null;
 
@@ -133,6 +142,8 @@ async function resolveInstagramProfileImage(url: URL): Promise<string | null> {
     extractMetaContent(html, "og:image"),
     html.match(/"profile_pic_url_hd":"([^"]+)"/)?.[1] ?? null,
     html.match(/"profile_pic_url":"([^"]+)"/)?.[1] ?? null,
+    html.match(/profile_pic_url_hd\\":\\"([^\\"]+)/)?.[1] ?? null,
+    html.match(/profile_pic_url\\":\\"([^\\"]+)/)?.[1] ?? null,
   ];
 
   for (const raw of candidates) {
@@ -142,6 +153,61 @@ async function resolveInstagramProfileImage(url: URL): Promise<string | null> {
   }
 
   return null;
+}
+
+async function resolveInstagramProfileImageViaApi(
+  username: string,
+  profileUrl: string
+): Promise<string | null> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PREVIEW_FETCH_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(
+      `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`,
+      {
+        headers: {
+          ...FETCH_HEADERS,
+          Accept: "*/*",
+          "X-IG-App-ID": INSTAGRAM_WEB_APP_ID,
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "same-origin",
+          Referer: profileUrl,
+        },
+        signal: controller.signal,
+        redirect: "follow",
+        cache: "no-store",
+      }
+    );
+    if (!response.ok) return null;
+
+    const payload = (await response.json()) as {
+      data?: {
+        user?: {
+          profile_pic_url_hd?: string;
+          profile_pic_url?: string;
+        };
+      };
+    };
+
+    const candidates = [
+      payload.data?.user?.profile_pic_url_hd,
+      payload.data?.user?.profile_pic_url,
+    ];
+
+    for (const raw of candidates) {
+      if (!raw) continue;
+      const image = decodeHtmlEntitiesInUrl(raw);
+      if (isHttpsUrl(image)) return image;
+    }
+
+    return null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function extractGithubUsername(url: URL): string | null {
@@ -189,7 +255,7 @@ async function resolveTwitterProfileImage(url: URL): Promise<string | null> {
   try {
     const response = await fetch(
       `https://cdn.syndication.twimg.com/widgets/followbutton/info.json?screen_names=${encodeURIComponent(username)}`,
-      { signal: controller.signal, next: { revalidate: 3600 } }
+      { signal: controller.signal, cache: "no-store" }
     );
     if (!response.ok) return null;
 
