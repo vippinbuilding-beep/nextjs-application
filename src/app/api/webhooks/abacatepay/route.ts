@@ -66,10 +66,49 @@ interface WebhookPayload {
   data?: {
     id?: string;
     metadata?: Record<string, unknown>;
+    transparent?: {
+      id?: string;
+      metadata?: Record<string, unknown>;
+    };
     pixQrCode?: { id?: string };
     transaction?: { id?: string };
     [key: string]: unknown;
   };
+}
+
+/** AbacatePay v2 nests charge data under `data.transparent`; older shapes are kept as fallback. */
+function extractTransparentCharge(payload: WebhookPayload): {
+  chargeId: string | null;
+  metadata: Record<string, unknown>;
+} {
+  const data = payload.data ?? {};
+  const transparent = data.transparent;
+
+  if (transparent && typeof transparent === "object") {
+    return {
+      chargeId: typeof transparent.id === "string" ? transparent.id : null,
+      metadata: transparent.metadata ?? {},
+    };
+  }
+
+  const chargeId =
+    data.pixQrCode?.id ??
+    (typeof data.id === "string" ? data.id : null) ??
+    data.transaction?.id ??
+    null;
+
+  return {
+    chargeId: chargeId ?? null,
+    metadata: data.metadata ?? {},
+  };
+}
+
+function metadataString(
+  metadata: Record<string, unknown>,
+  key: string
+): string | null {
+  const value = metadata[key];
+  return typeof value === "string" && value ? value : null;
 }
 
 /**
@@ -78,13 +117,11 @@ interface WebhookPayload {
  * `orders.abacate_charge_id`.
  */
 async function resolveOrderId(payload: WebhookPayload): Promise<string | null> {
-  const data = payload.data ?? {};
+  const { chargeId, metadata } = extractTransparentCharge(payload);
 
-  const fromMetadata = data.metadata?.orderId;
-  if (typeof fromMetadata === "string" && fromMetadata) return fromMetadata;
+  const fromMetadata = metadataString(metadata, "orderId");
+  if (fromMetadata) return fromMetadata;
 
-  const chargeId =
-    data.pixQrCode?.id ?? data.id ?? data.transaction?.id ?? null;
   if (!chargeId) return null;
 
   const admin = createSupabaseAdminClient();
@@ -100,13 +137,11 @@ async function resolveOrderId(payload: WebhookPayload): Promise<string | null> {
 async function resolveAskMeQuestionId(
   payload: WebhookPayload
 ): Promise<string | null> {
-  const data = payload.data ?? {};
+  const { chargeId, metadata } = extractTransparentCharge(payload);
 
-  const fromMetadata = data.metadata?.askMeQuestionId;
-  if (typeof fromMetadata === "string" && fromMetadata) return fromMetadata;
+  const fromMetadata = metadataString(metadata, "askMeQuestionId");
+  if (fromMetadata) return fromMetadata;
 
-  const chargeId =
-    data.pixQrCode?.id ?? data.id ?? data.transaction?.id ?? null;
   if (!chargeId) return null;
 
   const admin = createSupabaseAdminClient();
