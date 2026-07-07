@@ -10,6 +10,7 @@ import {
 } from "@/lib/notifications/dispatch";
 import {
   CREATOR_MIN_WITHDRAWAL_CENTS,
+  creatorWithdrawNetCents,
   pixSendGrossCents,
 } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -19,6 +20,7 @@ import { getOrderRepository, getPaymentGateway } from "@/services/payment-factor
 const ABACATE_MIN_SEND_CENTS = 100;
 
 export interface CreatorPayoutBalance {
+  /** Líquido que cai no PIX no saque (90% acumulado − R$ 0,80). */
   netCents: number;
   orderCount: number;
   askMeCount: number;
@@ -39,7 +41,18 @@ export interface CreatorWithdrawResult {
 interface CreatorBatch {
   orderIds: string[];
   askMeQuestionIds: string[];
-  netCents: number;
+  accruedCents: number;
+  withdrawNetCents: number;
+}
+
+function sumAccruedCents(
+  orders: { creatorAmountCents: number }[],
+  questions: { creatorAmountCents: number }[]
+): number {
+  return (
+    orders.reduce((sum, o) => sum + o.creatorAmountCents, 0) +
+    questions.reduce((sum, q) => sum + q.creatorAmountCents, 0)
+  );
 }
 
 export async function getCreatorPayoutBalance(
@@ -59,10 +72,8 @@ export async function getCreatorPayoutBalance(
       .maybeSingle(),
   ]);
 
-  const netCents =
-    orders.reduce((sum, o) => sum + o.creatorAmountCents, 0) +
-    questions.reduce((sum, q) => sum + q.creatorAmountCents, 0);
-
+  const accruedCents = sumAccruedCents(orders, questions);
+  const netCents = creatorWithdrawNetCents(accruedCents);
   const hasPixKey = Boolean(profile.data?.pix_key && profile.data?.pix_key_type);
 
   return {
@@ -77,7 +88,7 @@ export async function getCreatorPayoutBalance(
 
 /**
  * Withdraws all pending creator earnings (product sales + answered Me Pergunte)
- * in a single PIX transfer. Requires net balance >= R$ 20,00.
+ * in a single PIX transfer. Creator receives accrued 90% minus R$ 0,80 PIX fee.
  */
 export async function withdrawCreatorPayout(
   creatorId: string
@@ -92,30 +103,32 @@ export async function withdrawCreatorPayout(
     askMeRepo.listPendingCreatorRepassesByCreator(creatorId),
   ]);
 
+  const accruedCents = sumAccruedCents(orders, questions);
+  const withdrawNetCents = creatorWithdrawNetCents(accruedCents);
+
   const batch: CreatorBatch = {
     orderIds: orders.map((o) => o.id),
     askMeQuestionIds: questions.map((q) => q.id),
-    netCents:
-      orders.reduce((sum, o) => sum + o.creatorAmountCents, 0) +
-      questions.reduce((sum, q) => sum + q.creatorAmountCents, 0),
+    accruedCents,
+    withdrawNetCents,
   };
 
-  if (batch.netCents < CREATOR_MIN_WITHDRAWAL_CENTS) {
+  if (batch.orderIds.length === 0 && batch.askMeQuestionIds.length === 0) {
+    return { ok: false, error: "Nenhum repasse pendente." };
+  }
+
+  if (batch.withdrawNetCents < CREATOR_MIN_WITHDRAWAL_CENTS) {
     return {
       ok: false,
       error: `Saldo mínimo para saque: R$ ${(CREATOR_MIN_WITHDRAWAL_CENTS / 100).toFixed(2).replace(".", ",")}.`,
     };
   }
 
-  if (batch.netCents < ABACATE_MIN_SEND_CENTS) {
+  if (batch.withdrawNetCents < ABACATE_MIN_SEND_CENTS) {
     return {
       ok: false,
       error: "Valor do saque abaixo do mínimo da AbacatePay (R$ 1,00).",
     };
-  }
-
-  if (batch.orderIds.length === 0 && batch.askMeQuestionIds.length === 0) {
-    return { ok: false, error: "Nenhum repasse pendente." };
   }
 
   const { data: profile, error: profileError } = await admin
@@ -131,7 +144,7 @@ export async function withdrawCreatorPayout(
 
   try {
     const transfer = await gateway.sendPix({
-      amountCents: pixSendGrossCents(batch.netCents),
+      amountCents: pixSendGrossCents(batch.withdrawNetCents),
       externalId: `withdraw-${creatorId}-${randomUUID()}`,
       description: "Saque Vippin",
       pixKey: profile.pix_key,
@@ -142,14 +155,14 @@ export async function withdrawCreatorPayout(
 
     await notifyCreatorWithdrawSent({
       creatorId,
-      netCents: batch.netCents,
+      netCents: batch.withdrawNetCents,
       orderCount: batch.orderIds.length,
       askMeCount: batch.askMeQuestionIds.length,
     });
 
     return {
       ok: true,
-      netCents: batch.netCents,
+      netCents: batch.withdrawNetCents,
       orderCount: batch.orderIds.length,
       askMeCount: batch.askMeQuestionIds.length,
       abacateTransferId: transfer.id,
@@ -159,7 +172,7 @@ export async function withdrawCreatorPayout(
     await markCreatorBatchFailed(admin, batch, message);
     await notifyCreatorWithdrawFailed({
       creatorId,
-      netCents: batch.netCents,
+      netCents: batch.withdrawNetCents,
       orderCount: batch.orderIds.length,
       askMeCount: batch.askMeQuestionIds.length,
       error: message,

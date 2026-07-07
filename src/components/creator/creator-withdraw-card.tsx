@@ -89,8 +89,8 @@ export function CreatorWithdrawCard() {
           Saldo para saque
         </CardTitle>
         <CardDescription>
-          Acumule vendas e Me pergunte respondidos. Saque manual com mínimo de{" "}
-          {minLabel}.
+          Valor líquido no saque: 90% das vendas menos R$ 0,80 de taxa PIX.
+          Mínimo de {minLabel}.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">

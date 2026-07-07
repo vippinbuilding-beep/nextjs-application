@@ -160,8 +160,9 @@ export default function AskMeProfilePage() {
                     />
                     <p className="text-muted-foreground text-xs">
                       Mínimo {formatBRL(ASK_ME_LIMITS.minPriceCents)}. Padrão{" "}
-                      {formatBRL(ASK_ME_LIMITS.defaultPriceCents)}. Você recebe 90%
-                      ao responder; a plataforma fica com 10%.
+                      {formatBRL(ASK_ME_LIMITS.defaultPriceCents)}. No saque você
+                      recebe 90% menos R$ 0,80 de taxa PIX; a plataforma fica com
+                      10%.
                     </p>
                     <p className="text-xs font-medium">
                       Valor exibido no perfil: {formatBRL(effectivePrice)}

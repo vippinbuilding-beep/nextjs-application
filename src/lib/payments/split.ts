@@ -1,9 +1,8 @@
 /**
  * Revenue split between the platform and the creator.
  *
- * The platform keeps 10% and the creator receives 90% of the gross amount paid.
- * Repasses are batched weekly (one PIX por criador); the platform absorbs
- * AbacatePay's fixed outbound fee on that single transfer.
+ * The platform keeps 10% of each payment. On withdraw, the creator receives
+ * the accrued 90% minus one AbacatePay outbound PIX fee (R$ 0,80) per saque.
  */
 
 export const PLATFORM_FEE_RATE = 0.1;
@@ -32,9 +31,27 @@ export interface AmountSplit {
 }
 
 export function splitAmount(amountCents: number): AmountSplit {
-  const creatorAmountCents = Math.round(amountCents * (1 - PLATFORM_FEE_RATE));
+  const creatorAmountCents = creatorAccruedCents(amountCents);
   const platformFeeCents = amountCents - creatorAmountCents;
   return { amountCents, platformFeeCents, creatorAmountCents };
+}
+
+/** Creator share after the 10% platform fee (before outbound PIX fee). */
+export function creatorAccruedCents(grossCents: number): number {
+  return Math.round(grossCents * (1 - PLATFORM_FEE_RATE));
+}
+
+/**
+ * Net amount that lands in the creator's PIX on withdraw:
+ * sum(90% of sales) − R$ 0,80 (one fee per saque).
+ */
+export function creatorWithdrawNetCents(accruedCents: number): number {
+  return Math.max(0, accruedCents - ABACATEPAY_PIX_SEND_FEE_CENTS);
+}
+
+/** Single payment: gross − 10% − R$ 0,80. */
+export function creatorPayoutFromGross(grossCents: number): number {
+  return creatorWithdrawNetCents(creatorAccruedCents(grossCents));
 }
 
 /** Gross PIX send amount so the recipient nets `netCents` after AbacatePay's fee. */

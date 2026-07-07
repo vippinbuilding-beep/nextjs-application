@@ -7,7 +7,7 @@ import {
   notifyWeeklyCreatorPayoutSent,
 } from "@/lib/notifications/dispatch";
 import { refundAskMeQuestion } from "@/lib/payments/ask-me-finalize";
-import { pixSendGrossCents } from "@/lib/payments/split";
+import { creatorWithdrawNetCents, pixSendGrossCents } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getOrderRepository, getPaymentGateway } from "@/services/payment-factory";
 
@@ -108,7 +108,9 @@ export async function runWeeklyCreatorPayouts(
   for (const batch of batches.values()) {
     summary.creatorsProcessed += 1;
 
-    if (batch.netCents < MIN_PAYOUT_NET_CENTS) {
+    const withdrawNetCents = creatorWithdrawNetCents(batch.netCents);
+
+    if (withdrawNetCents < MIN_PAYOUT_NET_CENTS) {
       summary.creatorsSkipped += 1;
       summary.results.push({
         creatorId: batch.creatorId,
@@ -130,7 +132,7 @@ export async function runWeeklyCreatorPayouts(
       summary.creatorsFailed += 1;
       await notifyWeeklyCreatorPayoutFailed({
         creatorId: batch.creatorId,
-        netCents: batch.netCents,
+        netCents: withdrawNetCents,
         orderCount: batch.orderIds.length,
         askMeCount: batch.askMeQuestionIds.length,
         error: message,
@@ -141,7 +143,7 @@ export async function runWeeklyCreatorPayouts(
 
     try {
       const transfer = await gateway.sendPix({
-        amountCents: pixSendGrossCents(batch.netCents),
+        amountCents: pixSendGrossCents(withdrawNetCents),
         externalId: `weekly-${batch.creatorId}-${weekKey}`,
         description: "Repasse semanal Vippin",
         pixKey: profile.pix_key,
@@ -156,7 +158,7 @@ export async function runWeeklyCreatorPayouts(
 
       await notifyWeeklyCreatorPayoutSent({
         creatorId: batch.creatorId,
-        netCents: batch.netCents,
+        netCents: withdrawNetCents,
         orderCount: batch.orderIds.length,
         askMeCount: batch.askMeQuestionIds.length,
       });
@@ -164,7 +166,7 @@ export async function runWeeklyCreatorPayouts(
       summary.results.push({
         creatorId: batch.creatorId,
         ok: true,
-        netCents: batch.netCents,
+        netCents: withdrawNetCents,
         orderCount: batch.orderIds.length,
         askMeCount: batch.askMeQuestionIds.length,
         abacateTransferId: transfer.id,
@@ -175,7 +177,7 @@ export async function runWeeklyCreatorPayouts(
       summary.creatorsFailed += 1;
       await notifyWeeklyCreatorPayoutFailed({
         creatorId: batch.creatorId,
-        netCents: batch.netCents,
+        netCents: withdrawNetCents,
         orderCount: batch.orderIds.length,
         askMeCount: batch.askMeQuestionIds.length,
         error: message,
