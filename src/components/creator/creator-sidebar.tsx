@@ -125,7 +125,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
       <div className="flex shrink-0 flex-col gap-2 border-t-2 border-border px-3 py-4">
         {user?.slug && (
           <Button asChild variant="outline" size="sm" className="w-full justify-start">
-            <Link href={`/@${user.slug}`} target="_blank" onClick={onNavigate}>
+            <Link href={`/@${user.slug}`} onClick={onNavigate}>
               <ExternalLink className="size-4" />
               Ver página pública
             </Link>

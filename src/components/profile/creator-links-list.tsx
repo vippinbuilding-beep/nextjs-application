@@ -2,6 +2,7 @@ import { ExternalLink, Link2 } from "lucide-react";
 
 import type { ProfileLink } from "@/core/models/profile-link";
 import { ProfileLinkThumbnail } from "@/components/profile/profile-link-thumbnail";
+import Link from "next/link";
 
 interface CreatorLinksListProps {
   links: ProfileLink[];
@@ -10,10 +11,8 @@ interface CreatorLinksListProps {
 
 export function CreatorLinkCard({ link }: { link: ProfileLink }) {
   return (
-    <a
+    <Link
       href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
       className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
     >
       <ProfileLinkThumbnail
@@ -26,7 +25,7 @@ export function CreatorLinkCard({ link }: { link: ProfileLink }) {
         {link.title}
       </span>
       <ExternalLink className="size-4 shrink-0 opacity-60 transition-opacity group-hover:opacity-100" />
-    </a>
+    </Link>
   );
 }
 
