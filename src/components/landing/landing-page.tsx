@@ -18,8 +18,12 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
+import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
+import { ScreenLoading } from "@/components/ui/screen-loading";
 import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
 import { buildLoginUrl } from "@/lib/auth/login-url";
 import {
@@ -126,6 +130,19 @@ function DecorShape({ className }: { className?: string }) {
 
 export function LandingPage() {
   const returnPath = useCurrentReturnPath();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.refresh();
+    }
+  }, [loading, user, router]);
+
+  if (loading || user) {
+    return <ScreenLoading />;
+  }
+
   return (
     <LayoutBackground
       element="div"

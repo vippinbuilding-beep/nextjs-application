@@ -3,7 +3,7 @@
 import { Camera } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { ImageUploadField } from "@/components/ui/file-upload-field";
+import { ImageOverlayPicker } from "@/components/ui/image-overlay-picker";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -48,7 +48,6 @@ export function AvatarPicker({
   const [googleAvatarUrl, setGoogleAvatarUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selection, setSelection] = useState<AvatarSelection>({ kind: "none" });
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [storedFromGoogle, setStoredFromGoogle] = useState(avatarFromGoogle);
   const [error, setError] = useState<string | null>(null);
 
@@ -114,8 +113,6 @@ export function AvatarPicker({
   }, [selection]);
 
   function handleUploadFile(file: File | null) {
-    setUploadFile(file);
-
     if (!file) {
       if (avatarPath) {
         const next: AvatarSelection = {
@@ -150,7 +147,6 @@ export function AvatarPicker({
     if (!googleAvatarUrl) return;
     userModifiedRef.current = true;
     setError(null);
-    setUploadFile(null);
     setPreviewUrl(GOOGLE_PREVIEW_URL);
     const next: AvatarSelection = { kind: "google" };
     setSelection(next);
@@ -162,58 +158,52 @@ export function AvatarPicker({
     selection.kind === "google" ||
     (selection.kind === "existing" && storedFromGoogle);
   const showGoogleButton = Boolean(googleAvatarUrl) && !usingGoogleAvatar;
-  const hasExistingPhoto =
-    selection.kind === "existing" ||
-    selection.kind === "google" ||
-    Boolean(previewUrl);
 
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor="avatar">Sua foto de perfil</Label>
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-        <UserAvatar
-          userId={userId}
-          name={previewName}
-          avatarPath={avatarPath}
-          src={previewUrl && selection.kind !== "none" ? previewUrl : null}
-          size="xl"
-          className="shrink-0"
-        />
-
-        <div className="min-w-0 flex-1">
-          <ImageUploadField
-            id="avatar"
-            accept={AVATAR_ACCEPT}
-            file={uploadFile}
-            onFileChange={handleUploadFile}
-            validate={validateAvatarFile}
-            onValidationError={setError}
-            title="Escolher foto de perfil"
-            description="Clique ou arraste uma imagem aqui"
-            existingFileName={
-              hasExistingPhoto && !uploadFile ? "Foto de perfil atual" : null
-            }
-            icon={Camera}
-            hint={`PNG, JPG, WEBP ou GIF. Máx. ${formatFileSize(AVATAR_MAX_SIZE)}.`}
+      <div className="flex flex-col items-center gap-3">
+        <ImageOverlayPicker
+          id="avatar"
+          shape="circle"
+          icon={Camera}
+          accept={AVATAR_ACCEPT}
+          onFileChange={handleUploadFile}
+          validate={validateAvatarFile}
+          onValidationError={setError}
+          ariaLabel="Escolher foto de perfil"
+        >
+          <UserAvatar
+            userId={userId}
+            name={previewName}
+            avatarPath={avatarPath}
+            src={previewUrl && selection.kind !== "none" ? previewUrl : null}
+            size="xl"
+            className="shrink-0"
           />
+        </ImageOverlayPicker>
 
-          {showGoogleButton && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2 w-full sm:w-auto"
-              onClick={handleUseGoogle}
-            >
-              Usar foto do Google
-            </Button>
-          )}
-          {usingGoogleAvatar && (
-            <p className="text-muted-foreground mt-2 text-xs">
-              Usando a foto da sua conta Google. Envie outra imagem para trocar.
-            </p>
-          )}
-        </div>
+        <p className="text-muted-foreground text-center text-xs">
+          Toque na foto para enviar uma imagem. PNG, JPG, WEBP ou GIF. Máx.{" "}
+          {formatFileSize(AVATAR_MAX_SIZE)}.
+        </p>
+
+        {showGoogleButton && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto"
+            onClick={handleUseGoogle}
+          >
+            Usar foto do Google
+          </Button>
+        )}
+        {usingGoogleAvatar && (
+          <p className="text-muted-foreground text-center text-xs">
+            Usando a foto da sua conta Google. Toque na foto para trocar.
+          </p>
+        )}
       </div>
 
       {error && (

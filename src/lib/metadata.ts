@@ -26,6 +26,16 @@ export function toAbsoluteUrl(path: string): string {
   return `${getSiteUrl()}${normalized}`;
 }
 
+/** Removes `http://` or `https://` from an origin or absolute URL. */
+export function stripUrlProtocol(url: string): string {
+  return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
+/** Shareable creator profile link without protocol, e.g. `vippin.com.br/@slug`. */
+export function formatCreatorShareLink(slug: string, origin: string): string {
+  return `${stripUrlProtocol(origin)}/@${slug}`;
+}
+
 export function truncateDescription(text: string, maxLength = 160): string {
   const trimmed = text.trim();
   if (trimmed.length <= maxLength) return trimmed;

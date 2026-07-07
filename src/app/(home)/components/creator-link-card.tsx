@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { formatCreatorShareLink, stripUrlProtocol } from "@/lib/metadata";
 import {
   Card,
   CardContent,
@@ -22,11 +23,11 @@ export function CreatorLinkCard({ slug }: CreatorLinkCardProps) {
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const path = `/@${slug}`;
-  const link = `${origin}${path}`;
+  const shareLink = formatCreatorShareLink(slug, origin);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(shareLink);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -48,9 +49,7 @@ export function CreatorLinkCard({ slug }: CreatorLinkCardProps) {
           className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-primary px-3.5 py-3 font-bold text-primary-foreground shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon sm:px-4 sm:py-3.5"
         >
           <span className="min-w-0 truncate text-sm sm:text-base">
-            <span className="opacity-70">
-              {origin.replace(/^https?:\/\//, "")}
-            </span>
+            <span className="opacity-70">{stripUrlProtocol(origin)}</span>
             {path}
           </span>
           <ExternalLink className="size-4 shrink-0" />

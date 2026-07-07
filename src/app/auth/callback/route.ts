@@ -1,3 +1,5 @@
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import {
@@ -7,7 +9,11 @@ import {
 import { migrateLegacyGoogleAvatar } from "@/lib/profile/import-google-avatar";
 import { ensureProfileForAuthUser } from "@/lib/profile/profile-write-server";
 import { getProfileByUserId } from "@/lib/profile/server-profile";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const dynamic = "force-dynamic";
 
 /**
  * OAuth callback handler (server-side).
@@ -32,7 +38,27 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  const supabase = await createSupabaseServerClient();
+  const cookieStore = await cookies();
+  const pendingCookies: { name: string; value: string; options: CookieOptions }[] = [];
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          try {
+            cookieStore.set(name, value, options);
+          } catch {
+            // Route handlers can write cookies; ignore if the store is read-only.
+          }
+          pendingCookies.push({ name, value, options });
+        });
+      },
+    },
+  });
+
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
@@ -75,5 +101,10 @@ export async function GET(request: Request) {
     ? (next ?? "/")
     : buildOnboardingUrl(next);
 
-  return NextResponse.redirect(`${origin}${destination}`);
+  const response = NextResponse.redirect(`${origin}${destination}`);
+  pendingCookies.forEach(({ name, value, options }) => {
+    response.cookies.set(name, value, options);
+  });
+
+  return response;
 }

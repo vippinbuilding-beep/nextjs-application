@@ -11,9 +11,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ProfileLinkThumbnail } from "@/components/profile/profile-link-thumbnail";
 import { Button } from "@/components/ui/button";
+import { ImageOverlayPicker } from "@/components/ui/image-overlay-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ProfileLink } from "@/core/models/profile-link";
+import {
+  PROFILE_LINK_IMAGE_ACCEPT,
+  uploadProfileLinkImage,
+  validateProfileLinkImageFile,
+} from "@/lib/profile-link-image";
 import { suggestProfileLinkTitle } from "@/lib/profile-link-platforms";
 import {
   normalizeProfileLinkUrl,
@@ -56,6 +62,41 @@ async function resolveLinkPreview(linkId: string) {
   await fetch(`/api/profile/links/${linkId}/resolve-preview`, {
     method: "POST",
   });
+}
+
+type LinkImageAction =
+  | { type: "auto" }
+  | { type: "upload"; file: File }
+  | { type: "keep" };
+
+async function applyLinkImage(linkId: string, action: LinkImageAction) {
+  switch (action.type) {
+    case "upload": {
+      const { path, mime } = await uploadProfileLinkImage(linkId, action.file);
+      await profileLinkRepository.update(linkId, {
+        imagePath: path,
+        imageMime: mime,
+      });
+      return;
+    }
+    case "auto":
+      await resolveLinkPreview(linkId);
+      return;
+    case "keep":
+      return;
+  }
+}
+
+function resolveImageAction(
+  customFile: File | null,
+  useAutoImage: boolean,
+  storedHasImage: boolean,
+  isEdit: boolean
+): LinkImageAction {
+  if (customFile) return { type: "upload", file: customFile };
+  if (useAutoImage || !isEdit) return { type: "auto" };
+  if (storedHasImage) return { type: "keep" };
+  return { type: "auto" };
 }
 
 export function ProfileLinksEditor({
@@ -116,7 +157,7 @@ export function ProfileLinksEditor({
     }
   }
 
-  async function handleCreate() {
+  async function handleCreate(imageAction: LinkImageAction) {
     setError(null);
 
     const titleError = validateProfileLinkTitle(draft.title);
@@ -139,7 +180,7 @@ export function ProfileLinksEditor({
         url: normalizedUrl,
       });
 
-      await resolveLinkPreview(created.id);
+      await applyLinkImage(created.id, imageAction);
       clearDraft(false);
       await loadLinks();
       toast.added();
@@ -161,7 +202,7 @@ export function ProfileLinksEditor({
     setError(null);
   }
 
-  async function handleUpdate() {
+  async function handleUpdate(imageAction: LinkImageAction) {
     if (!editingId) return;
 
     setError(null);
@@ -186,7 +227,7 @@ export function ProfileLinksEditor({
         url: normalizedUrl,
       });
 
-      await resolveLinkPreview(editingId);
+      await applyLinkImage(editingId, imageAction);
       clearDraft(true);
       await loadLinks();
       toast.saved();
@@ -275,7 +316,7 @@ export function ProfileLinksEditor({
                   onUrlChange={(value) =>
                     setEditDraft((prev) => applySuggestedTitle(prev, value))
                   }
-                  onSubmit={handleUpdate}
+                  onSubmit={(imageAction) => void handleUpdate(imageAction)}
                   onCancel={() => clearDraft(true)}
                   submitLabel={busy ? "Salvando..." : "Salvar"}
                   disabled={busy}
@@ -284,7 +325,7 @@ export function ProfileLinksEditor({
             ) : (
               <li
                 key={link.id}
-                className="flex items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm"
+                className="flex-col md:flex-row flex md:items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm "
               >
                 <ProfileLinkThumbnail
                   url={link.url}
@@ -362,7 +403,7 @@ export function ProfileLinksEditor({
             onUrlChange={(value) =>
               setDraft((prev) => applySuggestedTitle(prev, value))
             }
-            onSubmit={handleCreate}
+            onSubmit={(imageAction) => void handleCreate(imageAction)}
             onCancel={() => clearDraft(false)}
             submitLabel={busy ? "Adicionando..." : "Adicionar link"}
             disabled={busy}
@@ -410,42 +451,96 @@ interface LinkFormProps {
   };
   onTitleChange: (value: string) => void;
   onUrlChange: (value: string) => void;
-  onSubmit: () => void | Promise<void>;
+  onSubmit: (imageAction: LinkImageAction) => void | Promise<void>;
   onCancel: () => void;
   submitLabel: string;
   disabled?: boolean;
 }
 
-function useLinkPreviewUrl(url: string) {
+function useLinkSocialPreview(url: string, enabled: boolean) {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [available, setAvailable] = useState(false);
 
   useEffect(() => {
-    const normalized = normalizeProfileLinkUrl(url);
-    if (!normalized) {
+    if (!enabled) {
       setPreviewImageUrl(null);
+      setLoading(false);
+      setAvailable(false);
       return;
     }
 
+    const normalized = normalizeProfileLinkUrl(url);
+    if (!normalized) {
+      setPreviewImageUrl(null);
+      setLoading(false);
+      setAvailable(false);
+      return;
+    }
+
+    setLoading(true);
+    setPreviewImageUrl(null);
+    setAvailable(false);
+
+    let cancelled = false;
     const timer = window.setTimeout(() => {
       void (async () => {
         try {
           const response = await fetch(
             `/api/profile/links/preview?url=${encodeURIComponent(normalized)}`
           );
+          if (!response.ok) {
+            if (!cancelled) {
+              setPreviewImageUrl(null);
+              setAvailable(false);
+            }
+            return;
+          }
+
           const body = (await response.json()) as {
             previewImageUrl?: string | null;
           };
-          setPreviewImageUrl(body.previewImageUrl ?? null);
+          const nextUrl = body.previewImageUrl ?? null;
+          if (!cancelled) {
+            setPreviewImageUrl(nextUrl);
+            setAvailable(Boolean(nextUrl));
+          }
         } catch {
-          setPreviewImageUrl(null);
+          if (!cancelled) {
+            setPreviewImageUrl(null);
+            setAvailable(false);
+          }
+        } finally {
+          if (!cancelled) {
+            setLoading(false);
+          }
         }
       })();
     }, 500);
 
-    return () => window.clearTimeout(timer);
-  }, [url]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [url, enabled]);
 
-  return previewImageUrl;
+  return { previewImageUrl, loading, available };
+}
+
+function useObjectUrl(file: File | null) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      setUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  return url;
 }
 
 function LinkForm({
@@ -458,25 +553,131 @@ function LinkForm({
   submitLabel,
   disabled,
 }: LinkFormProps) {
+  const isEdit = storedPreview != null;
+  const [customFile, setCustomFile] = useState<File | null>(null);
+  const [useAutoImage, setUseAutoImage] = useState(
+    () => !storedPreview?.imagePath
+  );
+  const [imageError, setImageError] = useState<string | null>(null);
+  const socialAvailableUrlRef = useRef<string | null>(null);
+
   const urlChanged =
     storedPreview != null && draft.url.trim() !== storedPreview.originalUrl;
-  const livePreviewUrl = useLinkPreviewUrl(urlChanged ? draft.url : "");
+  const normalizedDraftUrl = normalizeProfileLinkUrl(draft.url);
+  const hasSelectedImage =
+    Boolean(customFile) ||
+    (isEdit && !useAutoImage && Boolean(storedPreview?.imagePath));
+  const shouldFetchSocialPreview = useAutoImage && !hasSelectedImage;
+  const socialPreview = useLinkSocialPreview(draft.url, shouldFetchSocialPreview);
+  const customPreviewUrl = useObjectUrl(customFile);
+
+  useEffect(() => {
+    const normalized = normalizeProfileLinkUrl(draft.url);
+    if (!normalized) {
+      socialAvailableUrlRef.current = null;
+      return;
+    }
+    if (socialAvailableUrlRef.current && socialAvailableUrlRef.current !== normalized) {
+      socialAvailableUrlRef.current = null;
+    }
+    if (shouldFetchSocialPreview && socialPreview.available) {
+      socialAvailableUrlRef.current = normalized;
+    }
+  }, [draft.url, shouldFetchSocialPreview, socialPreview.available]);
+
+  /** Only while creating: let the user revert a picked upload to the social icon. */
+  const showAutoImageButton =
+    !isEdit &&
+    Boolean(normalizedDraftUrl) &&
+    Boolean(customFile) &&
+    socialAvailableUrlRef.current === normalizedDraftUrl;
+
+  function handleCustomFileChange(file: File | null) {
+    setCustomFile(file);
+    if (file) setUseAutoImage(false);
+  }
+
+  function handleUseAutoImage() {
+    setCustomFile(null);
+    setUseAutoImage(true);
+    setImageError(null);
+  }
+
+  function handleSubmit() {
+    const imageAction = resolveImageAction(
+      customFile,
+      useAutoImage,
+      Boolean(storedPreview?.imagePath),
+      isEdit
+    );
+    void onSubmit(imageAction);
+  }
+
+  const previewLinkId =
+    !customFile && !useAutoImage && !urlChanged ? storedPreview?.linkId : undefined;
+  const previewImagePath =
+    !customFile && !useAutoImage && !urlChanged
+      ? storedPreview?.imagePath
+      : undefined;
+  const socialLivePreviewUrl = shouldFetchSocialPreview
+    ? socialPreview.previewImageUrl
+    : null;
+  const previewLiveUrl = customPreviewUrl ?? socialLivePreviewUrl;
+  const previewFetching = shouldFetchSocialPreview && socialPreview.loading;
+  const previewImageLoading =
+    shouldFetchSocialPreview && Boolean(socialLivePreviewUrl) && !previewFetching;
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <ProfileLinkThumbnail
-          url={draft.url}
-          title={draft.title}
-          linkId={urlChanged ? undefined : storedPreview?.linkId}
-          imagePath={urlChanged ? undefined : storedPreview?.imagePath}
-          livePreviewUrl={urlChanged ? livePreviewUrl : undefined}
-          size="sm"
-        />
-        <p className="text-muted-foreground text-xs font-medium">
-          Ao salvar, buscamos o ícone do seu perfil e guardamos no Vippin. Se
-          não achar, usamos o ícone da plataforma.
-        </p>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="link-image" className="text-center md:mb-0 mb-2">Imagem (opcional)</Label>
+        <div className="flex flex-col gap-2 justify-center items-center">
+          <ImageOverlayPicker
+            id="link-image"
+            shape="rounded"
+            accept={PROFILE_LINK_IMAGE_ACCEPT}
+            onFileChange={handleCustomFileChange}
+            validate={validateProfileLinkImageFile}
+            onValidationError={setImageError}
+            disabled={disabled}
+            ariaLabel="Escolher imagem do link"
+          >
+            <ProfileLinkThumbnail
+              url={draft.url}
+              title={draft.title}
+              linkId={previewLinkId}
+              imagePath={previewImagePath}
+              livePreviewUrl={previewLiveUrl}
+              fetching={previewFetching}
+              previewLoading={previewImageLoading}
+              size="md"
+              className="!size-16"
+            />
+          </ImageOverlayPicker>
+
+          <p className="text-muted-foreground text-xs">
+            Toque na imagem para enviar a sua. Opcional — se não enviar, buscamos
+            da rede social. Você pode usar a sua mesmo quando encontrarmos uma.
+          </p>
+
+          {showAutoImageButton && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-auto text-xs"
+              disabled={disabled}
+              onClick={handleUseAutoImage}
+            >
+              Usar ícone automático da rede social
+            </Button>
+          )}
+          {imageError && (
+            <p className="text-destructive text-xs" role="alert">
+              {imageError}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -516,8 +717,8 @@ function LinkForm({
         <Button
           type="button"
           className="flex-1"
-          disabled={disabled}
-          onClick={() => void onSubmit()}
+          disabled={disabled || Boolean(imageError)}
+          onClick={handleSubmit}
         >
           {submitLabel}
         </Button>

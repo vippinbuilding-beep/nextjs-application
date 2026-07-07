@@ -1,4 +1,5 @@
 import { normalizeProfileLinkUrl } from "@/lib/profile-links";
+import { resolveProfileLinkPreviewImage } from "@/lib/profile-link-preview";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -24,6 +25,11 @@ export async function GET(request: Request) {
   const normalized = normalizeProfileLinkUrl(rawUrl)!;
 
   try {
+    const externalUrl = await resolveProfileLinkPreviewImage(normalized);
+    if (!externalUrl) {
+      return Response.json({ previewImageUrl: null });
+    }
+
     const previewImageUrl = `/api/profile/links/preview/image?url=${encodeURIComponent(normalized)}`;
     return Response.json({ previewImageUrl });
   } catch {

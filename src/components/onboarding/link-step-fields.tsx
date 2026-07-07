@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatCreatorShareLink } from "@/lib/metadata";
 
 interface LinkStepFieldsProps {
   slug: string;
@@ -15,11 +16,11 @@ export function LinkStepFields({ slug }: LinkStepFieldsProps) {
   const [copied, setCopied] = useState(false);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const link = `${origin}/@${slug}`;
+  const shareLink = formatCreatorShareLink(slug, origin);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(shareLink);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -31,7 +32,7 @@ export function LinkStepFields({ slug }: LinkStepFieldsProps) {
     <div className="flex flex-col gap-2">
       <Label htmlFor="profileLink">Seu link exclusivo</Label>
       <div className="flex gap-2">
-        <Input id="profileLink" type="text" value={link} readOnly className="font-medium" />
+        <Input id="profileLink" type="text" value={shareLink} readOnly className="font-medium" />
         <Button
           type="button"
           variant="outline"

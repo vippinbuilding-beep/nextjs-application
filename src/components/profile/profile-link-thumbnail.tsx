@@ -1,8 +1,9 @@
 "use client";
 
 import { Link2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { Loading } from "@/components/ui/loading";
 import {
   detectProfileLinkPlatform,
   type ProfileLinkPlatformId,
@@ -17,6 +18,10 @@ interface ProfileLinkThumbnailProps {
   imagePath?: string | null;
   /** Temporary external preview while editing, before the image is stored. */
   livePreviewUrl?: string | null;
+  /** While resolving the social profile image (API fetch). */
+  fetching?: boolean;
+  /** Spinner until a live preview finishes loading (social fetch only). */
+  previewLoading?: boolean;
   size?: "sm" | "md";
   className?: string;
 }
@@ -197,19 +202,50 @@ export function ProfileLinkThumbnail({
   linkId,
   imagePath,
   livePreviewUrl,
+  fetching = false,
+  previewLoading = false,
   size = "md",
   className,
 }: ProfileLinkThumbnailProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
   const sizeClasses = SIZE_CLASSES[size];
   const storedImageUrl =
     linkId && imagePath ? getProfileLinkImageUrl(linkId) : null;
   const profileImageUrl = storedImageUrl ?? livePreviewUrl ?? null;
   const showProfileImage = Boolean(profileImageUrl) && !imageFailed;
+  const showPreviewLoading = previewLoading && Boolean(livePreviewUrl);
 
   useEffect(() => {
     setImageFailed(false);
-  }, [profileImageUrl, url, imagePath, linkId]);
+    setImageLoaded(false);
+
+    if (!profileImageUrl || !previewLoading) return;
+
+    requestAnimationFrame(() => {
+      const img = imgRef.current;
+      if (img?.complete && img.naturalWidth > 0) {
+        setImageLoaded(true);
+      }
+    });
+  }, [profileImageUrl, imagePath, linkId, previewLoading]);
+
+  if (fetching) {
+    return (
+      <span
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-lg border-2 border-border bg-muted shadow-cartoon-sm",
+          sizeClasses.box,
+          className
+        )}
+        aria-busy="true"
+        aria-label="Buscando imagem da rede social"
+      >
+        <Loading className="size-5 text-muted-foreground" />
+      </span>
+    );
+  }
 
   if (showProfileImage) {
     return (
@@ -220,13 +256,23 @@ export function ProfileLinkThumbnail({
           className
         )}
       >
+        {!imageLoaded && showPreviewLoading && (
+          <span className="absolute inset-0 flex items-center justify-center bg-muted">
+            <Loading className="size-5 text-muted-foreground" />
+          </span>
+        )}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          ref={imgRef}
           src={profileImageUrl!}
           alt={title ? `Ícone de ${title}` : ""}
-          className="size-full object-cover"
+          className={cn(
+            "size-full object-cover transition-opacity",
+            showPreviewLoading && !imageLoaded && "opacity-0"
+          )}
           loading="lazy"
           referrerPolicy="no-referrer"
+          onLoad={() => setImageLoaded(true)}
           onError={() => setImageFailed(true)}
         />
       </span>
