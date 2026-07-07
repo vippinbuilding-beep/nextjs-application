@@ -137,7 +137,7 @@ export default function ExploreProductsPage() {
       dotsOpacity={0.1}
       className="flex h-svh min-h-svh flex-col overflow-hidden"
     >
-      <header className="shrink-0 border-b-2 border-border bg-background/95 px-4 py-4 backdrop-blur-md sm:px-6">
+      <header className="lg:shrink-0 border-b-2 border-border bg-background/95 px-4 py-4 backdrop-blur-md sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">

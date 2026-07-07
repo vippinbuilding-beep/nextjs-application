@@ -655,11 +655,6 @@ function LinkForm({
             />
           </ImageOverlayPicker>
 
-          <p className="text-muted-foreground text-xs">
-            Toque na imagem para enviar a sua. Opcional — se não enviar, buscamos
-            da rede social. Você pode usar a sua mesmo quando encontrarmos uma.
-          </p>
-
           {showAutoImageButton && (
             <Button
               type="button"
