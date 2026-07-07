@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CreatorLinkCard } from "@/app/(home)/components/creator-link-card";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { ProfileDefaultTabPicker } from "@/components/profile/profile-default-tab-picker";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -167,6 +168,7 @@ export default function DashboardPage() {
                 title={`Olá, ${displayName}`}
                 description="Resumo do seu painel e atalhos para cada área."
             />
+            <InstallAppButton />
 
             <div className="flex flex-wrap gap-2">
                 <StatPill label={`${products.length} produto${products.length === 1 ? "" : "s"}`} />

@@ -37,6 +37,7 @@ import { SiteLogo } from "@/components/ui/site-logo";
 import { cn } from "@/lib/utils";
 
 import { LandingNavbar } from "./landing-navbar";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { LayoutBackground } from "../ui/layout-background";
 
 const CREATOR_FEATURES = [
@@ -193,6 +194,8 @@ export function LandingPage() {
               </Link>
             </Button>
           </div>
+
+          <InstallAppButton className="max-w-xs" />
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             {TRUST_BADGES.map((badge) => (

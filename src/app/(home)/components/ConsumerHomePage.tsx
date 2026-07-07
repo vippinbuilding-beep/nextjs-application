@@ -21,6 +21,7 @@ import { ScreenLoading } from "@/components/ui/screen-loading";
 import { requestBecomeCreator } from "@/lib/profile/become-creator";
 import { toast } from "@/lib/toast";
 import { isConsumer } from "@/lib/user-role";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { clearOnboardingDraft } from "@/components/onboarding/types";
 
@@ -132,6 +133,7 @@ export default function ConsumerHomePage() {
             />
             <CardTitle className="text-2xl">Olá, {displayName}</CardTitle>
             <CardDescription>O que você quer fazer hoje?</CardDescription>
+            <InstallAppButton className="mt-2" />
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             {MENU_OPTIONS.map((option) => {

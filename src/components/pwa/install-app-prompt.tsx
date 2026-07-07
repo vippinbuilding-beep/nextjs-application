@@ -11,32 +11,12 @@ import {
   shouldShowInstallPrompt,
   snoozeInstallPromptOneWeek,
 } from "@/lib/pwa/install-prompt-storage";
+import {
+  type BeforeInstallPromptEvent,
+  isIosSafari,
+  isStandaloneMode,
+} from "@/lib/pwa/device";
 import { cn } from "@/lib/utils";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
-function isStandaloneMode() {
-  if (typeof window === "undefined") return false;
-
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in navigator &&
-      (navigator as Navigator & { standalone?: boolean }).standalone === true)
-  );
-}
-
-function isIosSafari() {
-  if (typeof navigator === "undefined") return false;
-
-  const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
-  const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
-
-  return isIOS && isSafari;
-}
 
 export function InstallAppPrompt() {
   const [visible, setVisible] = useState(false);
