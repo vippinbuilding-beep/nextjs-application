@@ -8,7 +8,7 @@ import {
   validateAskMeQuestion,
   validateRefundPixKey,
 } from "@/lib/ask-me";
-import { splitAmount } from "@/lib/payments/split";
+import { splitAmount, validateGrossCoversSaleFees } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPaymentGateway } from "@/services/payment-factory";
@@ -101,6 +101,10 @@ export async function POST(
     creator.ask_me_price_cents
   );
   const split = splitAmount(priceCents);
+  const splitError = validateGrossCoversSaleFees(priceCents);
+  if (splitError) {
+    return Response.json({ error: splitError }, { status: 400 });
+  }
 
   const repo = new SupabaseAskMeQuestionRepository(admin);
 

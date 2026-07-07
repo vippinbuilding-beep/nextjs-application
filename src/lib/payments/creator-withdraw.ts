@@ -20,7 +20,7 @@ import { getOrderRepository, getPaymentGateway } from "@/services/payment-factor
 const ABACATE_MIN_SEND_CENTS = 100;
 
 export interface CreatorPayoutBalance {
-  /** Líquido que cai no PIX no saque (parte do criador após taxa da plataforma). */
+  /** Líquido que cai no PIX no saque (acumulado − R$ 0,80 de taxa PIX). */
   netCents: number;
   orderCount: number;
   askMeCount: number;

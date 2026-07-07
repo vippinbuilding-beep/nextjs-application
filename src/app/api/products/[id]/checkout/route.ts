@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { splitAmount } from "@/lib/payments/split";
+import { splitAmount, validateGrossCoversSaleFees } from "@/lib/payments/split";
 import { PRODUCT_LIMITS } from "@/lib/products";
 import { getOrderRepository, getPaymentGateway } from "@/services/payment-factory";
 
@@ -57,6 +57,10 @@ export async function POST(
       { error: "O preço deste produto está abaixo do mínimo permitido." },
       { status: 400 }
     );
+  }
+  const splitError = validateGrossCoversSaleFees(priceCents);
+  if (splitError) {
+    return Response.json({ error: splitError }, { status: 400 });
   }
   if (product.creator_id === user.id) {
     return Response.json(

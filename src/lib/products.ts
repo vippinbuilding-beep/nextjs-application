@@ -48,8 +48,8 @@ export const PRODUCT_LIMITS = {
   titleMin: 2,
   titleMax: 80,
   descriptionMax: 255,
-  /** R$ 2,00 in cents — minimum for paid products (free = 0 is still allowed). */
-  priceMinCents: 200,
+  /** R$ 5,00 in cents — minimum for paid products (free = 0 is still allowed). */
+  priceMinCents: 500,
   /** R$ 100,00 in cents. */
   priceMaxCents: 10_000,
 } as const;
