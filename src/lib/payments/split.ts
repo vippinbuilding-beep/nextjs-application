@@ -1,7 +1,8 @@
 /**
  * Revenue split between the platform and the creator.
  *
- * Per sale: platform keeps `PLATFORM_FEE_PERCENT` + R$ 0,80 (AbacatePay per item).
+ * Per sale: R$ 0,80 (AbacatePay per item) is deducted first, then the platform
+ * keeps `PLATFORM_FEE_PERCENT` of the remainder.
  * On withdraw: creator balance loses one more R$ 0,80 (outbound PIX fee).
  */
 
@@ -37,7 +38,7 @@ export const CREATOR_MIN_WITHDRAWAL_CENTS = parseCentsEnv(
 export interface AmountSplit {
   amountCents: number;
   platformFeeCents: number;
-  /** Credited to creator after per-sale percent + R$ 0,80 (before withdraw PIX fee). */
+  /** Credited to creator after per-sale R$ 0,80 + percent (before withdraw PIX fee). */
   creatorAmountCents: number;
 }
 
@@ -48,12 +49,12 @@ export function splitAmount(amountCents: number): AmountSplit {
 }
 
 /**
- * Creator share per sale: gross × (1 − platform%) − R$ 0,80.
+ * Creator share per sale: (gross − R$ 0,80) × (1 − platform%).
  * Stored on the order/question until withdraw.
  */
 export function creatorAccruedCents(grossCents: number): number {
-  const afterPercent = Math.round(grossCents * (1 - PLATFORM_FEE_RATE));
-  return Math.max(0, afterPercent - ABACATEPAY_PIX_SEND_FEE_CENTS);
+  const afterPixFee = Math.max(0, grossCents - ABACATEPAY_PIX_SEND_FEE_CENTS);
+  return Math.round(afterPixFee * (1 - PLATFORM_FEE_RATE));
 }
 
 /**
@@ -63,7 +64,7 @@ export function creatorWithdrawNetCents(accruedCents: number): number {
   return Math.max(0, accruedCents - ABACATEPAY_PIX_SEND_FEE_CENTS);
 }
 
-/** Single payment: gross − platform% − R$ 0,80 per sale − R$ 0,80 on withdraw. */
+/** Single payment: gross − R$ 0,80 per sale − platform% on remainder − R$ 0,80 on withdraw. */
 export function creatorPayoutFromGross(grossCents: number): number {
   return creatorWithdrawNetCents(creatorAccruedCents(grossCents));
 }

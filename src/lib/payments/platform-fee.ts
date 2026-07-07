@@ -2,7 +2,8 @@
  * Platform fee configuration (shared by server splits and client UI labels).
  *
  * `NEXT_PUBLIC_PLATFORM_FEE_PERCENT` — percent kept per sale (default 10).
- * Per sale the platform also keeps `ABACATEPAY_PIX_SEND_FEE_CENTS` (R$ 0,80).
+ * Per sale, `ABACATEPAY_PIX_SEND_FEE_CENTS` (R$ 0,80) is deducted first; the platform
+ * then keeps `NEXT_PUBLIC_PLATFORM_FEE_PERCENT` of the remainder.
  * On withdraw, another R$ 0,80 PIX fee is deducted from the creator balance.
  */
 
@@ -26,7 +27,7 @@ export const PLATFORM_FEE_PERCENT = Math.round(
   parsePercentEnv("NEXT_PUBLIC_PLATFORM_FEE_PERCENT", DEFAULT_PLATFORM_FEE_PERCENT)
 );
 
-/** Creator share as whole percent before per-sale fixed fee (e.g. 90). */
+/** Creator share as whole percent after per-sale fixed fee (e.g. 90). */
 export const CREATOR_FEE_PERCENT = 100 - PLATFORM_FEE_PERCENT;
 
 /** Platform fee as decimal rate (e.g. 0.10). */
@@ -52,19 +53,31 @@ export function creatorWithdrawBalanceDescription(): string {
   return "Valor líquido disponível para transferência.";
 }
 
+function creatorPerSaleFeeBreakdown(unitLabel: string): string {
+  return (
+    `Por ${unitLabel} paga: desconta-se ${PIX_FEE_LABEL} (taxa PIX) e, sobre o restante, ` +
+    `a plataforma retém ${formatPlatformFeePercent()}.`
+  );
+}
+
 /** Collapsible fee breakdown shown discreetly on the finance screen. */
 export function creatorWithdrawFeeDetails(): string {
   return (
-    `Por venda ou pergunta paga, a plataforma retém ${formatPlatformFeePercent()} ` +
-    `mais ${PIX_FEE_LABEL} (taxa PIX). No saque, é descontado mais ${PIX_FEE_LABEL} ` +
-    `de taxa PIX. O valor exibido acima já reflete esses descontos acumulados.`
+    `${creatorPerSaleFeeBreakdown("venda ou pergunta")} No saque, é descontado mais ` +
+    `${PIX_FEE_LABEL} de taxa PIX. O valor exibido acima já reflete esses descontos acumulados.`
+  );
+}
+
+/** Product pricing hint for creators. */
+export function creatorProductFeeDescription(): string {
+  return (
+    `${creatorPerSaleFeeBreakdown("venda")} No saque: mais ${PIX_FEE_LABEL} de taxa PIX.`
   );
 }
 
 /** Me Pergunte pricing hint for creators. */
 export function creatorMePergunteFeeDescription(): string {
   return (
-    `Por pergunta paga: plataforma fica com ${formatPlatformFeePercent()} + ${PIX_FEE_LABEL}. ` +
-    `No saque: mais ${PIX_FEE_LABEL} de taxa PIX.`
+    `${creatorPerSaleFeeBreakdown("pergunta")} No saque: mais ${PIX_FEE_LABEL} de taxa PIX.`
   );
 }

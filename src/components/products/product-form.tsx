@@ -34,6 +34,7 @@ import { PriceInput } from "@/components/ui/price-input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Product, ProductType } from "@/core/models/product";
 import { formatBRL } from "@/lib/money";
+import { creatorProductFeeDescription } from "@/lib/payments/platform-fee";
 import {
   formatFileSize,
   getProductTypeConfig,
@@ -383,7 +384,8 @@ export function ProductForm({ type, product }: ProductFormProps) {
               maxCents={PRICE_MAX_CENTS}
             />
             <p className="text-muted-foreground text-xs">
-              Grátis ou de {formatBRL(PRICE_MIN_CENTS)} a {formatBRL(PRICE_MAX_CENTS)}.
+              Grátis ou de {formatBRL(PRICE_MIN_CENTS)} a {formatBRL(PRICE_MAX_CENTS)}.{" "}
+              {creatorProductFeeDescription()}
             </p>
             <CreatorPayoutPreview grossCents={priceCents} />
           </div>
