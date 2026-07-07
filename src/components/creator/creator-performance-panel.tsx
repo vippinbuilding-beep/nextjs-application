@@ -186,7 +186,7 @@ export function CreatorPerformancePanel() {
         <KpiCard
           label="Sua parte no período"
           value={formatBRL(summary.creatorEarningsCents)}
-          hint="Produtos + Me pergunte respondido"
+          hint="Creditado no saldo (antes da taxa PIX do saque)"
         />
         <KpiCard
           label="Vendas de produtos"
@@ -209,7 +209,7 @@ export function CreatorPerformancePanel() {
         <CardHeader>
           <CardTitle>Receita por dia</CardTitle>
           <CardDescription>
-            Sua parte líquida acumulada por dia no período.
+            Parte creditada no saldo por dia no período (antes da taxa PIX do saque).
           </CardDescription>
         </CardHeader>
         <CardContent>

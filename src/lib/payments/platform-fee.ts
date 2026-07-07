@@ -61,10 +61,19 @@ function creatorPerSaleFeeBreakdown(unitLabel: string): string {
 }
 
 /** Collapsible fee breakdown shown discreetly on the finance screen. */
-export function creatorWithdrawFeeDetails(): string {
+export function creatorWithdrawFeeDetails(
+  accruedCents: number,
+  netCents: number
+): string {
+  const accruedLabel = formatBRL(accruedCents);
+  const netLabel = formatBRL(netCents);
+  const withdrawFeeLabel = formatBRL(ABACATEPAY_PIX_SEND_FEE_CENTS);
+
   return (
     `${creatorPerSaleFeeBreakdown("venda ou pergunta")} No saque, é descontado mais ` +
-    `${PIX_FEE_LABEL} de taxa PIX. O valor exibido acima já reflete esses descontos acumulados.`
+    `${PIX_FEE_LABEL} de taxa PIX (uma vez por transferência). ` +
+    `Saldo acumulado ${accruedLabel} − taxa PIX do saque ${withdrawFeeLabel} = ` +
+    `${netLabel} líquido no PIX.`
   );
 }
 

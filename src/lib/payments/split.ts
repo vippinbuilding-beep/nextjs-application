@@ -42,6 +42,21 @@ export interface AmountSplit {
   creatorAmountCents: number;
 }
 
+/** Per-sale fee breakdown for creator-facing UI labels. */
+export interface CreatorPayoutBreakdown {
+  grossCents: number;
+  /** Inbound PIX fee (R$ 0,80) deducted before the platform percent. */
+  salePixFeeCents: number;
+  /** Platform percent on the remainder after the inbound PIX fee. */
+  platformPercentFeeCents: number;
+  /** Credited to creator balance after the sale (before withdraw PIX fee). */
+  accruedCents: number;
+  /** Outbound PIX fee on withdraw (R$ 0,80, once per transfer). */
+  withdrawPixFeeCents: number;
+  /** Net amount received on PIX when withdrawing this sale alone. */
+  netWithdrawCents: number;
+}
+
 export function splitAmount(amountCents: number): AmountSplit {
   const creatorAmountCents = creatorAccruedCents(amountCents);
   const platformFeeCents = amountCents - creatorAmountCents;
@@ -67,6 +82,30 @@ export function creatorWithdrawNetCents(accruedCents: number): number {
 /** Single payment: gross − R$ 0,80 per sale − platform% on remainder − R$ 0,80 on withdraw. */
 export function creatorPayoutFromGross(grossCents: number): number {
   return creatorWithdrawNetCents(creatorAccruedCents(grossCents));
+}
+
+export function getCreatorPayoutBreakdown(
+  grossCents: number
+): CreatorPayoutBreakdown {
+  const salePixFeeCents =
+    grossCents <= 0
+      ? 0
+      : Math.min(grossCents, ABACATEPAY_PIX_SEND_FEE_CENTS);
+  const afterSalePix = Math.max(0, grossCents - ABACATEPAY_PIX_SEND_FEE_CENTS);
+  const platformPercentFeeCents = Math.round(afterSalePix * PLATFORM_FEE_RATE);
+  const accruedCents = creatorAccruedCents(grossCents);
+  const withdrawPixFeeCents =
+    accruedCents > 0 ? ABACATEPAY_PIX_SEND_FEE_CENTS : 0;
+  const netWithdrawCents = creatorPayoutFromGross(grossCents);
+
+  return {
+    grossCents,
+    salePixFeeCents,
+    platformPercentFeeCents,
+    accruedCents,
+    withdrawPixFeeCents,
+    netWithdrawCents,
+  };
 }
 
 /** Returns an error when the gross price cannot fund the per-sale platform fees. */

@@ -20,6 +20,8 @@ import { getOrderRepository, getPaymentGateway } from "@/services/payment-factor
 const ABACATE_MIN_SEND_CENTS = 100;
 
 export interface CreatorPayoutBalance {
+  /** Soma das partes do criador após taxas da venda/pergunta (antes da taxa PIX do saque). */
+  accruedCents: number;
   /** Líquido que cai no PIX no saque (acumulado − R$ 0,80 de taxa PIX). */
   netCents: number;
   orderCount: number;
@@ -77,6 +79,7 @@ export async function getCreatorPayoutBalance(
   const hasPixKey = Boolean(profile.data?.pix_key && profile.data?.pix_key_type);
 
   return {
+    accruedCents,
     netCents,
     orderCount: orders.length,
     askMeCount: questions.length,

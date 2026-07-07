@@ -14,12 +14,14 @@ import {
 } from "@/components/ui/card";
 import { formatBRL } from "@/lib/money";
 import {
+  ABACATEPAY_PIX_SEND_FEE_CENTS,
   creatorWithdrawBalanceDescription,
   creatorWithdrawFeeDetails,
 } from "@/lib/payments/platform-fee";
 import { toast } from "@/lib/toast";
 
 interface PayoutBalance {
+  accruedCents: number;
   netCents: number;
   orderCount: number;
   askMeCount: number;
@@ -107,6 +109,12 @@ export function CreatorWithdrawCard() {
             <p className="text-3xl font-bold tracking-tight">
               {formatBRL(balance.netCents)}
             </p>
+            {balance.accruedCents > balance.netCents && (
+              <p className="text-muted-foreground text-sm">
+                {formatBRL(balance.accruedCents)} acumulados −{" "}
+                {formatBRL(ABACATEPAY_PIX_SEND_FEE_CENTS)} (taxa PIX do saque)
+              </p>
+            )}
             {(balance.orderCount > 0 || balance.askMeCount > 0) && (
               <p className="text-muted-foreground text-sm">
                 {balance.orderCount > 0 &&
@@ -161,12 +169,16 @@ export function CreatorWithdrawCard() {
           )}
         </Button>
 
-        <details className="text-muted-foreground group text-xs leading-relaxed">
-          <summary className="cursor-pointer font-medium underline-offset-2 hover:underline">
-            Como o saldo é calculado
-          </summary>
-          <p className="mt-2">{creatorWithdrawFeeDetails()}</p>
-        </details>
+        {balance && (
+          <details className="text-muted-foreground group text-xs leading-relaxed">
+            <summary className="cursor-pointer font-medium underline-offset-2 hover:underline">
+              Como o saldo é calculado
+            </summary>
+            <p className="mt-2">
+              {creatorWithdrawFeeDetails(balance.accruedCents, balance.netCents)}
+            </p>
+          </details>
+        )}
       </CardContent>
     </Card>
   );
