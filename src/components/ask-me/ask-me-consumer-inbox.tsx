@@ -117,7 +117,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
 
           {(q.status === "declined" || q.status === "expired") && (
             <p className="text-muted-foreground text-xs">
-              O valor foi estornado para sua chave PIX.
+              O valor foi estornado automaticamente.
             </p>
           )}
         </li>

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { ConsumerProfileForm } from "@/components/profile/consumer-profile-form";
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
@@ -30,5 +31,15 @@ export default function EditProfilePage() {
     return <ScreenLoading />;
   }
 
-  return isConsumer(user) ? <ConsumerProfileForm /> : <ProfileForm />
+  return isConsumer(user) ? (
+    <ConsumerProfileForm />
+  ) : (
+    <div className="flex flex-col gap-6">
+      <CreatorModuleHeader
+        title="Perfil"
+        description="Atualize seus dados, redes sociais e informações de pagamento."
+      />
+      <ProfileForm embedded />
+    </div>
+  );
 }

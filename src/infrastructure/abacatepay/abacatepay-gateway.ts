@@ -5,8 +5,10 @@ import type {
   PaymentGateway,
   PixCharge,
   PixChargeStatus,
+  PixRefund,
   PixTransfer,
   PixTransferStatus,
+  RefundPixChargeInput,
   SendPixInput,
 } from "@/core/payments/payment-gateway";
 import type { PixKeyType } from "@/core/models/user";
@@ -189,6 +191,25 @@ export class AbacatePayGateway implements PaymentGateway {
       `/transparents/check?id=${encodeURIComponent(chargeId)}`
     );
     return mapChargeStatus(data.status);
+  }
+
+  async refundPixCharge(input: RefundPixChargeInput): Promise<PixRefund> {
+    if (isAbacatePayDevMode()) {
+      return {
+        id: buildDevSimulatedTransferId(`refund-${input.chargeId}`),
+      };
+    }
+
+    const data = await this.request<{ refundPublicId: string }>(
+      "POST",
+      "/transparents/refund",
+      {
+        id: input.chargeId,
+        ...(input.reason ? { reason: input.reason } : {}),
+      }
+    );
+
+    return { id: data.refundPublicId };
   }
 
   async sendPix(input: SendPixInput): Promise<PixTransfer> {

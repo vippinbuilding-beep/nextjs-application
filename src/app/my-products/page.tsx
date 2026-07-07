@@ -1,14 +1,12 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { BackButton } from "@/components/navigation/back-button";
 import { ProductFeed } from "@/components/products/product-feed";
-import { NotificationBell } from "@/components/notifications/notification-bell";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -92,10 +90,7 @@ export default function MyProductsPage() {
               />
             )}
 
-            <Button size="sm" variant="outline" className="w-full" onClick={() => router.back()}>
-              <ArrowLeft className="size-4" />
-              Voltar
-            </Button>
+            <BackButton fallback="/" className="w-full mt-5" />
           </CardContent>
         </Card>
       </div>

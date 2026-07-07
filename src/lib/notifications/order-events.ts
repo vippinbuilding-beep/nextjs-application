@@ -2,6 +2,8 @@ import "server-only";
 
 import type { Order } from "@/core/models/order";
 import {
+  notifyProductAccessGranted,
+  notifyProductFreeClaim,
   notifyProductPurchaseConfirmed,
   notifyProductSale,
   productPublicPath,
@@ -79,6 +81,33 @@ export async function sendOrderPaidNotifications(order: Order): Promise<void> {
       productTitle: product.title,
       buyerName,
       amountCents: order.amountCents,
+    }),
+  ]);
+}
+
+export async function sendFreeProductAccessNotifications(input: {
+  productId: string;
+  buyerId: string;
+  creatorId: string;
+}): Promise<void> {
+  const product = await fetchProductContext(input.productId);
+  if (!product) return;
+
+  const productHref = productPublicPath(product.creatorSlug, product.slug);
+  const buyerName = await fetchBuyerName(input.buyerId);
+
+  await Promise.all([
+    notifyProductAccessGranted({
+      buyerId: input.buyerId,
+      productId: input.productId,
+      productTitle: product.title,
+      productHref,
+    }),
+    notifyProductFreeClaim({
+      creatorId: input.creatorId,
+      productId: input.productId,
+      productTitle: product.title,
+      buyerName,
     }),
   ]);
 }

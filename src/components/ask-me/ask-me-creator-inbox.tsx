@@ -13,9 +13,9 @@ import type { AskMeQuestionWithAsker } from "@/core/models/ask-me-question";
 import {
   ASK_ME_LIMITS,
   ASK_ME_VIDEO_ACCEPT,
+  canCreatorRespondToAskMe,
   formatAskMeDeadline,
-  getAskMeStatusLabel,
-  isAskMeAwaitingResponse,
+  getAskMeCreatorStatusLabel,
   validateAskMeAnswerText,
   validateAskMeVideo,
 } from "@/lib/ask-me";
@@ -25,11 +25,17 @@ import { supabase } from "@/lib/supabase/client";
 import { askMeQuestionRepository } from "@/services/repository-factory";
 import { toast, TOAST_MESSAGES } from "@/lib/toast";
 
+export type AskMeCreatorInboxFilter = "all" | "unanswered";
+
 interface AskMeCreatorInboxProps {
   creatorId: string;
+  filter?: AskMeCreatorInboxFilter;
 }
 
-export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
+export function AskMeCreatorInbox({
+  creatorId,
+  filter = "all",
+}: AskMeCreatorInboxProps) {
   const [questions, setQuestions] = useState<AskMeQuestionWithAsker[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -165,17 +171,26 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
     );
   }
 
-  if (questions.length === 0) {
+  const visibleQuestions =
+    filter === "unanswered"
+      ? questions.filter((q) =>
+          canCreatorRespondToAskMe(q.status, q.responseDeadlineAt)
+        )
+      : questions;
+
+  if (visibleQuestions.length === 0) {
     return (
       <p className="text-muted-foreground py-6 text-center text-sm">
-        Nenhuma pergunta recebida ainda.
+        {filter === "unanswered"
+          ? "Nenhuma pergunta aguardando resposta no momento."
+          : "Nenhuma pergunta recebida ainda."}
       </p>
     );
   }
 
   return (
     <ul className="flex flex-col gap-4">
-      {questions.map((q) => (
+      {visibleQuestions.map((q) => (
         <li
           key={q.id}
           className="rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm"
@@ -191,16 +206,25 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
             <div className="min-w-0 flex-1">
               <p className="font-bold">{q.asker.name}</p>
               <p className="text-muted-foreground text-xs">
-                {formatBRL(q.amountCents)} · {getAskMeStatusLabel(q.status)}
+                {formatBRL(q.amountCents)} ·{" "}
+                {getAskMeCreatorStatusLabel(q.status, q.responseDeadlineAt)}
               </p>
             </div>
           </div>
 
           <p className="mb-3 whitespace-pre-wrap text-sm">{q.questionText}</p>
 
-          {q.responseDeadlineAt && isAskMeAwaitingResponse(q.status) && (
+          {canCreatorRespondToAskMe(q.status, q.responseDeadlineAt) &&
+            q.responseDeadlineAt && (
             <p className="text-muted-foreground mb-3 text-xs">
               Responder até {formatAskMeDeadline(q.responseDeadlineAt)}
+            </p>
+          )}
+
+          {!canCreatorRespondToAskMe(q.status, q.responseDeadlineAt) &&
+            q.status === "awaiting_response" && (
+            <p className="text-muted-foreground mb-3 text-xs">
+              Prazo esgotado. O estorno será processado em breve.
             </p>
           )}
 
@@ -219,7 +243,7 @@ export function AskMeCreatorInbox({ creatorId }: AskMeCreatorInboxProps) {
             />
           )}
 
-          {isAskMeAwaitingResponse(q.status) && (
+          {canCreatorRespondToAskMe(q.status, q.responseDeadlineAt) && (
             <div className="flex flex-col gap-3 border-t-2 border-dashed border-border pt-3">
               <div className="flex flex-col gap-2">
                 <Label>Responder em texto</Label>

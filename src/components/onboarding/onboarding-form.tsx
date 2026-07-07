@@ -44,7 +44,7 @@ function formFromUser(user: User): OnboardingFormData {
     birthDate: user.birthDate ?? "",
     pixKey,
     pixKeyType: user.pixKeyType ?? inferPixKeyType(pixKey),
-    creatorName: user.creatorName ?? "",
+    creatorName: user.creatorName ?? user.consumerName ?? "",
     bio: user.bio ?? "",
     socials: user.socials ?? {},
   };
@@ -52,11 +52,11 @@ function formFromUser(user: User): OnboardingFormData {
 
 function inferStepFromUser(user: User): number {
   if (user.slug) return 3;
-  if (user.creatorName) return 2;
+  if (validateCreatorProfileStep(formFromUser(user)) === null) return 2;
   return 1;
 }
 
-export function OnboardingForm() {
+export function OnboardingForm({ returnTo = "/" }: { returnTo?: string }) {
   const router = useRouter();
   const { user, refreshUser, signOut } = useAuth();
   const userId = user?.id;
@@ -213,7 +213,7 @@ export function OnboardingForm() {
       clearOnboardingDraft(user.id);
       await refreshUser();
       toast.saved();
-      router.push("/");
+      router.push(returnTo);
     } catch (err) {
       const message =
         err instanceof Error
@@ -254,7 +254,7 @@ export function OnboardingForm() {
             step={3}
             totalSteps={TOTAL_STEPS}
             title="Seus links"
-            description="Adicione links personalizados com título e imagem para sua página pública (opcional)"
+            description="Adicione links para sua página pública. O ícone de cada rede é detectado automaticamente (opcional)"
           >
             <ProfileLinksEditor creatorId={user!.id} compact />
 
@@ -317,7 +317,7 @@ export function OnboardingForm() {
                 onClick={handleSignOut}
                 disabled={submitting}
               >
-                Voltar
+                Sair
               </Button>
               <Button type="submit" className="flex-1" disabled={submitting}>
                 {submitting ? "Salvando..." : "Continuar"}

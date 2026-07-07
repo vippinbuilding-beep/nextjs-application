@@ -1,10 +1,11 @@
 "use client";
 
 import { Check, Copy, QrCode } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LoginRolePicker } from "@/components/auth/login-role-picker";
+import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -93,7 +94,7 @@ export function PixCheckout({
   isAuthenticated,
 }: PixCheckoutProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const returnPath = useCurrentReturnPath();
   const [phase, setPhase] = useState<Phase>("idle");
   const [order, setOrder] = useState<CheckoutResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -185,7 +186,7 @@ export function PixCheckout({
         <p className="text-muted-foreground text-sm">
           Escolha como quer entrar para comprar este conteúdo com PIX.
         </p>
-        <LoginRolePicker next={pathname} className="max-w-xs" />
+        <LoginRolePicker next={returnPath} className="max-w-xs" />
       </div>
     );
   }

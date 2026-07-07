@@ -3,28 +3,24 @@
 import {
   ChevronDown,
   ChevronUp,
-  Link2,
   Pencil,
   Plus,
   Trash2,
 } from "lucide-react";
-import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import { ProfileLinkThumbnail } from "@/components/profile/profile-link-thumbnail";
 import { Button } from "@/components/ui/button";
-import { ImageUploadField } from "@/components/ui/file-upload-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { ProfileLink } from "@/core/models/profile-link";
+import { suggestProfileLinkTitle } from "@/lib/profile-link-platforms";
 import {
   normalizeProfileLinkUrl,
-  PROFILE_LINK_IMAGE_ACCEPT,
   PROFILE_LINK_LIMITS,
-  validateProfileLinkImage,
   validateProfileLinkTitle,
   validateProfileLinkUrl,
 } from "@/lib/profile-links";
-import { getProfileLinkImageUrl } from "@/lib/supabase/storage";
 import { profileLinkRepository } from "@/services/repository-factory";
 import { toast } from "@/lib/toast";
 
@@ -37,16 +33,30 @@ interface ProfileLinksEditorProps {
 interface LinkDraft {
   title: string;
   url: string;
-  imageFile: File | null;
-  imagePreview: string | null;
 }
 
 const EMPTY_DRAFT: LinkDraft = {
   title: "",
   url: "",
-  imageFile: null,
-  imagePreview: null,
 };
+
+function applySuggestedTitle(prev: LinkDraft, url: string): LinkDraft {
+  const suggested = suggestProfileLinkTitle(url);
+  if (!suggested) return { ...prev, url };
+
+  const shouldSuggest = !prev.title.trim() || prev.title === suggestProfileLinkTitle(prev.url);
+  return {
+    ...prev,
+    url,
+    title: shouldSuggest ? suggested : prev.title,
+  };
+}
+
+async function resolveLinkPreview(linkId: string) {
+  await fetch(`/api/profile/links/${linkId}/resolve-preview`, {
+    method: "POST",
+  });
+}
 
 export function ProfileLinksEditor({
   creatorId,
@@ -60,6 +70,7 @@ export function ProfileLinksEditor({
   const [draft, setDraft] = useState<LinkDraft>(EMPTY_DRAFT);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<LinkDraft>(EMPTY_DRAFT);
+  const backfilledPreviews = useRef(false);
 
   const loadLinks = useCallback(async () => {
     setLoading(true);
@@ -80,50 +91,26 @@ export function ProfileLinksEditor({
     void loadLinks();
   }, [loadLinks]);
 
-  function revokePreview(url: string | null) {
-    if (url?.startsWith("blob:")) {
-      URL.revokeObjectURL(url);
-    }
-  }
+  useEffect(() => {
+    if (loading || backfilledPreviews.current) return;
 
-  function handleDraftImage(file: File | null, isEdit = false) {
-    const setTarget = isEdit ? setEditDraft : setDraft;
-    const current = isEdit ? editDraft : draft;
+    const missingPreview = links.filter((link) => !link.imagePath);
+    if (missingPreview.length === 0) return;
 
-    if (!file) {
-      revokePreview(current.imagePreview);
-      setTarget((prev) => ({
-        ...prev,
-        imageFile: null,
-        imagePreview: null,
-      }));
-      setError(null);
-      return;
-    }
-
-    const imageError = validateProfileLinkImage(file);
-    if (imageError) {
-      setError(imageError);
-      return;
-    }
-
-    revokePreview(current.imagePreview);
-    const preview = URL.createObjectURL(file);
-    setTarget((prev) => ({
-      ...prev,
-      imageFile: file,
-      imagePreview: preview,
-    }));
-    setError(null);
-  }
+    backfilledPreviews.current = true;
+    void (async () => {
+      for (const link of missingPreview) {
+        await resolveLinkPreview(link.id);
+      }
+      await loadLinks();
+    })();
+  }, [loading, links, loadLinks]);
 
   function clearDraft(isEdit = false) {
     if (isEdit) {
-      revokePreview(editDraft.imagePreview);
       setEditDraft(EMPTY_DRAFT);
       setEditingId(null);
     } else {
-      revokePreview(draft.imagePreview);
       setDraft(EMPTY_DRAFT);
       setShowAddForm(false);
     }
@@ -152,10 +139,7 @@ export function ProfileLinksEditor({
         url: normalizedUrl,
       });
 
-      if (draft.imageFile) {
-        await profileLinkRepository.uploadImage(created.id, draft.imageFile);
-      }
-
+      await resolveLinkPreview(created.id);
       clearDraft(false);
       await loadLinks();
       toast.added();
@@ -173,10 +157,6 @@ export function ProfileLinksEditor({
     setEditDraft({
       title: link.title,
       url: link.url,
-      imageFile: null,
-      imagePreview: link.imagePath
-        ? getProfileLinkImageUrl(link.id)
-        : null,
     });
     setError(null);
   }
@@ -206,10 +186,7 @@ export function ProfileLinksEditor({
         url: normalizedUrl,
       });
 
-      if (editDraft.imageFile) {
-        await profileLinkRepository.uploadImage(editingId, editDraft.imageFile);
-      }
-
+      await resolveLinkPreview(editingId);
       clearDraft(true);
       await loadLinks();
       toast.saved();
@@ -287,14 +264,17 @@ export function ProfileLinksEditor({
               >
                 <LinkForm
                   draft={editDraft}
+                  storedPreview={{
+                    linkId: link.id,
+                    imagePath: link.imagePath,
+                    originalUrl: link.url,
+                  }}
                   onTitleChange={(value) =>
                     setEditDraft((prev) => ({ ...prev, title: value }))
                   }
                   onUrlChange={(value) =>
-                    setEditDraft((prev) => ({ ...prev, url: value }))
+                    setEditDraft((prev) => applySuggestedTitle(prev, value))
                   }
-                  onImageChange={(file) => handleDraftImage(file, true)}
-                  onImageValidationError={setError}
                   onSubmit={handleUpdate}
                   onCancel={() => clearDraft(true)}
                   submitLabel={busy ? "Salvando..." : "Salvar"}
@@ -306,7 +286,12 @@ export function ProfileLinksEditor({
                 key={link.id}
                 className="flex items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm"
               >
-                <LinkRowPreview link={link} />
+                <ProfileLinkThumbnail
+                  url={link.url}
+                  title={link.title}
+                  linkId={link.id}
+                  imagePath={link.imagePath}
+                />
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{link.title}</p>
@@ -375,10 +360,8 @@ export function ProfileLinksEditor({
               setDraft((prev) => ({ ...prev, title: value }))
             }
             onUrlChange={(value) =>
-              setDraft((prev) => ({ ...prev, url: value }))
+              setDraft((prev) => applySuggestedTitle(prev, value))
             }
-            onImageChange={(file) => handleDraftImage(file, false)}
-            onImageValidationError={setError}
             onSubmit={handleCreate}
             onCancel={() => clearDraft(false)}
             submitLabel={busy ? "Adicionando..." : "Adicionar link"}
@@ -420,44 +403,80 @@ export function ProfileLinksEditor({
 
 interface LinkFormProps {
   draft: LinkDraft;
+  storedPreview?: {
+    linkId: string;
+    imagePath?: string;
+    originalUrl: string;
+  };
   onTitleChange: (value: string) => void;
   onUrlChange: (value: string) => void;
-  onImageChange: (file: File | null) => void;
-  onImageValidationError?: (message: string | null) => void;
   onSubmit: () => void | Promise<void>;
   onCancel: () => void;
   submitLabel: string;
   disabled?: boolean;
 }
 
+function useLinkPreviewUrl(url: string) {
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const normalized = normalizeProfileLinkUrl(url);
+    if (!normalized) {
+      setPreviewImageUrl(null);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const response = await fetch(
+            `/api/profile/links/preview?url=${encodeURIComponent(normalized)}`
+          );
+          const body = (await response.json()) as {
+            previewImageUrl?: string | null;
+          };
+          setPreviewImageUrl(body.previewImageUrl ?? null);
+        } catch {
+          setPreviewImageUrl(null);
+        }
+      })();
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [url]);
+
+  return previewImageUrl;
+}
+
 function LinkForm({
   draft,
+  storedPreview,
   onTitleChange,
   onUrlChange,
-  onImageChange,
-  onImageValidationError,
   onSubmit,
   onCancel,
   submitLabel,
   disabled,
 }: LinkFormProps) {
-  const hasExistingImage =
-    Boolean(draft.imagePreview) &&
-    !draft.imageFile &&
-    !draft.imagePreview?.startsWith("blob:");
+  const urlChanged =
+    storedPreview != null && draft.url.trim() !== storedPreview.originalUrl;
+  const livePreviewUrl = useLinkPreviewUrl(urlChanged ? draft.url : "");
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="link-title">Título</Label>
-        <Input
-          id="link-title"
-          value={draft.title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="Ex.: Meu canal no YouTube"
-          maxLength={PROFILE_LINK_LIMITS.title.max}
-          disabled={disabled}
+      <div className="flex items-center gap-3">
+        <ProfileLinkThumbnail
+          url={draft.url}
+          title={draft.title}
+          linkId={urlChanged ? undefined : storedPreview?.linkId}
+          imagePath={urlChanged ? undefined : storedPreview?.imagePath}
+          livePreviewUrl={urlChanged ? livePreviewUrl : undefined}
+          size="sm"
         />
+        <p className="text-muted-foreground text-xs font-medium">
+          Ao salvar, buscamos o ícone do seu perfil e guardamos no Vippin. Se
+          não achar, usamos o ícone da plataforma.
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -467,41 +486,20 @@ function LinkForm({
           type="url"
           value={draft.url}
           onChange={(e) => onUrlChange(e.target.value)}
-          placeholder="https://..."
+          placeholder="https://instagram.com/seu-perfil"
           disabled={disabled}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="link-image">Imagem (opcional)</Label>
-        <ImageUploadField
-          id="link-image"
-          accept={PROFILE_LINK_IMAGE_ACCEPT}
-          file={draft.imageFile}
-          onFileChange={onImageChange}
-          validate={validateProfileLinkImage}
-          onValidationError={onImageValidationError}
+        <Label htmlFor="link-title">Título</Label>
+        <Input
+          id="link-title"
+          value={draft.title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          placeholder="Ex.: Meu Instagram"
+          maxLength={PROFILE_LINK_LIMITS.title.max}
           disabled={disabled}
-          existingFileName={hasExistingImage ? "Imagem atual" : null}
-          hint="PNG, JPG, WEBP ou GIF. Máximo 5 MB."
-          preview={
-            draft.imagePreview ? (
-              <span className="relative size-14 shrink-0 overflow-hidden rounded-lg border-2 border-border">
-                <Image
-                  src={draft.imagePreview}
-                  alt=""
-                  fill
-                  className="object-cover"
-                  sizes="56px"
-                  unoptimized
-                />
-              </span>
-            ) : (
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted">
-                <Link2 className="size-5 text-muted-foreground" />
-              </span>
-            )
-          }
         />
       </div>
 
@@ -525,28 +523,5 @@ function LinkForm({
         </Button>
       </div>
     </div>
-  );
-}
-
-function LinkRowPreview({ link }: { link: ProfileLink }) {
-  if (link.imagePath) {
-    return (
-      <span className="relative size-12 shrink-0 overflow-hidden rounded-lg border-2 border-border bg-muted">
-        <Image
-          src={getProfileLinkImageUrl(link.id)}
-          alt=""
-          fill
-          className="object-cover"
-          sizes="48px"
-          unoptimized
-        />
-      </span>
-    );
-  }
-
-  return (
-    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg border-2 border-border bg-muted">
-      <Link2 className="size-5" />
-    </span>
   );
 }

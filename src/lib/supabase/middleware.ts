@@ -2,14 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { buildLoginUrl } from "@/lib/auth/login-url";
+import { safeReturnPath } from "@/lib/auth/login-return";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Rotas que exigem usuário autenticado.
-const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile", "/my-products", "/my-questions"];
+const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile", "/my-products", "/my-questions", "/painel"];
 
-const CREATOR_ONLY_PREFIXES = ["/products", "/profile/links", "/profile/ask-me"];
+const CREATOR_ONLY_PREFIXES = ["/products", "/profile/links", "/profile/ask-me", "/painel"];
 
 /**
  * Refreshes the Supabase auth session (rotating cookies) and enforces
@@ -43,7 +44,7 @@ export async function updateSession(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 
   if (!user && isProtected) {
-    const returnPath = `${pathname}${request.nextUrl.search}`;
+    const returnPath = safeReturnPath(`${pathname}${request.nextUrl.search}`) ?? "/";
     const url = new URL(buildLoginUrl({ next: returnPath }), request.url);
     return NextResponse.redirect(url);
   }

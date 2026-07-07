@@ -85,7 +85,7 @@ export async function notifyAskMeRefunded(input: {
     userId: input.askerId,
     type: "ask_me_refunded",
     title: "Estorno do Me pergunte",
-    body: `Sua pergunta para @${input.creatorName} ${reasonLabel}. O valor foi estornado para sua chave PIX.`,
+    body: `Sua pergunta para @${input.creatorName} ${reasonLabel}. O valor foi estornado automaticamente.`,
     href: "/my-questions",
     metadata: { questionId: input.questionId, reason: input.reason },
   });
@@ -102,6 +102,22 @@ export async function notifyAskMePaymentConfirmed(input: {
     title: "Pergunta enviada",
     body: `Pagamento confirmado! @${input.creatorName} tem até 72h para responder.`,
     href: "/my-questions",
+    metadata: { questionId: input.questionId },
+  });
+}
+
+export async function notifyAskMeExpiredToCreator(input: {
+  creatorId: string;
+  questionId: string;
+  askerName: string;
+  amountCents: number;
+}): Promise<void> {
+  await createNotification({
+    userId: input.creatorId,
+    type: "ask_me_expired",
+    title: "Prazo do Me pergunte esgotado",
+    body: `A pergunta de ${input.askerName} (${formatBRL(input.amountCents)}) expirou sem resposta. O valor foi estornado automaticamente.`,
+    href: "/profile/ask-me",
     metadata: { questionId: input.questionId },
   });
 }
@@ -144,6 +160,43 @@ export async function notifyProductSale(input: {
     href: "/my-products",
     metadata: {
       orderId: input.orderId,
+      productId: input.productId,
+    },
+  });
+}
+
+export async function notifyProductAccessGranted(input: {
+  buyerId: string;
+  productId: string;
+  productTitle: string;
+  productHref: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.buyerId,
+    type: "product_access_granted",
+    title: "Acesso liberado",
+    body: `Você aderiu a "${input.productTitle}". Aproveite o conteúdo!`,
+    href: input.productHref,
+    metadata: {
+      productId: input.productId,
+      source: "free",
+    },
+  });
+}
+
+export async function notifyProductFreeClaim(input: {
+  creatorId: string;
+  productId: string;
+  productTitle: string;
+  buyerName: string;
+}): Promise<void> {
+  await createNotification({
+    userId: input.creatorId,
+    type: "product_free_claim",
+    title: "Nova adesão gratuita",
+    body: `${input.buyerName} aderiu ao conteúdo gratuito "${input.productTitle}".`,
+    href: "/my-products",
+    metadata: {
       productId: input.productId,
     },
   });
@@ -210,18 +263,6 @@ export async function notifyProfileOnboardingComplete(input: {
     body,
     href: input.href,
     metadata: { role: input.role },
-  });
-}
-
-export async function notifyProfileUpdated(input: {
-  userId: string;
-}): Promise<void> {
-  await createNotification({
-    userId: input.userId,
-    type: "profile_updated",
-    title: "Perfil atualizado",
-    body: "Suas alterações foram salvas com sucesso.",
-    href: "/profile/edit",
   });
 }
 

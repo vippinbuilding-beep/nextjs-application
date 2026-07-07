@@ -3,6 +3,9 @@ import { Fredoka, Geist_Mono } from "next/font/google";
 
 import { InstallAppPrompt } from "@/components/pwa/install-app-prompt";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { CreatorDashboardGate } from "@/components/creator/creator-dashboard-gate";
+import { AppNavigation } from "@/components/navigation/app-navigation";
+import { NotificationToastListener } from "@/components/notifications/notification-toast-listener";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { createRootMetadata } from "@/lib/metadata";
@@ -38,7 +41,11 @@ export default function RootLayout({
       <body
         className={`${fredoka.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <NotificationToastListener />
+          <AppNavigation />
+          <CreatorDashboardGate>{children}</CreatorDashboardGate>
+        </AuthProvider>
         <Toaster />
         <ServiceWorkerRegister />
         <InstallAppPrompt />

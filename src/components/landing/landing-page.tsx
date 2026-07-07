@@ -20,6 +20,8 @@ import {
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
+import { buildLoginUrl } from "@/lib/auth/login-url";
 import {
   Card,
   CardContent,
@@ -123,6 +125,7 @@ function DecorShape({ className }: { className?: string }) {
 }
 
 export function LandingPage() {
+  const returnPath = useCurrentReturnPath();
   return (
     <LayoutBackground
       element="div"
@@ -161,7 +164,7 @@ export function LandingPage() {
 
           <div className="flex flex-col items-center gap-3 sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href="/login?role=creator">
+              <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
                 <Rocket className="size-5" />
                 Começar como criador
               </Link>
@@ -335,7 +338,7 @@ export function LandingPage() {
             </p>
             <div className="flex flex-col items-center gap-3 sm:flex-row">
               <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
-                <Link href="/login?role=creator">
+                <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
                   <Rocket className="size-5" />
                   Quero criar conteúdo
                 </Link>

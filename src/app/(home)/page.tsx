@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import ConsumerHomePage from "./components/ConsumerHomePage";
 import DashboardPage from "./components/DashboardPage";
 import { LandingPage } from "@/components/landing/landing-page";
@@ -15,9 +17,13 @@ export default async function Home() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, onboarding_completed")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (!profile?.onboarding_completed) {
+    redirect("/onboarding");
+  }
 
   if (profile?.role === "consumer") {
     return <ConsumerHomePage />;

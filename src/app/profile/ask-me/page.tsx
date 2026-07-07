@@ -4,20 +4,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AskMeCreatorInbox } from "@/components/ask-me/ask-me-creator-inbox";
-import { NotificationBell } from "@/components/notifications/notification-bell";
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
+import { useCreatorPendingAskMe } from "@/hooks/use-creator-pending-ask-me";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -43,6 +40,7 @@ export default function AskMeProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const pendingCount = useCreatorPendingAskMe(user?.id);
 
   useEffect(() => {
     if (loading) return;
@@ -107,27 +105,36 @@ export default function AskMeProfilePage() {
   }
 
   const effectivePrice = resolveAskMePriceCents(enabled, parseReaisToCents(priceInput));
+  const defaultTab = pendingCount > 0 ? "unanswered" : "settings";
 
   return (
-    <LayoutBackground
-      element="main"
-      background="primary"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      <Card className="relative w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Me pergunte</CardTitle>
-          <CardDescription>
-            Permita que sua audiência envie perguntas pagas. O valor fica retido
-            até você responder em até {ASK_ME_LIMITS.responseDeadlineHours}h — ou
-            é estornado automaticamente.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="settings">
-            <TabsList className="mb-4 max-w-none sm:max-w-md">
-              <TabsTrigger value="settings">Configurações</TabsTrigger>
-              <TabsTrigger value="inbox">Perguntas recebidas</TabsTrigger>
+    <div className="flex flex-col gap-6">
+      <CreatorModuleHeader
+        title="Me pergunte"
+        description={`Permita que sua audiência envie perguntas pagas. O valor fica retido até você responder em até ${ASK_ME_LIMITS.responseDeadlineHours}h — ou é estornado automaticamente.`}
+      />
+
+      <Card>
+        <CardContent className="pt-6">
+          <Tabs defaultValue={defaultTab}>
+            <TabsList className="mb-4 w-full gap-1 overflow-x-auto p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <TabsTrigger value="settings" className="shrink-0 flex-none px-3 sm:px-4">
+                Configurações
+              </TabsTrigger>
+              <TabsTrigger
+                value="unanswered"
+                className="relative shrink-0 flex-none px-3 sm:px-4"
+              >
+                Não respondidas
+                {pendingCount > 0 && (
+                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full border-2 border-border bg-background px-1 text-[10px] font-bold leading-5">
+                    {pendingCount > 9 ? "9+" : pendingCount}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="inbox" className="shrink-0 flex-none px-3 sm:px-4">
+                Todas
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="settings">
@@ -176,29 +183,28 @@ export default function AskMeProfilePage() {
                   </p>
                 )}
 
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => router.back()}
-                    disabled={submitting}
-                  >
-                    Voltar
-                  </Button>
-                  <Button type="submit" className="flex-1" disabled={submitting}>
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={submitting}>
                     {submitting ? "Salvando..." : "Salvar"}
                   </Button>
                 </div>
               </form>
             </TabsContent>
 
-            <TabsContent value="inbox">
+            <TabsContent value="unanswered" className="flex flex-col gap-4">
+              <p className="text-muted-foreground text-sm">
+                Perguntas pagas que ainda estão dentro do prazo de{" "}
+                {ASK_ME_LIMITS.responseDeadlineHours}h para você responder ou recusar.
+              </p>
+              <AskMeCreatorInbox creatorId={user.id} filter="unanswered" />
+            </TabsContent>
+
+            <TabsContent value="inbox" className="flex flex-col gap-4">
               <AskMeCreatorInbox creatorId={user.id} />
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
-    </LayoutBackground>
+    </div>
   );
 }

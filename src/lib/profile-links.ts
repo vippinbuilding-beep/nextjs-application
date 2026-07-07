@@ -1,11 +1,7 @@
 export const PROFILE_LINK_LIMITS = {
   maxLinks: 20,
   title: { min: 2, max: 60 },
-  imageMaxSize: 5 * 1024 * 1024,
 } as const;
-
-export const PROFILE_LINK_IMAGE_ACCEPT =
-  "image/png,image/jpeg,image/webp,image/gif";
 
 /** Normalizes user input to a https URL or returns null when invalid. */
 export function normalizeProfileLinkUrl(input: string): string | null {
@@ -40,16 +36,6 @@ export function validateProfileLinkTitle(title: string): string | null {
 export function validateProfileLinkUrl(url: string): string | null {
   if (!normalizeProfileLinkUrl(url)) {
     return "Informe um link válido começando com https://";
-  }
-  return null;
-}
-
-export function validateProfileLinkImage(file: File): string | null {
-  if (!file.type.startsWith("image/")) {
-    return "A imagem precisa ser PNG, JPG, WEBP ou GIF.";
-  }
-  if (file.size > PROFILE_LINK_LIMITS.imageMaxSize) {
-    return "A imagem é muito grande. Máximo: 5 MB.";
   }
   return null;
 }

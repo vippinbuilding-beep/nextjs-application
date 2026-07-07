@@ -3,10 +3,8 @@ import type { NextRequest } from "next/server";
 import { SupabaseAskMeQuestionRepository } from "@/infrastructure/supabase/supabase-ask-me-repository";
 import {
   ASK_ME_LIMITS,
-  inferRefundPixKeyType,
   resolveAskMePriceCents,
   validateAskMeQuestion,
-  validateRefundPixKey,
 } from "@/lib/ask-me";
 import { splitAmount, validateGrossCoversSaleFees } from "@/lib/payments/split";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -20,7 +18,6 @@ const CHARGE_TTL_SECONDS = 60 * 60;
 
 interface CheckoutBody {
   questionText?: string;
-  refundPixKey?: string;
 }
 
 /**
@@ -60,18 +57,6 @@ export async function POST(
   const questionError = validateAskMeQuestion(questionText);
   if (questionError) {
     return Response.json({ error: questionError }, { status: 400 });
-  }
-
-  const refundPixKey =
-    typeof body.refundPixKey === "string" ? body.refundPixKey.trim() : "";
-  const refundPixError = validateRefundPixKey(refundPixKey);
-  if (refundPixError) {
-    return Response.json({ error: refundPixError }, { status: 400 });
-  }
-
-  const refundPixKeyType = inferRefundPixKeyType(refundPixKey);
-  if (!refundPixKeyType) {
-    return Response.json({ error: "Chave PIX de reembolso inválida." }, { status: 400 });
   }
 
   const admin = createSupabaseAdminClient();
@@ -137,8 +122,6 @@ export async function POST(
     amountCents: split.amountCents,
     platformFeeCents: split.platformFeeCents,
     creatorAmountCents: split.creatorAmountCents,
-    refundPixKey,
-    refundPixKeyType: refundPixKeyType.toLowerCase(),
   });
 
   const gateway = getPaymentGateway();

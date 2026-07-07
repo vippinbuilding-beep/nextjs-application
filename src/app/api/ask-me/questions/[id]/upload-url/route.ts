@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { ASK_ME_LIMITS } from "@/lib/ask-me";
+import { ASK_ME_LIMITS, canCreatorRespondToAskMe, getAskMeResponseBlockedMessage } from "@/lib/ask-me";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ASK_ME_ANSWERS_BUCKET, sanitizeFileName } from "@/lib/supabase/storage";
@@ -31,16 +31,24 @@ export async function POST(
   const admin = createSupabaseAdminClient();
   const { data: question } = await admin
     .from("ask_me_questions")
-    .select("id, creator_id, status")
+    .select("id, creator_id, status, response_deadline_at")
     .eq("id", questionId)
     .maybeSingle();
 
   if (!question || question.creator_id !== user.id) {
     return Response.json({ error: "Pergunta não encontrada." }, { status: 404 });
   }
-  if (question.status !== "awaiting_response") {
+  const responseDeadlineAt = question.response_deadline_at
+    ? new Date(question.response_deadline_at)
+    : null;
+  if (!canCreatorRespondToAskMe(question.status, responseDeadlineAt)) {
     return Response.json(
-      { error: "Esta pergunta não está aguardando resposta." },
+      {
+        error: getAskMeResponseBlockedMessage(
+          question.status,
+          responseDeadlineAt
+        ),
+      },
       { status: 400 }
     );
   }

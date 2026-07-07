@@ -1,16 +1,17 @@
 import type { NextRequest } from "next/server";
 
+import { avatarResponseHeaders } from "@/lib/avatar-proxy";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { PROFILE_LINKS_BUCKET } from "@/lib/supabase/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const SIGNED_TTL_SECONDS = 3600;
+const SIGNED_TTL_SECONDS = 60;
 
 /**
- * Streams a profile link cover image through the server via a short-lived
- * signed URL from the private `profile-links` bucket.
+ * Streams a stored profile-link preview image. Public and cacheable — link
+ * covers appear on creator public profiles.
  */
 export async function GET(
   _request: NextRequest,
@@ -37,26 +38,15 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  const upstream = await fetch(signed.signedUrl, {
-    next: { revalidate: 300 },
-  });
+  const upstream = await fetch(signed.signedUrl, { cache: "no-store" });
   if (!upstream.ok || !upstream.body) {
     return new Response("Not found", { status: 404 });
   }
 
-  const contentType =
-    upstream.headers.get("content-type") ||
-    link.image_mime ||
-    "image/jpeg";
+  const headers = avatarResponseHeaders(
+    upstream.headers.get("content-type") || link.image_mime || "image/jpeg",
+    upstream.headers.get("content-length")
+  );
 
-  return new Response(upstream.body, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=300, stale-while-revalidate=600",
-      ...(upstream.headers.get("content-length")
-        ? { "Content-Length": upstream.headers.get("content-length")! }
-        : {}),
-    },
-  });
+  return new Response(upstream.body, { status: 200, headers });
 }

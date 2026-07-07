@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+import {
+  buildOnboardingUrl,
+  safeReturnPath,
+} from "@/lib/auth/login-return";
 import { migrateLegacyGoogleAvatar } from "@/lib/profile/import-google-avatar";
 import { ensureProfileForAuthUser } from "@/lib/profile/profile-write-server";
 import { getProfileByUserId } from "@/lib/profile/server-profile";
@@ -14,14 +18,6 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  * path when present, e.g. to return the user to the product they were buying).
  */
 
-function safeNext(next: string | null): string | null {
-  if (!next) return null;
-  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {
-    return null;
-  }
-  return next;
-}
-
 function resolveSignupRole(roleParam: string | null): "creator" | "consumer" {
   return roleParam === "consumer" ? "consumer" : "creator";
 }
@@ -29,7 +25,7 @@ function resolveSignupRole(roleParam: string | null): "creator" | "consumer" {
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNext(searchParams.get("next"));
+  const next = safeReturnPath(searchParams.get("next"));
   const signupRole = resolveSignupRole(searchParams.get("role"));
 
   if (!code) {
@@ -77,7 +73,7 @@ export async function GET(request: Request) {
 
   const destination = profile.onboardingCompleted
     ? (next ?? "/")
-    : "/onboarding";
+    : buildOnboardingUrl(next);
 
   return NextResponse.redirect(`${origin}${destination}`);
 }

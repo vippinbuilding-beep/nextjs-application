@@ -11,8 +11,6 @@ export interface CreateAskMeQuestionInput {
   amountCents: number;
   platformFeeCents: number;
   creatorAmountCents: number;
-  refundPixKey: string;
-  refundPixKeyType: string;
 }
 
 export interface UpdateAskMeQuestionInput {
@@ -50,4 +48,6 @@ export interface AskMeQuestionRepository {
   ): Promise<AskMeQuestion[]>;
   /** Awaiting questions whose refund failed and is eligible for retry. */
   listFailedRefunds(limit: number, minAgeMs: number): Promise<AskMeQuestion[]>;
+  /** Answered questions whose creator repass previously failed. */
+  listFailedCreatorRepasses(limit: number, minAgeMs: number): Promise<AskMeQuestion[]>;
 }

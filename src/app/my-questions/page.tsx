@@ -1,14 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
 import { AskMeConsumerInbox } from "@/components/ask-me/ask-me-consumer-inbox";
-import { NotificationBell } from "@/components/notifications/notification-bell";
+import { BackButton } from "@/components/navigation/back-button";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,8 +16,6 @@ import {
 } from "@/components/ui/card";
 import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
-import { ArrowLeft } from "lucide-react";
-
 export default function MyQuestionsPage() {
   const router = useRouter();
   const redirectToLogin = useLoginRedirect();
@@ -54,15 +50,12 @@ export default function MyQuestionsPage() {
           <CardTitle>Minhas perguntas</CardTitle>
           <CardDescription>
             Acompanhe perguntas enviadas a criadores. Se não houver resposta em
-            72h, o valor é estornado para sua chave PIX.
+            72h, o valor é estornado automaticamente.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <AskMeConsumerInbox askerId={user.id} />
-          <Button size="sm" variant="outline" className="w-full" onClick={() => router.back()}>
-            <ArrowLeft className="size-4" />
-            Voltar
-          </Button>
+          <BackButton fallback="/" className="w-full" />
         </CardContent>
       </Card>
     </LayoutBackground>

@@ -116,7 +116,8 @@ export function VideoPlayer({
   const [aspectRatio, setAspectRatio] = useState(defaultAspectRatio);
   const [showPoster, setShowPoster] = useState(Boolean(poster));
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
-  const showPlayerComments = Boolean(commentsSlot) && (!isLargeScreen || fullscreen);
+  const showPlayerComments =
+    Boolean(commentsSlot) && (isLargeScreen || fullscreen);
   const mobileCommentsFullscreen = showPlayerComments && !isLargeScreen && !fullscreen;
   const theatreDesktop = theatre && isLargeScreen && !fullscreen;
   const progressPercent =

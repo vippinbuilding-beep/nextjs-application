@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/weekly-creator-payouts",
-      "schedule": "0 13 * * 1"
+      "path": "/api/cron/daily-payments",
+      "schedule": "0 12 * * *"
     }
   ]
 }

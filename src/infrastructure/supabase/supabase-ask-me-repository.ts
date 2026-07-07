@@ -129,8 +129,6 @@ export class SupabaseAskMeQuestionRepository implements AskMeQuestionRepository 
         amount_cents: input.amountCents,
         platform_fee_cents: input.platformFeeCents,
         creator_amount_cents: input.creatorAmountCents,
-        refund_pix_key: input.refundPixKey,
-        refund_pix_key_type: input.refundPixKeyType,
       })
       .select("*")
       .single();
@@ -223,6 +221,23 @@ export class SupabaseAskMeQuestionRepository implements AskMeQuestionRepository 
       .from(TABLE)
       .select("*")
       .eq("status", "awaiting_response")
+      .eq("transfer_status", "failed")
+      .lt("updated_at", cutoff)
+      .order("updated_at", { ascending: true })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return ((data as AskMeRow[]) ?? []).map(toQuestion);
+  }
+
+  async listFailedCreatorRepasses(
+    limit: number,
+    minAgeMs: number
+  ): Promise<AskMeQuestion[]> {
+    const cutoff = new Date(Date.now() - minAgeMs).toISOString();
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("status", "answered")
       .eq("transfer_status", "failed")
       .lt("updated_at", cutoff)
       .order("updated_at", { ascending: true })

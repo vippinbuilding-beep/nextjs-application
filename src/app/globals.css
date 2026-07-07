@@ -130,3 +130,9 @@
     font-weight: 500;
   }
 }
+
+@keyframes nav-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

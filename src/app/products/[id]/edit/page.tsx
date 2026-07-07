@@ -3,12 +3,13 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { ProductForm } from "@/components/products/product-form";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { Product } from "@/core/models/product";
+import { PRODUCT_TYPES } from "@/lib/products";
 import { isCreator } from "@/lib/user-role";
 import { productRepository } from "@/services/repository-factory";
 
@@ -63,10 +64,12 @@ export default function EditProductPage() {
   }
 
   return (
-    <LayoutBackground element="main" background="primary" className="flex items-center justify-center p-4">
-      <div className="">
-        <ProductForm type={product.type} product={product} />
-      </div>
-    </LayoutBackground>
+    <div className="flex flex-col gap-6">
+      <CreatorModuleHeader
+        title="Editar produto"
+        description={PRODUCT_TYPES[product.type].label}
+      />
+      <ProductForm type={product.type} product={product} />
+    </div>
   );
 }

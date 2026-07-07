@@ -14,6 +14,31 @@ export async function fetchExternalAvatar(url: string): Promise<Response> {
   });
 }
 
+function refererForSourcePage(sourcePageUrl: string): string {
+  try {
+    return `${new URL(sourcePageUrl).origin}/`;
+  } catch {
+    return "https://www.instagram.com/";
+  }
+}
+
+/** Downloads a profile image from a platform CDN (often requires Referer). */
+export async function fetchPlatformProfileImage(
+  imageUrl: string,
+  sourcePageUrl: string
+): Promise<Response> {
+  const normalizedUrl = imageUrl.replace(/&amp;/g, "&");
+
+  return fetch(normalizedUrl, {
+    headers: {
+      Accept: "image/*",
+      "User-Agent": "Mozilla/5.0 (compatible; Vippin/1.0; +https://vippin.app)",
+      Referer: refererForSourcePage(sourcePageUrl),
+    },
+    next: { revalidate: AVATAR_UPSTREAM_REVALIDATE_SECONDS },
+  });
+}
+
 export function avatarResponseHeaders(
   contentType: string,
   contentLength?: string | null

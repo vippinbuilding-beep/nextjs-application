@@ -1,11 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
-import {
-  PROFILE_LINKS_BUCKET,
-  sanitizeFileName,
-} from "@/lib/supabase/storage";
 import type { ProfileLink } from "@/core/models/profile-link";
 import type {
-  ProfileLinkImageMetadata,
   ProfileLinkInput,
   ProfileLinkRepository,
 } from "@/core/repositories/profile-link-repository";
@@ -33,55 +28,6 @@ function mapWriteError(error: { code?: string; message: string }): Error {
     return new Error("Título do link inválido.");
   }
   return new Error(error.message);
-}
-
-function mapStorageError(error: { message: string }): Error {
-  const msg = error.message.toLowerCase();
-  if (msg.includes("maximum allowed size") || msg.includes("entity too large")) {
-    return new Error("A imagem passou do limite do Supabase Storage.");
-  }
-  return new Error(error.message);
-}
-
-async function uploadImageViaSignedUrl(
-  linkId: string,
-  file: File
-): Promise<ProfileLinkImageMetadata> {
-  const response = await fetch(`/api/profile/links/${linkId}/upload-url`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      fileName: file.name,
-      contentType: file.type || undefined,
-      size: file.size,
-    }),
-  });
-
-  if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as
-      | { error?: string }
-      | null;
-    throw mapStorageError({
-      message: body?.error ?? "Falha ao preparar o upload.",
-    });
-  }
-
-  const { path, token } = (await response.json()) as {
-    path: string;
-    token: string;
-  };
-
-  const { error } = await supabase.storage
-    .from(PROFILE_LINKS_BUCKET)
-    .uploadToSignedUrl(path, token, file, {
-      contentType: file.type || undefined,
-    });
-  if (error) throw mapStorageError(error);
-
-  return {
-    imagePath: path,
-    imageMime: file.type || "application/octet-stream",
-  };
 }
 
 export class SupabaseProfileLinkRepository implements ProfileLinkRepository {
@@ -124,10 +70,7 @@ export class SupabaseProfileLinkRepository implements ProfileLinkRepository {
     return toProfileLink(row as ProfileLinkRow);
   }
 
-  async update(
-    id: string,
-    data: Partial<ProfileLinkInput & ProfileLinkImageMetadata>
-  ): Promise<void> {
+  async update(id: string, data: Partial<ProfileLinkInput>): Promise<void> {
     const row: Partial<ProfileLinkRow> = {};
     if (data.title !== undefined) row.title = data.title.trim();
     if (data.url !== undefined) row.url = data.url;
@@ -156,12 +99,6 @@ export class SupabaseProfileLinkRepository implements ProfileLinkRepository {
     const failed = results.find((result) => result.error);
     if (failed?.error) throw new Error(failed.error.message);
   }
-
-  async uploadImage(linkId: string, file: File): Promise<ProfileLinkImageMetadata> {
-    const metadata = await uploadImageViaSignedUrl(linkId, file);
-    await this.update(linkId, metadata);
-    return metadata;
-  }
 }
 
 function toProfileLink(row: ProfileLinkRow): ProfileLink {
@@ -176,13 +113,4 @@ function toProfileLink(row: ProfileLinkRow): ProfileLink {
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   };
-}
-
-// Reserved for future server-side path building if needed.
-export function buildProfileLinkImagePath(
-  creatorId: string,
-  linkId: string,
-  fileName: string
-): string {
-  return `${creatorId}/${linkId}/${sanitizeFileName(fileName)}`;
 }

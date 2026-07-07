@@ -1,7 +1,3 @@
-import { cpf, cnpj } from "cpf-cnpj-validator";
-
-import type { PixKeyType } from "@/core/models/user";
-
 export const ASK_ME_LIMITS = {
   minPriceCents: 200,
   defaultPriceCents: 200,
@@ -78,6 +74,58 @@ export function isAskMeAwaitingResponse(status: string): boolean {
   return status === "awaiting_response";
 }
 
+export function isAskMeDeadlinePassed(responseDeadlineAt?: Date | null): boolean {
+  if (!responseDeadlineAt) return false;
+  return responseDeadlineAt.getTime() <= Date.now();
+}
+
+/** Whether the creator can still answer or decline this question. */
+export function canCreatorRespondToAskMe(
+  status: string,
+  responseDeadlineAt?: Date | null
+): boolean {
+  return (
+    isAskMeAwaitingResponse(status) && !isAskMeDeadlinePassed(responseDeadlineAt)
+  );
+}
+
+/** Error message when the creator can no longer respond. */
+export function getAskMeResponseBlockedMessage(
+  status: string,
+  responseDeadlineAt?: Date | null
+): string {
+  if (status === "answered") {
+    return "Esta pergunta já foi respondida.";
+  }
+  if (status === "declined") {
+    return "Esta pergunta já foi recusada.";
+  }
+  if (status === "expired") {
+    return "O prazo de 72h para responder esta pergunta já expirou.";
+  }
+  if (
+    isAskMeAwaitingResponse(status) &&
+    isAskMeDeadlinePassed(responseDeadlineAt)
+  ) {
+    return "O prazo de 72h para responder esta pergunta já expirou.";
+  }
+  return "Esta pergunta não está mais aguardando resposta.";
+}
+
+/** Status label for the creator inbox (includes deadline-based expiry). */
+export function getAskMeCreatorStatusLabel(
+  status: string,
+  responseDeadlineAt?: Date | null
+): string {
+  if (
+    isAskMeAwaitingResponse(status) &&
+    isAskMeDeadlinePassed(responseDeadlineAt)
+  ) {
+    return "Prazo esgotado";
+  }
+  return getAskMeStatusLabel(status);
+}
+
 const STATUS_LABELS: Record<string, string> = {
   pending_payment: "Aguardando pagamento",
   awaiting_response: "Aguardando resposta",
@@ -90,33 +138,4 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function getAskMeStatusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status;
-}
-
-/** Infers PIX key type for ask-me refund keys (broader than creator CPF/CNPJ). */
-export function inferRefundPixKeyType(value: string): PixKeyType | "" {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-
-  const digits = trimmed.replace(/\D/g, "");
-  if (digits.length === 11 && cpf.isValid(digits)) return "CPF";
-  if (digits.length === 14 && cnpj.isValid(digits)) return "CNPJ";
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return "EMAIL";
-  if (digits.length >= 10 && digits.length <= 11) return "PHONE";
-  if (
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      trimmed
-    )
-  ) {
-    return "RANDOM";
-  }
-  if (trimmed.length >= 32) return "RANDOM";
-
-  return "";
-}
-
-export function validateRefundPixKey(value: string): string | null {
-  if (!inferRefundPixKeyType(value)) {
-    return "Informe uma chave PIX válida para reembolso (CPF, CNPJ, e-mail, telefone ou aleatória).";
-  }
-  return null;
 }

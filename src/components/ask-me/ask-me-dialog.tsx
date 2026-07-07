@@ -2,11 +2,10 @@
 
 import { Check, Copy, MessageCircleQuestion, QrCode } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-import { LoginRolePicker } from "@/components/auth/login-role-picker";
+import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { LoginRolePicker } from "@/components/auth/login-role-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,14 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loading } from "@/components/ui/loading";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ASK_ME_LIMITS,
   validateAskMeQuestion,
-  validateRefundPixKey,
 } from "@/lib/ask-me";
 import { formatBRL } from "@/lib/money";
 
@@ -57,9 +54,8 @@ export function AskMeDialog({
   open,
   onOpenChange,
 }: AskMeDialogProps) {
-  const pathname = usePathname();
+  const returnPath = useCurrentReturnPath();
   const [questionText, setQuestionText] = useState("");
-  const [refundPixKey, setRefundPixKey] = useState("");
   const [phase, setPhase] = useState<Phase>("form");
   const [checkout, setCheckout] = useState<CheckoutResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +77,6 @@ export function AskMeDialog({
       setCheckout(null);
       setError(null);
       setQuestionText("");
-      setRefundPixKey("");
       stopPolling();
     }
   }, [open, stopPolling]);
@@ -119,18 +114,12 @@ export function AskMeDialog({
       return;
     }
 
-    const pixError = validateRefundPixKey(refundPixKey);
-    if (pixError) {
-      setError(pixError);
-      return;
-    }
-
     setPhase("creating");
     try {
       const res = await fetch(`/api/ask-me/${creatorId}/checkout`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ questionText, refundPixKey }),
+        body: JSON.stringify({ questionText }),
       });
       const body = (await res.json()) as CheckoutResponse;
       if (!res.ok) {
@@ -165,7 +154,7 @@ export function AskMeDialog({
               Escolha como quer entrar para enviar uma pergunta paga a @{creatorName}.
             </DialogDescription>
           </DialogHeader>
-          <LoginRolePicker next={pathname} />
+          <LoginRolePicker next={returnPath} />
         </DialogContent>
       </Dialog>
     );
@@ -206,27 +195,10 @@ export function AskMeDialog({
               <DialogDescription>
                 Envie uma pergunta para @{creatorName} por{" "}
                 {formatBRL(priceCents)}. O valor só é liberado ao criador se ele
-                responder em até {ASK_ME_LIMITS.responseDeadlineHours}h.
+                responder em até {ASK_ME_LIMITS.responseDeadlineHours}h; caso
+                contrário, o pagamento é estornado automaticamente.
               </DialogDescription>
             </DialogHeader>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="ask-me-refund-pix">
-                Chave PIX para reembolso (se necessário)
-              </Label>
-              <Input
-                id="ask-me-refund-pix"
-                value={refundPixKey}
-                onChange={(e) => setRefundPixKey(e.target.value)}
-                placeholder="CPF, e-mail, telefone ou chave aleatória"
-                autoComplete="off"
-                disabled={phase === "creating"}
-              />
-              <p className="text-muted-foreground text-xs">
-                Usada só se o criador não responder em até{" "}
-                {ASK_ME_LIMITS.responseDeadlineHours}h.
-              </p>
-            </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="ask-me-question">Sua pergunta</Label>

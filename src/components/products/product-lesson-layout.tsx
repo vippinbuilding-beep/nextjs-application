@@ -1,6 +1,8 @@
 import { Pencil } from "lucide-react";
 import Link from "next/link";
 
+import { PublicNavBar } from "@/components/navigation/public-nav-bar";
+
 import { ProductCommentsCard } from "@/components/products/product-comments-card";
 import { ProductLessonViewer } from "@/components/products/product-lesson-viewer";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
@@ -17,6 +19,7 @@ interface ProductLessonLayoutProps {
   watermark: string;
   isOwner: boolean;
   hasFile: boolean;
+  viewerUserId: string;
   profile: {
     id: string;
     slug: string;
@@ -40,12 +43,14 @@ export function ProductLessonLayout({
   watermark,
   isOwner,
   hasFile,
+  viewerUserId,
   profile,
 }: ProductLessonLayoutProps) {
   const handle = profile.creatorName ?? profile.slug;
 
   return (
     <main className="flex min-h-svh flex-col bg-background">
+      <PublicNavBar />
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:items-stretch">
         {/* Player + stream info */}
         <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
@@ -54,6 +59,7 @@ export function ProductLessonLayout({
               <ProductLessonViewer
                 productId={productId}
                 isOwner={isOwner}
+                viewerUserId={viewerUserId}
                 src={mediaUrl}
                 poster={thumbnailUrl}
                 watermark={watermark}
@@ -103,6 +109,14 @@ export function ProductLessonLayout({
                   {description}
                 </p>
               )}
+
+              <ProductCommentsCard
+                productId={productId}
+                isOwner={isOwner}
+                viewerUserId={viewerUserId}
+                formId="comment-body-mobile"
+                className="lg:hidden"
+              />
             </div>
           </div>
         </div>
@@ -117,6 +131,7 @@ export function ProductLessonLayout({
           <ProductCommentsCard
             productId={productId}
             isOwner={isOwner}
+            viewerUserId={viewerUserId}
             variant="sidebar"
             formId="comment-body-sidebar"
             className="min-h-0 flex-1"

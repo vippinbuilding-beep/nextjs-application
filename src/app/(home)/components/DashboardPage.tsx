@@ -1,59 +1,52 @@
 "use client";
 
 import {
-    Check,
+    Banknote,
+    BarChart3,
     ChevronRight,
-    Copy,
-    ExternalLink,
+    Compass,
+    Library,
     Link2,
-    LogOut,
     MessageCircleQuestion,
-    Pencil,
-    Plus,
+    Package,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { useAuth } from "@/components/providers/auth-provider";
-import { CreatorWithdrawCard } from "@/components/creator/creator-withdraw-card";
-import { NotificationBell } from "@/components/notifications/notification-bell";
+import { CreatorLinkCard } from "@/app/(home)/components/creator-link-card";
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { ProfileDefaultTabPicker } from "@/components/profile/profile-default-tab-picker";
-import { ProductTabs } from "@/components/products/product-tabs";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/providers/auth-provider";
 import {
     Card,
-    CardAction,
     CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
 import { CountBadge } from "@/components/ui/count-badge";
-import { LayoutBackground } from "@/components/ui/layout-background";
-import { Loading } from "@/components/ui/loading";
 import { ScreenLoading } from "@/components/ui/screen-loading";
-import { UserAvatar } from "@/components/ui/user-avatar";
 import type { Product } from "@/core/models/product";
 import { getAvailableCreatorTabs } from "@/lib/creator-profile-tabs";
 import { supabase } from "@/lib/supabase/client";
 import { isCreator } from "@/lib/user-role";
 import { cn } from "@/lib/utils";
 import {
-    askMeQuestionRepository,
+    productAccessRepository,
     productRepository,
     profileLinkRepository,
 } from "@/services/repository-factory";
+import { useCreatorPendingAskMe } from "@/hooks/use-creator-pending-ask-me";
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { user, loading, signOut, refreshUser } = useAuth();
+    const { user, loading, refreshUser } = useAuth();
 
     const [products, setProducts] = useState<Product[]>([]);
     const [productsLoading, setProductsLoading] = useState(true);
+    const [libraryCount, setLibraryCount] = useState(0);
+    const [libraryLoading, setLibraryLoading] = useState(true);
     const [linkCount, setLinkCount] = useState(0);
     const [linksLoading, setLinksLoading] = useState(true);
-    const [pendingAskMe, setPendingAskMe] = useState(0);
+    const pendingAskMe = useCreatorPendingAskMe(user?.id);
 
     useEffect(() => {
         if (loading) return;
@@ -78,16 +71,6 @@ export default function DashboardPage() {
         }
     }, []);
 
-    const loadPendingAskMe = useCallback(async (creatorId: string) => {
-        try {
-            const count =
-                await askMeQuestionRepository.countAwaitingResponseByCreator(creatorId);
-            setPendingAskMe(count);
-        } catch {
-            setPendingAskMe(0);
-        }
-    }, []);
-
     const loadLinks = useCallback(async (creatorId: string) => {
         setLinksLoading(true);
         try {
@@ -100,15 +83,27 @@ export default function DashboardPage() {
         }
     }, []);
 
+    const loadLibrary = useCallback(async () => {
+        setLibraryLoading(true);
+        try {
+            const productIds = await productAccessRepository.listProductIdsForCurrentUser();
+            setLibraryCount(productIds.length);
+        } catch {
+            setLibraryCount(0);
+        } finally {
+            setLibraryLoading(false);
+        }
+    }, []);
+
     const refreshDashboardRef = useRef<(creatorId: string) => void>(() => { });
 
     useEffect(() => {
         refreshDashboardRef.current = (creatorId: string) => {
             void loadProducts(creatorId);
-            void loadPendingAskMe(creatorId);
             void loadLinks(creatorId);
+            void loadLibrary();
         };
-    }, [loadProducts, loadPendingAskMe, loadLinks]);
+    }, [loadProducts, loadLinks, loadLibrary]);
 
     useEffect(() => {
         if (!user?.id) return;
@@ -132,7 +127,7 @@ export default function DashboardPage() {
                     filter: `creator_id=eq.${stableCreatorId}`,
                 },
                 () => {
-                    void loadPendingAskMe(stableCreatorId);
+                    refreshDashboardRef.current(stableCreatorId);
                 }
             )
             .subscribe();
@@ -149,7 +144,7 @@ export default function DashboardPage() {
             document.removeEventListener("visibilitychange", handleVisibilityChange);
             void supabase.removeChannel(channel);
         };
-    }, [user?.id, loadPendingAskMe]);
+    }, [user?.id]);
 
     if (loading || !user) {
         return <ScreenLoading />;
@@ -166,170 +161,115 @@ export default function DashboardPage() {
     const showDefaultTabPicker =
         availableTabs.length > 1 && !productsLoading && !linksLoading;
 
-    async function handleSignOut() {
-        await signOut();
-        router.replace("/");
-    }
-
     return (
-        <LayoutBackground
-            element="main"
-            dotsOpacity={0.2}
-            className="flex min-h-svh flex-col justify-center items-center p-4 py-6 sm:py-10"
-        >
-            <div className="flex w-full max-w-4xl flex-col gap-4 sm:gap-6">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                        <UserAvatar
-                            userId={user.id}
-                            name={displayName}
-                            avatarPath={user.avatarPath}
-                            avatarUrl={user.avatarUrl}
-                            size="lg"
-                            className="shrink-0"
-                        />
-                        <div className="min-w-0">
-                            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide sm:text-sm">
-                                Painel do criador
-                            </p>
-                            <h1 className="truncate text-xl font-bold sm:text-2xl">
-                                Olá, {displayName}
-                            </h1>
-                            {user.slug && (
-                                <p className="text-muted-foreground truncate text-sm font-medium">
-                                    @{user.slug}
-                                </p>
-                            )}
-                        </div>
-                    </div>
+        <div className="flex flex-col gap-6">
+            <CreatorModuleHeader
+                title={`Olá, ${displayName}`}
+                description="Resumo do seu painel e atalhos para cada área."
+            />
 
-                    <div className="flex shrink-0 items-center gap-2">
-                        <NotificationBell />
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => void handleSignOut()}
-                            className="hidden sm:inline-flex"
-                        >
-                            <LogOut className="size-4" />
-                            Sair
-                        </Button>
-                        <Button
-                            type="button"
-                            size="icon"
-                            variant="outline"
-                            onClick={() => void handleSignOut()}
-                            className="sm:hidden"
-                            aria-label="Sair"
-                        >
-                            <LogOut className="size-4" />
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Stats */}
-                <div className="flex flex-wrap gap-2">
-                    <StatPill label={`${products.length} produto${products.length === 1 ? "" : "s"}`} />
-                    {lessonCount > 0 && (
-                        <StatPill label={`${lessonCount} aula${lessonCount === 1 ? "" : "s"}`} />
-                    )}
-                    {documentCount > 0 && (
-                        <StatPill label={`${documentCount} vip${documentCount === 1 ? "" : "s"}`} />
-                    )}
-                    {pendingAskMe > 0 && (
-                        <StatPill
-                            label={`${pendingAskMe} pergunta${pendingAskMe === 1 ? "" : "s"} pendente${pendingAskMe === 1 ? "" : "s"}`}
-                            highlight
-                        />
-                    )}
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-5 lg:gap-6">
-                    {/* Left column: link + quick actions */}
-                    <div className="flex flex-col gap-4 lg:col-span-2 lg:gap-6">
-                        {user.slug && <CreatorLinkCard slug={user.slug} />}
-
-                        <CreatorWithdrawCard />
-
-                        {showDefaultTabPicker && (
-                            <Card>
-                                <CardContent>
-                                    <ProfileDefaultTabPicker
-                                        userId={user.id}
-                                        value={user.profileDefaultTab}
-                                        availableTabs={availableTabs}
-                                        onSaved={() => void refreshUser()}
-                                    />
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                            <QuickActionCard
-                                href="/profile/ask-me"
-                                icon={MessageCircleQuestion}
-                                title="Me pergunte"
-                                description={
-                                    pendingAskMe > 0
-                                        ? `${pendingAskMe} aguardando sua resposta`
-                                        : "Receba perguntas pagas da audiência"
-                                }
-                                actionLabel="Gerenciar"
-                                badgeCount={pendingAskMe}
-                            />
-
-                            <QuickActionCard
-                                href="/profile/links"
-                                icon={Link2}
-                                title="Meus links"
-                                description="Links personalizados na sua página pública"
-                                actionLabel="Gerenciar"
-                            />
-                        </div>
-
-                    </div>
-
-                    {/* Right column: products */}
-                    <Card className="lg:col-span-3">
-                        <CardHeader>
-                            <CardTitle>Seus produtos</CardTitle>
-                            <CardDescription>
-                                Gerencie aulas e documentos que você vende.
-                            </CardDescription>
-                            <CardAction>
-                                <Button
-                                    size="sm"
-                                    className="ml-2"
-                                    onClick={() => router.push("/products/new")}
-                                >
-                                    <Plus className="size-4" />
-                                </Button>
-                            </CardAction>
-                        </CardHeader>
-                        <CardContent className={cn(
-                            products.length === 0 ? "h-full" : ""
-                        )}>
-                            {productsLoading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <Loading />
-                                </div>
-                            ) : (
-                                <ProductTabs
-                                    products={products}
-                                    profile={{ id: user.id, slug: user.slug ?? "" }}
-                                    mode="manage"
-                                    emptyLessonsLabel="Você ainda não criou nenhuma aula."
-                                    emptyDocumentsLabel="Você ainda não criou nenhum documento."
-                                    emptyAllLabel="Você ainda não criou nenhuma aula ou documento."
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+            <div className="flex flex-wrap gap-2">
+                <StatPill label={`${products.length} produto${products.length === 1 ? "" : "s"}`} />
+                {lessonCount > 0 && (
+                    <StatPill label={`${lessonCount} aula${lessonCount === 1 ? "" : "s"}`} />
+                )}
+                {documentCount > 0 && (
+                    <StatPill label={`${documentCount} vip${documentCount === 1 ? "" : "s"}`} />
+                )}
+                {pendingAskMe > 0 && (
+                    <StatPill
+                        label={`${pendingAskMe} pergunta${pendingAskMe === 1 ? "" : "s"} pendente${pendingAskMe === 1 ? "" : "s"}`}
+                        highlight
+                    />
+                )}
             </div>
-        </LayoutBackground>
+
+
+            {showDefaultTabPicker && (
+                <Card>
+                    <CardContent >
+                        <ProfileDefaultTabPicker
+                            userId={user.id}
+                            value={user.profileDefaultTab}
+                            availableTabs={availableTabs}
+                            onSaved={() => void refreshUser()}
+                        />
+                    </CardContent>
+                </Card>
+            )}
+
+            {user.slug && <CreatorLinkCard slug={user.slug} />}
+
+            <section className="grid gap-3 sm:grid-cols-2">
+                <ModuleCard
+                    href="/painel/desempenho"
+                    icon={BarChart3}
+                    title="Desempenho"
+                    description="Receita, vendas e Me pergunte"
+                />
+                <ModuleCard
+                    href="/painel/produtos"
+                    icon={Package}
+                    title="Produtos"
+                    description={`${products.length} no catálogo`}
+                />
+                <ModuleCard
+                    href="/profile/ask-me"
+                    icon={MessageCircleQuestion}
+                    title="Me pergunte"
+                    description={
+                        pendingAskMe > 0
+                            ? `${pendingAskMe} aguardando resposta`
+                            : "Perguntas pagas da audiência"
+                    }
+                    badgeCount={pendingAskMe}
+                />
+                <ModuleCard
+                    href="/profile/links"
+                    icon={Link2}
+                    title="Links"
+                    description="Links personalizados no perfil"
+                />
+                <ModuleCard
+                    href="/painel/financeiro"
+                    icon={Banknote}
+                    title="Financeiro"
+                    description="Saldo e saques via PIX"
+                />
+            </section>
+
+            <section className="flex flex-col gap-3">
+                <h2 className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
+                    Como comprador
+                </h2>
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <ModuleCard
+                        href="/painel/biblioteca"
+                        icon={Library}
+                        title="Biblioteca"
+                        description={
+                            libraryLoading
+                                ? "Carregando…"
+                                : libraryCount > 0
+                                  ? `${libraryCount} produto${libraryCount === 1 ? "" : "s"} adquirido${libraryCount === 1 ? "" : "s"}`
+                                  : "Acesse o que você comprou ou recebeu"
+                        }
+                    />
+                    <ModuleCard
+                        href="/painel/minhas-perguntas"
+                        icon={MessageCircleQuestion}
+                        title="Minhas perguntas"
+                        description="Perguntas pagas enviadas a criadores"
+                    />
+                    <ModuleCard
+                        href="/explore"
+                        icon={Compass}
+                        title="Explorar produtos"
+                        description="Descubra aulas e materiais de outros criadores"
+                    />
+                </div>
+            </section>
+        </div>
     );
 }
 
@@ -352,29 +292,27 @@ function StatPill({
     );
 }
 
-interface QuickActionCardProps {
+interface ModuleCardProps {
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     title: string;
     description: string;
-    actionLabel: string;
     badgeCount?: number;
 }
 
-function QuickActionCard({
+function ModuleCard({
     href,
     icon: Icon,
     title,
     description,
-    actionLabel,
     badgeCount = 0,
-}: QuickActionCardProps) {
+}: ModuleCardProps) {
     return (
         <Link
             href={href}
             className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background p-4 text-left shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon"
         >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm sm:size-11">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
                 <Icon className="size-5" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -384,88 +322,9 @@ function QuickActionCard({
                 </span>
             </span>
             <span className="relative shrink-0">
-                <span className="inline-flex items-center gap-1 rounded-lg border-2 border-border bg-background px-2.5 py-1 text-xs font-bold shadow-cartoon-sm">
-                    {actionLabel}
-                    <ChevronRight className="size-3.5" />
-                </span>
+                <ChevronRight className="text-muted-foreground size-5 transition-transform group-hover:translate-x-0.5" />
                 <CountBadge count={badgeCount} />
             </span>
         </Link>
-    );
-}
-
-interface CreatorLinkCardProps {
-    slug: string;
-}
-
-export function CreatorLinkCard({ slug }: CreatorLinkCardProps) {
-    const [copied, setCopied] = useState(false);
-
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const path = `/@${slug}`;
-    const link = `${origin}${path}`;
-
-    async function handleCopy() {
-        try {
-            await navigator.clipboard.writeText(link);
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 2000);
-        } catch {
-            // Clipboard pode estar indisponível; ignora.
-        }
-    }
-
-    return (
-        <Card>
-            <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Seu link público</CardTitle>
-                <CardDescription>
-                    Compartilhe com sua audiência para vender produtos e receber perguntas.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-                <a
-                    href={path}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-primary px-3.5 py-3 font-bold text-primary-foreground shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon sm:px-4 sm:py-3.5"
-                >
-                    <span className="min-w-0 truncate text-sm sm:text-base">
-                        <span className="opacity-70">
-                            {origin.replace(/^https?:\/\//, "")}
-                        </span>
-                        {path}
-                    </span>
-                    <ExternalLink className="size-4 shrink-0" />
-                </a>
-
-                <div className="grid grid-cols-2 gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => void handleCopy()}
-                    >
-                        {copied ? (
-                            <>
-                                <Check className="size-4" />
-                                Copiado!
-                            </>
-                        ) : (
-                            <>
-                                <Copy className="size-4" />
-                                Copiar
-                            </>
-                        )}
-                    </Button>
-                    <Button type="button" variant="outline" className="w-full" asChild>
-                        <Link href="/profile/edit">
-                            <Pencil className="size-4" />
-                            Perfil
-                        </Link>
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
     );
 }

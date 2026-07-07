@@ -1,9 +1,12 @@
-export type ToastVariant = "success" | "error";
+export type ToastVariant = "success" | "error" | "notification";
 
 export interface ToastItem {
   id: string;
   message: string;
   variant: ToastVariant;
+  title?: string;
+  body?: string;
+  href?: string;
 }
 
 export const TOAST_MESSAGES = {
@@ -23,6 +26,7 @@ export const TOAST_MESSAGES = {
 } as const;
 
 const TOAST_DURATION_MS = 4_000;
+const NOTIFICATION_TOAST_DURATION_MS = 6_000;
 
 let toasts: ToastItem[] = [];
 const listeners = new Set<(items: ToastItem[]) => void>();
@@ -33,6 +37,12 @@ function emit() {
   }
 }
 
+function scheduleDismiss(id: string, durationMs: number) {
+  window.setTimeout(() => {
+    dismissToast(id);
+  }, durationMs);
+}
+
 function push(message: string, variant: ToastVariant) {
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -41,10 +51,32 @@ function push(message: string, variant: ToastVariant) {
 
   toasts = [...toasts, { id, message, variant }];
   emit();
+  scheduleDismiss(id, TOAST_DURATION_MS);
+}
 
-  window.setTimeout(() => {
-    dismissToast(id);
-  }, TOAST_DURATION_MS);
+function pushNotification(input: {
+  title: string;
+  body?: string;
+  href?: string;
+}) {
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random()}`;
+
+  toasts = [
+    ...toasts,
+    {
+      id,
+      message: input.title,
+      variant: "notification",
+      title: input.title,
+      body: input.body,
+      href: input.href,
+    },
+  ];
+  emit();
+  scheduleDismiss(id, NOTIFICATION_TOAST_DURATION_MS);
 }
 
 export function dismissToast(id: string) {
@@ -68,6 +100,9 @@ export const toast = {
   },
   error(message: string) {
     push(message, "error");
+  },
+  notification(input: { title: string; body?: string; href?: string }) {
+    pushNotification(input);
   },
   saved() {
     push(TOAST_MESSAGES.saved, "success");

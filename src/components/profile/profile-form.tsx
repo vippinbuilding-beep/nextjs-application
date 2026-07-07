@@ -1,10 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-
-import { LayoutDashboard } from "lucide-react";
 
 import { LinkStepFields } from "@/components/onboarding/link-step-fields";
 import { ProfileStepFields } from "@/components/onboarding/profile-step-fields";
@@ -25,11 +22,12 @@ import {
   validateCreatorProfileStep,
   validateSocialsStep,
 } from "@/components/onboarding/validation";
+import { BackButton } from "@/components/navigation/back-button";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
+import { Loading } from "@/components/ui/loading";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -38,6 +36,8 @@ import {
 import type { User, UserSocials } from "@/core/models/user";
 import { userRepository } from "@/services/repository-factory";
 import { toast } from "@/lib/toast";
+import { navigateBack } from "@/lib/navigation/navigate-back";
+import { cn } from "@/lib/utils";
 import { ScreenLoading } from "../ui/screen-loading";
 import { LayoutBackground } from "../ui/layout-background";
 
@@ -55,7 +55,7 @@ function formFromUser(user: User): OnboardingFormData {
   };
 }
 
-export function ProfileForm() {
+export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
 
@@ -166,7 +166,7 @@ export function ProfileForm() {
 
       await refreshUser();
       toast.saved();
-      router.back();
+      navigateBack(router, "/");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Erro ao salvar alterações do perfil";
@@ -179,7 +179,73 @@ export function ProfileForm() {
 
 
   if (!hydrated) {
-    return <ScreenLoading background="primary" />
+    if (embedded) {
+      return (
+        <div className="flex items-center justify-center py-16">
+          <Loading />
+        </div>
+      );
+    }
+    return <ScreenLoading background="primary" />;
+  }
+
+  const formContent = (
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>Editar perfil</CardTitle>
+          <CardDescription>
+            Atualize seus dados, redes sociais e informações de pagamento.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <LinkStepFields slug={slug} />
+          <p className="text-muted-foreground -mt-2 text-xs">
+            Se você alterar o nome de criador, o link será atualizado automaticamente.
+          </p>
+
+          <div className="border-t-2 border-dashed border-border" />
+
+          <AvatarPicker
+            userId={user!.id}
+            displayName={form.creatorName || form.name}
+            avatarPath={profileAvatarPath}
+            avatarFromGoogle={profileAvatarFromGoogle}
+            onChange={handleAvatarChange}
+          />
+
+          <ProfileStepFields data={form} onChange={updateField} />
+
+          <div className="border-t-2 border-dashed border-border" />
+
+          <p className="text-sm font-semibold">Redes sociais</p>
+          <SocialsStepFields socials={form.socials} onSocialChange={updateSocial} />
+
+          {error && (
+            <p className="text-destructive text-sm" role="alert">
+              {error}
+            </p>
+          )}
+
+          <div className={cn("mt-2 flex gap-3", embedded && "justify-end")}>
+            {!embedded && (
+              <BackButton fallback="/" className="flex-1" disabled={submitting} />
+            )}
+            <Button
+              type="submit"
+              className={embedded ? undefined : "flex-1"}
+              disabled={submitting}
+            >
+              {submitting ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </form>
+  );
+
+  if (embedded) {
+    return formContent;
   }
 
   return (
@@ -188,60 +254,7 @@ export function ProfileForm() {
       background="primary"
       className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
     >
-      <form onSubmit={handleSubmit} className="w-full max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Editar perfil</CardTitle>
-            <CardDescription>
-              Atualize seus dados, redes sociais e informações de pagamento.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <LinkStepFields slug={slug} />
-            <p className="text-muted-foreground -mt-2 text-xs">
-              Se você alterar o nome de criador, o link será atualizado automaticamente.
-            </p>
-
-            <div className="border-t-2 border-dashed border-border" />
-
-            <AvatarPicker
-              userId={user!.id}
-              displayName={form.creatorName || form.name}
-              avatarPath={profileAvatarPath}
-              avatarFromGoogle={profileAvatarFromGoogle}
-              onChange={handleAvatarChange}
-            />
-
-            <ProfileStepFields data={form} onChange={updateField} />
-
-            <div className="border-t-2 border-dashed border-border" />
-
-            <p className="text-sm font-semibold">Redes sociais</p>
-            <SocialsStepFields socials={form.socials} onSocialChange={updateSocial} />
-
-            {error && (
-              <p className="text-destructive text-sm" role="alert">
-                {error}
-              </p>
-            )}
-
-            <div className="mt-2 flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.back()}
-                disabled={submitting}
-              >
-                Voltar
-              </Button>
-              <Button type="submit" className="flex-1" disabled={submitting}>
-                {submitting ? "Salvando..." : "Salvar alterações"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </form>
+      {formContent}
     </LayoutBackground>
   );
 }

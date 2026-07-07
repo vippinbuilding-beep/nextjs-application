@@ -6,6 +6,7 @@ import { VideoPlayer } from "@/components/products/video-player";
 interface ProductLessonViewerProps {
   productId: string;
   isOwner: boolean;
+  viewerUserId?: string;
   src: string;
   poster?: string | null;
   watermark?: string;
@@ -18,6 +19,7 @@ interface ProductLessonViewerProps {
 export function ProductLessonViewer({
   productId,
   isOwner,
+  viewerUserId,
   src,
   poster,
   watermark,
@@ -38,6 +40,7 @@ export function ProductLessonViewer({
         <ProductCommentsPanel
           productId={productId}
           isOwner={isOwner}
+          viewerUserId={viewerUserId}
           formId="comment-body-player"
         />
       }

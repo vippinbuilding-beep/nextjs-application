@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { BackButton } from "@/components/navigation/back-button";
 import { ONBOARDING_LIMITS, validateConsumerName } from "@/components/onboarding/validation";
 import {
   AvatarPicker,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { navigateBack } from "@/lib/navigation/navigate-back";
 import { resolveConsumerDisplayName } from "@/lib/profile/display-name";
 import { userRepository } from "@/services/repository-factory";
 import { toast } from "@/lib/toast";
@@ -95,7 +96,7 @@ export function ConsumerProfileForm() {
       await persistAvatarSelection(user.id, avatarSelection);
       await refreshUser();
       toast.saved();
-      router.push("/");
+      navigateBack(router, "/");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao salvar dados";
       setError(message);
@@ -156,17 +157,8 @@ export function ConsumerProfileForm() {
               </p>
             )}
 
-            <div className="flex gap-2 flex-row">
-              <Button
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.push("/")}
-                disabled={submitting}
-              >
-                <ArrowLeft className="size-4" />
-                Voltar
-              </Button>
+            <div className="flex flex-row gap-2">
+              <BackButton fallback="/" className="flex-1" disabled={submitting} />
               <Button type="submit" className="flex-1" disabled={submitting}>
                 {submitting ? "Salvando..." : "Salvar"}
               </Button>

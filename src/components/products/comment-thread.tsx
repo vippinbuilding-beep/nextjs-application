@@ -7,6 +7,7 @@ import {
   ChevronUp,
   Loader2,
   MessageSquareReply,
+  MoreVertical,
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
@@ -15,6 +16,11 @@ import { useEffect, useState } from "react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import {
   authorLabel,
@@ -22,7 +28,6 @@ import {
   type CommentNode,
   countDescendants,
   flattenReplies,
-  replyIndentClass,
   threadContainsComment,
   validateCommentBody,
 } from "@/lib/comments";
@@ -38,6 +43,83 @@ interface CommentThreadProps {
   onCancelReply: () => void;
   onSubmitReply: (parentId: string, body: string) => Promise<void>;
   onDelete: (commentId: string) => Promise<void>;
+}
+
+interface CommentActionsMenuProps {
+  nodeId: string;
+  isReplying: boolean;
+  canDelete: boolean;
+  submitting: boolean;
+  deleting: boolean;
+  onStartReply: (commentId: string) => void;
+  onCancelReply: () => void;
+  onDelete: () => Promise<void>;
+}
+
+function CommentActionsMenu({
+  nodeId,
+  isReplying,
+  canDelete,
+  submitting,
+  deleting,
+  onStartReply,
+  onCancelReply,
+  onDelete,
+}: CommentActionsMenuProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="size-8 shrink-0 p-0"
+          aria-label="Opções do comentário"
+          disabled={submitting || deleting}
+        >
+          <MoreVertical className="size-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-44 p-1">
+        <button
+          type="button"
+          className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-muted"
+          onClick={() => {
+            setOpen(false);
+            if (isReplying) {
+              onCancelReply();
+            } else {
+              onStartReply(nodeId);
+            }
+          }}
+          disabled={submitting || deleting}
+        >
+          <MessageSquareReply className="size-4 shrink-0" />
+          {isReplying ? "Cancelar resposta" : "Responder"}
+        </button>
+        {canDelete && (
+          <button
+            type="button"
+            className="text-destructive hover:bg-destructive/10 flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors"
+            onClick={() => {
+              setOpen(false);
+              void onDelete();
+            }}
+            disabled={submitting || deleting}
+          >
+            {deleting ? (
+              <Loader2 className="size-4 shrink-0 animate-spin" />
+            ) : (
+              <Trash2 className="size-4 shrink-0" />
+            )}
+            Apagar
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 interface CommentCardProps {
@@ -137,37 +219,16 @@ function CommentCard({
                 })}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={() =>
-                  isReplying ? onCancelReply() : onStartReply(node.id)
-                }
-                disabled={submitting || deleting}
-              >
-                <MessageSquareReply className="size-3.5" />
-              </Button>
-              {canDelete && (
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  className="h-8 px-2 text-xs text-black"
-                  onClick={() => void handleDelete()}
-                  disabled={submitting || deleting}
-                  aria-label="Apagar comentário"
-                >
-                  {deleting ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <Trash2 className="size-3.5" />
-                  )}
-                </Button>
-              )}
-            </div>
+            <CommentActionsMenu
+              nodeId={node.id}
+              isReplying={isReplying}
+              canDelete={canDelete}
+              submitting={submitting}
+              deleting={deleting}
+              onStartReply={onStartReply}
+              onCancelReply={onCancelReply}
+              onDelete={handleDelete}
+            />
           </div>
 
           <p className="mt-2 wrap-break-word text-sm">{node.body}</p>
@@ -305,10 +366,10 @@ function RootCommentThread({
 
       {expanded && replyCount > 0 && (
         <ul className="flex w-full min-w-0 flex-col gap-2">
-          {flattenReplies(node).map(({ node: reply, parent, depth }) => (
+          {flattenReplies(node).map(({ node: reply, parent }) => (
             <li
               key={reply.id}
-              className={cn("box-border w-full min-w-0", replyIndentClass(depth))}
+              className={cn("box-border w-full min-w-0 pl-4")}
             >
               <CommentCard
                 node={reply}

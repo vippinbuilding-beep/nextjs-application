@@ -4,6 +4,7 @@ import { ExternalLink, FileText, Film, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { BackButton } from "@/components/navigation/back-button";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,9 @@ import {
 import { readImageDimensions, readVideoDimensions } from "@/lib/media-dimensions";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
 import { toast } from "@/lib/toast";
+import { navigateBack } from "@/lib/navigation/navigate-back";
 import { productRepository } from "@/services/repository-factory";
+import Link from "next/link";
 
 interface ProductFormProps {
   type: ProductType;
@@ -215,7 +218,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
           });
         }
         toast.saved();
-        router.back();
+        navigateBack(router, "/");
         return;
       }
 
@@ -267,7 +270,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
       }
 
       toast.published();
-      router.back();
+      navigateBack(router, "/");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Erro ao salvar o produto.";
@@ -307,14 +310,12 @@ export function ProductForm({ type, product }: ProductFormProps) {
             </span>
             {isEdit && product && user?.slug && (
               <Button type="button" variant="outline" size="sm" asChild>
-                <a
+                <Link
                   href={`/@${user.slug}/${product.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
                 >
                   <ExternalLink className="size-4" />
                   Ver página
-                </a>
+                </Link>
               </Button>
             )}
           </div>
@@ -433,15 +434,11 @@ export function ProductForm({ type, product }: ProductFormProps) {
           )}
 
           <div className="mt-2 flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
+            <BackButton
+              fallback="/"
               className="flex-1"
-              onClick={() => router.back()}
               disabled={submitting || deleting}
-            >
-              Voltar
-            </Button>
+            />
             <Button type="submit" className="flex-1" disabled={submitting || deleting}>
               {submitting
                 ? "Salvando..."

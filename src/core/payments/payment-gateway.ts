@@ -64,11 +64,25 @@ export interface PixTransfer {
   amountCents: number;
 }
 
+export interface RefundPixChargeInput {
+  chargeId: string;
+  reason?: string;
+}
+
+export interface PixRefund {
+  id: string;
+}
+
 export interface PaymentGateway {
   /** Opens a transparent PIX charge (QR code) for the buyer to pay. */
   createPixCharge(input: CreatePixChargeInput): Promise<PixCharge>;
   /** Fetches the current status of a PIX charge by its id. */
   getPixChargeStatus(chargeId: string): Promise<PixChargeStatus>;
+  /**
+   * Refunds a paid transparent PIX charge back to the original payer.
+   * Only full refunds are supported.
+   */
+  refundPixCharge(input: RefundPixChargeInput): Promise<PixRefund>;
   /** Sends a PIX transfer to a third-party key (the creator's repass). */
   sendPix(input: SendPixInput): Promise<PixTransfer>;
   /**

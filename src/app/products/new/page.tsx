@@ -1,12 +1,12 @@
 "use client";
 
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { ProductType } from "@/core/models/product";
 import { isCreator } from "@/lib/user-role";
@@ -42,11 +41,12 @@ export default function NewProductPage() {
   }
 
   return (
-    <LayoutBackground
-      element="main"
-      background="primary"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
+    <div className="flex flex-col gap-6">
+      <CreatorModuleHeader
+        title="Novo produto"
+        description="Escolha o tipo de conteúdo que quer publicar."
+      />
+
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Qual tipo de produto?</CardTitle>
@@ -75,17 +75,8 @@ export default function NewProductPage() {
               </button>
             );
           })}
-
-          <Button
-            type="button"
-            variant="outline"
-            className="mt-2 w-full"
-            onClick={() => router.push("/")}
-          >
-            <ArrowLeft className="size-4" /> Voltar
-          </Button>
         </CardContent>
       </Card>
-    </LayoutBackground>
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductCommentsCard } from "@/components/products/product-comments-card";
+import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { ProductLanding } from "@/components/products/product-landing";
 import { ProductLessonLayout } from "@/components/products/product-lesson-layout";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
@@ -136,24 +137,27 @@ export default async function ProductPage({ params }: ProductPageProps) {
     return (
       <LayoutBackground
         element="main"
-        className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
+        className="flex min-h-svh flex-col"
       >
-        <div className="flex w-full max-w-xl flex-col gap-6">
-          <ProductLanding
-            productId={row.id}
-            type={type}
-            title={row.title}
-            description={row.description}
-            priceCents={row.price_cents ?? 0}
-            thumbnailUrl={thumbnailUrl}
-            bannerAspectRatio={bannerAspectRatio}
-            creatorId={profile.id}
-            creatorSlug={profile.slug}
-            creatorHandle={profile.creator_name ?? profile.slug}
-            creatorAvatarPath={profile.avatar_path}
-            creatorAvatarUrl={profile.avatar_url}
-            isAuthenticated={Boolean(user)}
-          />
+        <PublicNavBar backFallback={`/@${profile.slug}`} sticky={false} />
+        <div className="flex flex-1 flex-col items-center justify-center p-4 py-10">
+          <div className="flex w-full max-w-xl flex-col gap-6">
+            <ProductLanding
+              productId={row.id}
+              type={type}
+              title={row.title}
+              description={row.description}
+              priceCents={row.price_cents ?? 0}
+              thumbnailUrl={thumbnailUrl}
+              bannerAspectRatio={bannerAspectRatio}
+              creatorId={profile.id}
+              creatorSlug={profile.slug}
+              creatorHandle={profile.creator_name ?? profile.slug}
+              creatorAvatarPath={profile.avatar_path}
+              creatorAvatarUrl={profile.avatar_url}
+              isAuthenticated={Boolean(user)}
+            />
+          </div>
         </div>
       </LayoutBackground>
     );
@@ -188,6 +192,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         watermark={`@${profile.slug}`}
         isOwner={isOwner}
         hasFile={hasFile}
+        viewerUserId={user!.id}
         profile={{
           id: profile.id,
           slug: profile.slug,
@@ -202,80 +207,85 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <LayoutBackground
       element="main"
-      className="p-4 py-10"
+      className="flex min-h-svh flex-col"
     >
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:items-start">
-          <Card>
-            {type === "document" && (
-              <ProductThumbnail
-                type={type}
-                thumbnailUrl={thumbnailUrl}
-                rounded="rounded-t-2xl rounded-b-none"
-                className="-mt-6 w-full border-0 border-b-2"
-                iconClassName="size-12"
-                sizes="(min-width: 672px) 672px, 100vw"
-                aspectRatio={bannerAspectRatio}
-              />
-            )}
-
-            <CardHeader>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1 space-y-2">
-                  <CardTitle>{row.title}</CardTitle>
-                  <CreatorProfileLink
-                    userId={profile.id}
-                    slug={profile.slug}
-                    handle={profile.creator_name ?? profile.slug}
-                    avatarPath={profile.avatar_path}
-                    avatarUrl={profile.avatar_url}
-                    variant="inline"
-                  />
-                </div>
-                {isOwner && (
-                  <Button asChild variant="default" size="sm" className="shrink-0">
-                    <Link href={`/products/${row.id}/edit`}>
-                      <Pencil className="size-4" /> Editar
-                    </Link>
-                  </Button>
-                )}
-              </div>
-              {row.description && type === "document" && (
-                <CardDescription className="text-base break-all text-muted-foreground">
-                  {row.description}
-                </CardDescription>
-              )}
-            </CardHeader>
-
-            <CardContent>
-              {!hasFile ? (
-                <p className="text-muted-foreground text-sm">
-                  O conteúdo deste produto ainda não está disponível.
-                </p>
-              ) : type === "document" ? (
-                <DocumentBlock
-                  downloadUrl={downloadUrl!}
-                  fileName={row.file_name}
-                  fileSize={row.file_size}
+      <PublicNavBar backFallback={`/@${profile.slug}`} sticky={false} />
+      <div className="flex-1 p-4 py-10">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:items-start">
+            <Card>
+              {type === "document" && (
+                <ProductThumbnail
+                  type={type}
+                  thumbnailUrl={thumbnailUrl}
+                  rounded="rounded-t-2xl rounded-b-none"
+                  className="-mt-6 w-full border-0 border-b-2"
+                  iconClassName="size-12"
+                  sizes="(min-width: 672px) 672px, 100vw"
+                  aspectRatio={bannerAspectRatio}
                 />
-              ) : null}
-            </CardContent>
-          </Card>
+              )}
 
-          <ProductCommentsCard
-            productId={row.id}
-            isOwner={isOwner}
-            className="hidden lg:flex"
-          />
+              <CardHeader>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <CardTitle>{row.title}</CardTitle>
+                    <CreatorProfileLink
+                      userId={profile.id}
+                      slug={profile.slug}
+                      handle={profile.creator_name ?? profile.slug}
+                      avatarPath={profile.avatar_path}
+                      avatarUrl={profile.avatar_url}
+                      variant="inline"
+                    />
+                  </div>
+                  {isOwner && (
+                    <Button asChild variant="default" size="sm" className="shrink-0">
+                      <Link href={`/products/${row.id}/edit`}>
+                        <Pencil className="size-4" /> Editar
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+                {row.description && type === "document" && (
+                  <CardDescription className="text-base break-all text-muted-foreground">
+                    {row.description}
+                  </CardDescription>
+                )}
+              </CardHeader>
+
+              <CardContent>
+                {!hasFile ? (
+                  <p className="text-muted-foreground text-sm">
+                    O conteúdo deste produto ainda não está disponível.
+                  </p>
+                ) : type === "document" ? (
+                  <DocumentBlock
+                    downloadUrl={downloadUrl!}
+                    fileName={row.file_name}
+                    fileSize={row.file_size}
+                  />
+                ) : null}
+              </CardContent>
+            </Card>
+
+            <ProductCommentsCard
+              productId={row.id}
+              isOwner={isOwner}
+              viewerUserId={user!.id}
+              className="hidden lg:flex"
+            />
+          </div>
+
+          {type === "document" && (
+            <ProductCommentsCard
+              productId={row.id}
+              isOwner={isOwner}
+              viewerUserId={user!.id}
+              className="lg:hidden"
+            />
+          )}
         </div>
-
-        {type === "document" && (
-          <ProductCommentsCard
-            productId={row.id}
-            isOwner={isOwner}
-            className="lg:hidden"
-          />
-        )}
       </div>
     </LayoutBackground>
   );
@@ -303,9 +313,9 @@ function DocumentBlock({
         )}
       </div>
       <Button asChild className="w-full max-w-xs">
-        <a href={downloadUrl} download={name}>
+        <Link href={downloadUrl} download={name}>
           <Download className="size-4" /> Baixar documento
-        </a>
+        </Link>
       </Button>
     </div>
   );

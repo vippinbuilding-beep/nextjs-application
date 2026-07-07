@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Home, Library, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Compass, Home, Library, Search } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -15,6 +15,7 @@ import { Loading } from "@/components/ui/loading";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import type { PublicCreator } from "@/core/repositories/creator-repository";
 import type { ProductWithCreator } from "@/core/repositories/product-repository";
+import { isConsumer, isCreator } from "@/lib/user-role";
 import { creatorRepository, productRepository } from "@/services/repository-factory";
 
 const PAGE_SIZE = 12;
@@ -151,16 +152,26 @@ export default function ExploreProductsPage() {
               <Button size="sm" variant="outline" asChild>
                 <Link href="/">
                   <Home className="size-4" />
-                  Início
+                  {user ? (isCreator(user) ? "Painel" : "Início") : "Início"}
                 </Link>
               </Button>
-              <Button size="sm" asChild>
-                <Link href="/my-products">
-                  <Library className="size-4" />
-                  Meus produtos
-                </Link>
-              </Button>
-              <NotificationBell />
+              {user && isConsumer(user) && (
+                <Button size="sm" asChild>
+                  <Link href="/my-products">
+                    <Library className="size-4" />
+                    Meus produtos
+                  </Link>
+                </Button>
+              )}
+              {!user && (
+                <Button size="sm" asChild>
+                  <Link href="/login?next=/explore">
+                    <Compass className="size-4" />
+                    Entrar
+                  </Link>
+                </Button>
+              )}
+              {user && <NotificationBell />}
             </div>
           </div>
 

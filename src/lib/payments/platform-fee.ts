@@ -42,11 +42,22 @@ export function formatCreatorFeePercent(): string {
   return `${CREATOR_FEE_PERCENT}%`;
 }
 
-/** Card copy for the dashboard withdraw balance. */
+/** Neutral copy for the finance module header (no fee breakdown). */
+export function creatorFinancePageDescription(): string {
+  return "Acompanhe seu saldo e transfira para a chave PIX cadastrada no perfil.";
+}
+
+/** Card copy for the dashboard withdraw balance (minimum only). */
 export function creatorWithdrawBalanceDescription(): string {
+  return "Valor líquido disponível para transferência.";
+}
+
+/** Collapsible fee breakdown shown discreetly on the finance screen. */
+export function creatorWithdrawFeeDetails(): string {
   return (
-    `Saldo após ${formatPlatformFeePercent()} + ${PIX_FEE_LABEL} por venda, ` +
-    `menos ${PIX_FEE_LABEL} de taxa PIX no saque.`
+    `Por venda ou pergunta paga, a plataforma retém ${formatPlatformFeePercent()} ` +
+    `mais ${PIX_FEE_LABEL} (taxa PIX). No saque, é descontado mais ${PIX_FEE_LABEL} ` +
+    `de taxa PIX. O valor exibido acima já reflete esses descontos acumulados.`
   );
 }
 

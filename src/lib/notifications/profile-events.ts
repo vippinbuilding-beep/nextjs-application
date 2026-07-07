@@ -1,42 +1,9 @@
 import "server-only";
 
 import type { UserRole } from "@/core/models/user";
-import {
-  notifyProfileOnboardingComplete,
-  notifyProfileUpdated,
-} from "@/lib/notifications/dispatch";
+import { notifyProfileOnboardingComplete } from "@/lib/notifications/dispatch";
 import type { ProfileWriteInput } from "@/lib/profile/profile-write-server";
 import type { ServerProfileRow } from "@/lib/profile/server-profile";
-
-const CONSUMER_PROFILE_FIELDS: (keyof ProfileWriteInput)[] = [
-  "consumerName",
-  "avatarPath",
-  "avatarMime",
-  "avatarUrl",
-];
-
-const CREATOR_PROFILE_FIELDS: (keyof ProfileWriteInput)[] = [
-  "name",
-  "creatorName",
-  "slug",
-  "birthDate",
-  "pixKey",
-  "pixKeyType",
-  "socials",
-  "avatarPath",
-  "avatarMime",
-  "avatarUrl",
-  "askMeEnabled",
-  "askMePriceCents",
-  "bio",
-];
-
-function hasFieldChange(
-  sanitized: ProfileWriteInput,
-  fields: (keyof ProfileWriteInput)[]
-): boolean {
-  return fields.some((field) => sanitized[field] !== undefined);
-}
 
 function resolveOnboardingHref(
   role: UserRole,
@@ -60,21 +27,11 @@ export async function dispatchProfileWriteNotifications(
   const completingOnboarding =
     sanitized.onboardingCompleted === true && !wasOnboarded;
 
-  if (completingOnboarding) {
-    await notifyProfileOnboardingComplete({
-      userId,
-      role,
-      href: resolveOnboardingHref(role, existing, sanitized),
-    });
-    return;
-  }
+  if (!completingOnboarding) return;
 
-  if (!wasOnboarded) return;
-
-  const fields =
-    role === "consumer" ? CONSUMER_PROFILE_FIELDS : CREATOR_PROFILE_FIELDS;
-
-  if (hasFieldChange(sanitized, fields)) {
-    await notifyProfileUpdated({ userId });
-  }
+  await notifyProfileOnboardingComplete({
+    userId,
+    role,
+    href: resolveOnboardingHref(role, existing, sanitized),
+  });
 }

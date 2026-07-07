@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AskMeProfileButton } from "@/components/ask-me/ask-me-dialog";
+import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { CreatorOwnerToolbar } from "@/components/profile/creator-owner-toolbar";
 import { CreatorPageTabs } from "@/components/profile/creator-page-tabs";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -23,6 +24,7 @@ import { resolveAskMePriceCents } from "@/lib/ask-me";
 import { isCreatorProfileTab } from "@/lib/creator-profile-tabs";
 import { createCreatorMetadata } from "@/lib/metadata";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 interface CreatorPageProps {
   params: Promise<{ creator: string }>;
@@ -147,82 +149,83 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
   return (
     <LayoutBackground
       element="main"
-      className="flex min-h-svh flex-col items-center p-4 py-6 sm:py-8"
+      className="flex min-h-svh flex-col"
     >
-      <div className="w-full max-w-md sm:max-w-3xl">
-        {isOwner && <CreatorOwnerToolbar />}
+      <PublicNavBar backFallback="/explore" sticky={false} />
+      <div className="flex flex-1 flex-col items-center p-4 py-6 sm:py-8">
+        <div className="w-full max-w-md sm:max-w-3xl">
+          {isOwner && <CreatorOwnerToolbar />}
 
-        <Card className="w-full">
-          <CardContent className="flex flex-col gap-6">
-            <header className="flex flex-col items-center gap-3 text-center">
-              <UserAvatar
-                userId={profile.id}
-                name={handle}
-                avatarPath={profile.avatar_path}
-                avatarUrl={profile.avatar_url}
-                size="xl"
+          <Card className="w-full">
+            <CardContent className="flex flex-col gap-6">
+              <header className="flex flex-col items-center gap-3 text-center">
+                <UserAvatar
+                  userId={profile.id}
+                  name={handle}
+                  avatarPath={profile.avatar_path}
+                  avatarUrl={profile.avatar_url}
+                  size="xl"
+                />
+
+                <div className="flex flex-col items-center gap-2">
+                  <h1 className="text-3xl font-bold tracking-tight">@{handle}</h1>
+                  {bio && (
+                    <p className="text-muted-foreground max-w-prose text-sm leading-relaxed break-all">
+                      {bio}
+                    </p>
+                  )}
+                  {askMeEnabled && (
+                    <AskMeProfileButton
+                      creatorId={profile.id}
+                      creatorName={handle}
+                      priceCents={askMePriceCents}
+                      isAuthenticated={Boolean(authUser)}
+                      isOwner={isOwner}
+                    />
+                  )}
+                </div>
+
+                {socials.length > 0 && (
+                  <ul className="flex flex-wrap items-center justify-center gap-2">
+                    {socials.map(([key, url]) => {
+                      const Icon = SOCIAL_ICONS[key] ?? Globe;
+                      return (
+                        <li key={key}>
+                          <Link
+                            href={url}
+                            aria-label={SOCIAL_LABELS[key] ?? key}
+                            className="flex size-10 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
+                          >
+                            <Icon className="size-5" />
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </header>
+
+              <CreatorPageTabs
+                products={products.map((product) => ({
+                  id: product.id,
+                  title: product.title,
+                  description: product.description,
+                  thumbnailPath: product.thumbnail_path,
+                  thumbnailWidth: product.thumbnail_width,
+                  thumbnailHeight: product.thumbnail_height,
+                  mediaWidth: product.media_width,
+                  mediaHeight: product.media_height,
+                  slug: product.slug,
+                  type: product.type as ProductType,
+                }))}
+                links={links}
+                mode="public"
+                profile={profile}
+                defaultTab={preferredDefaultTab}
               />
-
-              <div className="flex flex-col items-center gap-2">
-                <h1 className="text-3xl font-bold tracking-tight">@{handle}</h1>
-                {bio && (
-                  <p className="text-muted-foreground max-w-prose text-sm leading-relaxed break-all">
-                    {bio}
-                  </p>
-                )}
-                {askMeEnabled && (
-                  <AskMeProfileButton
-                    creatorId={profile.id}
-                    creatorName={handle}
-                    priceCents={askMePriceCents}
-                    isAuthenticated={Boolean(authUser)}
-                    isOwner={isOwner}
-                  />
-                )}
-              </div>
-
-              {socials.length > 0 && (
-                <ul className="flex flex-wrap items-center justify-center gap-2">
-                  {socials.map(([key, url]) => {
-                    const Icon = SOCIAL_ICONS[key] ?? Globe;
-                    return (
-                      <li key={key}>
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={SOCIAL_LABELS[key] ?? key}
-                          className="flex size-10 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
-                        >
-                          <Icon className="size-5" />
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </header>
-
-            <CreatorPageTabs
-              products={products.map((product) => ({
-                id: product.id,
-                title: product.title,
-                description: product.description,
-                thumbnailPath: product.thumbnail_path,
-                thumbnailWidth: product.thumbnail_width,
-                thumbnailHeight: product.thumbnail_height,
-                mediaWidth: product.media_width,
-                mediaHeight: product.media_height,
-                slug: product.slug,
-                type: product.type as ProductType,
-              }))}
-              links={links}
-              mode="public"
-              profile={profile}
-              defaultTab={preferredDefaultTab}
-            />
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </LayoutBackground>
   );

@@ -14,9 +14,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CountBadge } from "@/components/ui/count-badge";
+import { NavNotificationSkeleton } from "@/components/navigation/nav-user-actions-skeleton";
 import type { AppNotification } from "@/core/models/notification";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { supabase } from "@/lib/supabase/client";
+import { subscribeToNotificationInserts } from "@/lib/notifications/realtime";
 import { cn } from "@/lib/utils";
 import { notificationRepository } from "@/services/repository-factory";
 import { toast, TOAST_MESSAGES } from "@/lib/toast";
@@ -34,53 +35,6 @@ function formatRelativeTime(date: Date): string {
 
 interface NotificationBellProps {
   className?: string;
-}
-
-const notificationRealtimeState = new Map<
-  string,
-  {
-    channel: ReturnType<typeof supabase.channel>;
-    listeners: Set<() => void>;
-  }
->();
-
-function subscribeToNotificationInserts(
-  userId: string,
-  listener: () => void
-): () => void {
-  let state = notificationRealtimeState.get(userId);
-
-  if (!state) {
-    const listeners = new Set<() => void>();
-    const channel = supabase
-      .channel(`notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          listeners.forEach((fn) => fn());
-        }
-      )
-      .subscribe();
-
-    state = { channel, listeners };
-    notificationRealtimeState.set(userId, state);
-  }
-
-  state.listeners.add(listener);
-
-  return () => {
-    state!.listeners.delete(listener);
-    if (state!.listeners.size === 0) {
-      void supabase.removeChannel(state!.channel);
-      notificationRealtimeState.delete(userId);
-    }
-  };
 }
 
 interface NotificationListProps {
@@ -204,7 +158,8 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
   const [markingAllRead, setMarkingAllRead] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -221,6 +176,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
       // ignore transient errors
     } finally {
       setLoading(false);
+      setReady(true);
     }
   }, [user?.id]);
 
@@ -241,6 +197,12 @@ export function NotificationBell({ className }: NotificationBellProps) {
 
   if (!user?.onboardingCompleted) {
     return null;
+  }
+
+  if (!ready && loading) {
+    return (
+      <NavNotificationSkeleton aria-label="Carregando notificações" />
+    );
   }
 
   async function handleOpenChange(next: boolean) {

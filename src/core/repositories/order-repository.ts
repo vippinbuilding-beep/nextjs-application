@@ -42,4 +42,6 @@ export interface OrderRepository {
   listPendingCreatorRepasses(limit: number): Promise<Order[]>;
   /** Paid orders awaiting repass for a single creator (manual withdraw). */
   listPendingCreatorRepassesByCreator(creatorId: string): Promise<Order[]>;
+  /** Paid orders whose creator repass previously failed. */
+  listFailedCreatorRepasses(limit: number, minAgeMs: number): Promise<Order[]>;
 }

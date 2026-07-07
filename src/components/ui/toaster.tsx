@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2, X, XCircle } from "lucide-react";
+import { Bell, CheckCircle2, X, XCircle } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import {
@@ -19,7 +20,7 @@ export function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex flex-col items-center gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+      className="pointer-events-none fixed bottom-0 right-0 z-999 flex flex-col items-start gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]"
       aria-live="polite"
       aria-relevant="additions"
     >
@@ -31,6 +32,10 @@ export function Toaster() {
 }
 
 function ToastCard({ item }: { item: ToastItem }) {
+  if (item.variant === "notification") {
+    return <NotificationToastCard item={item} />;
+  }
+
   const isSuccess = item.variant === "success";
 
   return (
@@ -65,6 +70,58 @@ function ToastCard({ item }: { item: ToastItem }) {
       >
         <X className="size-4" aria-hidden />
       </button>
+    </div>
+  );
+}
+
+function NotificationToastCard({ item }: { item: ToastItem }) {
+  const content = (
+    <>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
+        <Bell className="size-4" aria-hidden />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-bold leading-snug">{item.title}</p>
+        {item.body && (
+          <p className="text-muted-foreground mt-0.5 text-xs leading-snug">
+            {item.body}
+          </p>
+        )}
+      </div>
+
+      <button
+        type="button"
+        className="shrink-0 rounded-lg border-2 border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
+        onClick={() => dismissToast(item.id)}
+        aria-label="Fechar notificação"
+      >
+        <X className="size-4" aria-hidden />
+      </button>
+    </>
+  );
+
+  const className = cn(
+    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-lg",
+    "animate-in fade-in slide-in-from-bottom-4 duration-200"
+  );
+
+  if (item.href) {
+    return (
+      <Link
+        href={item.href}
+        role="status"
+        className={cn(className, "transition-colors hover:bg-muted/40")}
+        onClick={() => dismissToast(item.id)}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div role="status" className={className}>
+      {content}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
 
 import type { User } from "@/core/models/user";
 import type { GoogleSignInOptions } from "@/core/repositories/auth-repository";
+import { markOAuthDeparture, clearNavigationHistory } from "@/lib/navigation/in-app-navigation";
 import { authRepository, userRepository } from "@/services/repository-factory";
 
 interface AuthContextValue {
@@ -41,10 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = useCallback(async (options?: GoogleSignInOptions): Promise<void> => {
+    markOAuthDeparture();
     await authRepository.signInWithGoogle(options);
   }, []);
 
   const signOut = useCallback(async () => {
+    clearNavigationHistory();
     await authRepository.signOut();
   }, []);
 

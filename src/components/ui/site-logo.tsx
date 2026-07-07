@@ -21,7 +21,7 @@ export function SiteLogo({
   priority = false,
 }: SiteLogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
+    <span className={cn("inline-flex justify-center items-center gap-2 w-full", className)}>
       <Image
         src={SITE_LOGO_PATH}
         alt={SITE_NAME}

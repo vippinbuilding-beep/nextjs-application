@@ -3,13 +3,13 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { ProductForm } from "@/components/products/product-form";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import { isCreator } from "@/lib/user-role";
-import { isProductType } from "@/lib/products";
+import { isProductType, PRODUCT_TYPES } from "@/lib/products";
 
 export default function NewProductDetailsPage() {
   const router = useRouter();
@@ -38,8 +38,12 @@ export default function NewProductDetailsPage() {
   }
 
   return (
-    <LayoutBackground element="main" background="primary" className="flex items-center justify-center p-4">
+    <div className="flex flex-col gap-6">
+      <CreatorModuleHeader
+        title="Novo produto"
+        description={PRODUCT_TYPES[type].description}
+      />
       <ProductForm type={type} />
-    </LayoutBackground>
+    </div>
   );
 }

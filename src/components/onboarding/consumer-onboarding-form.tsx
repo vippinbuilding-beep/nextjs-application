@@ -22,7 +22,7 @@ import { resolveConsumerDisplayName } from "@/lib/profile/display-name";
 import { userRepository } from "@/services/repository-factory";
 import { toast } from "@/lib/toast";
 
-export function ConsumerOnboardingForm() {
+export function ConsumerOnboardingForm({ returnTo = "/" }: { returnTo?: string }) {
   const router = useRouter();
   const { user, refreshUser, signOut } = useAuth();
 
@@ -92,7 +92,7 @@ export function ConsumerOnboardingForm() {
       await persistAvatarSelection(user.id, avatarSelection);
       await refreshUser();
       toast.saved();
-      router.push("/");
+      router.push(returnTo);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao salvar dados";
       setError(message);
@@ -159,7 +159,7 @@ export function ConsumerOnboardingForm() {
             onClick={handleSignOut}
             disabled={submitting}
           >
-            Voltar
+            Sair
           </Button>
           <Button type="submit" className="flex-1" disabled={submitting}>
             {submitting ? "Salvando..." : "Começar a explorar"}

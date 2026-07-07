@@ -1,24 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { LayoutDashboard } from "lucide-react";
-
 import { ProfileLinksEditor } from "@/components/profile/profile-links-editor";
+import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { LayoutBackground } from "@/components/ui/layout-background";
 import { ScreenLoading } from "@/components/ui/screen-loading";
 import { isConsumer } from "@/lib/user-role";
 
@@ -47,34 +39,17 @@ export default function ProfileLinksPage() {
   }
 
   return (
-    <LayoutBackground
-      element="main"
-      background="primary"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle>Meus links</CardTitle>
-          <CardDescription>
-            Crie links personalizados com título e imagem como um Linktree
-            para aparecer na aba Links do seu perfil público.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <ProfileLinksEditor creatorId={user.id} />
+    <div className="flex flex-col gap-6">
+      <CreatorModuleHeader
+        title="Meus links"
+        description="Crie links para aparecer na aba Links do seu perfil. Ao salvar, o ícone do perfil é baixado e guardado no Vippin."
+      />
 
-          <div className="mt-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => router.back()}
-            >
-              Voltar
-            </Button>
-          </div>
+      <Card>
+        <CardContent className="pt-6">
+          <ProfileLinksEditor creatorId={user.id} />
         </CardContent>
       </Card>
-    </LayoutBackground>
+    </div>
   );
 }

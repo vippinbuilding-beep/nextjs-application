@@ -124,6 +124,24 @@ export class SupabaseOrderRepository implements OrderRepository {
     if (error) throw new Error(error.message);
     return ((data as OrderRow[]) ?? []).map(toOrder);
   }
+
+  async listFailedCreatorRepasses(
+    limit: number,
+    minAgeMs: number
+  ): Promise<Order[]> {
+    const cutoff = new Date(Date.now() - minAgeMs).toISOString();
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("*")
+      .eq("status", "paid")
+      .eq("transfer_status", "failed")
+      .lt("updated_at", cutoff)
+      .order("updated_at", { ascending: true })
+      .limit(limit);
+
+    if (error) throw new Error(error.message);
+    return ((data as OrderRow[]) ?? []).map(toOrder);
+  }
 }
 
 function toRow(patch: UpdateOrderInput): Partial<OrderRow> {

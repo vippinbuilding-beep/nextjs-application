@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { LoginRolePicker } from "@/components/auth/login-role-picker";
+import { BackButton } from "@/components/navigation/back-button";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,12 @@ import {
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import { Loading } from "@/components/ui/loading";
 import { LayoutBackground } from "@/components/ui/layout-background";
+import {
+  persistLoginReturnPath,
+  readReferrerReturnPath,
+  resolveLoginReturnPath,
+  safeReturnPath,
+} from "@/lib/auth/login-return";
 import { isAuthRole, buildLoginUrl } from "@/lib/auth/login-url";
 import { LOGIN_ROLE_COPY } from "@/lib/auth/login-role-copy";
 
@@ -28,9 +35,25 @@ function LoginCard() {
   const role = isAuthRole(roleParam) ? roleParam : null;
   const copy = role ? LOGIN_ROLE_COPY[role] : null;
 
-  // Where to send the user back to after login (e.g. a product page they were
-  // trying to buy). Only in-app paths are honored (see /auth/callback).
   const nextParam = searchParams.get("next");
+  const [returnPath, setReturnPath] = useState(() =>
+    resolveLoginReturnPath(nextParam)
+  );
+
+  useEffect(() => {
+    const explicit = safeReturnPath(nextParam);
+    if (explicit) {
+      persistLoginReturnPath(explicit);
+      setReturnPath(explicit);
+      return;
+    }
+
+    const fromReferrer = readReferrerReturnPath();
+    if (fromReferrer) {
+      persistLoginReturnPath(fromReferrer);
+      setReturnPath(fromReferrer);
+    }
+  }, [nextParam]);
 
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,11 +62,11 @@ function LoginCard() {
     setError(null);
     setLoading(true);
     try {
+      persistLoginReturnPath(returnPath);
       await signInWithGoogle({
-        next: nextParam ?? undefined,
+        next: returnPath,
         role: role ?? undefined,
       });
-      // Browser redirects to Google — code below won't execute on success.
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Erro ao fazer login com Google"
@@ -64,7 +87,10 @@ function LoginCard() {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {!role ? (
-          <LoginRolePicker next={nextParam} />
+          <>
+            <LoginRolePicker next={returnPath} />
+            <BackButton href="/" variant="ghost" className="w-full" label="Voltar ao início" />
+          </>
         ) : (
           <>
             {error && (
@@ -79,17 +105,18 @@ function LoginCard() {
               variant="outline"
               size="lg"
               className="w-full gap-2"
-              onClick={handleGoogleSignIn}
+              onClick={() => void handleGoogleSignIn()}
               disabled={loading}
             >
               {loading ? <Loading /> : <GoogleIcon />}
               {loading ? "Redirecionando..." : "Entrar com Google"}
             </Button>
             <Button asChild variant="ghost" size="sm" className="w-full">
-              <Link href={buildLoginUrl({ next: nextParam })}>
+              <Link href={buildLoginUrl({ next: returnPath })}>
                 Escolher outro perfil
               </Link>
             </Button>
+            <BackButton href="/" variant="ghost" className="w-full" label="Voltar ao início" />
           </>
         )}
       </CardContent>

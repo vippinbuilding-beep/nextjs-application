@@ -42,7 +42,7 @@ export function getProfileAvatarPreviewUrl(): string {
   return "/api/profile/avatar/preview";
 }
 
-/** Public route for a profile link cover image. */
+/** Public route for a stored profile link preview image. */
 export function getProfileLinkImageUrl(linkId: string): string {
   return `/api/profile/links/${linkId}/image`;
 }

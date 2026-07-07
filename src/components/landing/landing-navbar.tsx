@@ -1,10 +1,9 @@
 "use client";
 
-import { Rocket } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { AuthEntryActions } from "@/components/navigation/auth-entry-actions";
 import { SiteLogo } from "@/components/ui/site-logo";
 import { cn } from "@/lib/utils";
 
@@ -32,17 +31,7 @@ export function LandingNavbar() {
           <SiteLogo size={36} priority nameClassName="text-xl" />
         </Link>
 
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-            <Link href="/login?role=consumer">Entrar como usuário</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/login?role=creator">
-              <Rocket className="size-4" />
-              Sou criador
-            </Link>
-          </Button>
-        </div>
+        <AuthEntryActions />
       </nav>
     </header>
   );

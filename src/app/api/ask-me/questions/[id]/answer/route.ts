@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { SupabaseAskMeQuestionRepository } from "@/infrastructure/supabase/supabase-ask-me-repository";
-import { validateAskMeAnswerText } from "@/lib/ask-me";
+import {
+  validateAskMeAnswerText,
+  canCreatorRespondToAskMe,
+  getAskMeResponseBlockedMessage,
+} from "@/lib/ask-me";
 import { notifyAskMeAnswered } from "@/lib/notifications/dispatch";
 import {
   processExpiredAskMeQuestions,
@@ -73,9 +77,14 @@ export async function POST(
   if (question.creatorId !== user.id) {
     return Response.json({ error: "Acesso negado." }, { status: 403 });
   }
-  if (question.status !== "awaiting_response") {
+  if (!canCreatorRespondToAskMe(question.status, question.responseDeadlineAt)) {
     return Response.json(
-      { error: "Esta pergunta não está mais aguardando resposta." },
+      {
+        error: getAskMeResponseBlockedMessage(
+          question.status,
+          question.responseDeadlineAt
+        ),
+      },
       { status: 400 }
     );
   }
@@ -140,9 +149,14 @@ export async function DELETE(
   if (question.creatorId !== user.id) {
     return Response.json({ error: "Acesso negado." }, { status: 403 });
   }
-  if (question.status !== "awaiting_response") {
+  if (!canCreatorRespondToAskMe(question.status, question.responseDeadlineAt)) {
     return Response.json(
-      { error: "Esta pergunta não pode mais ser recusada." },
+      {
+        error: getAskMeResponseBlockedMessage(
+          question.status,
+          question.responseDeadlineAt
+        ),
+      },
       { status: 400 }
     );
   }

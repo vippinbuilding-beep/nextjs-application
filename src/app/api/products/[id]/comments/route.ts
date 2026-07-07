@@ -1,7 +1,13 @@
 import type { NextRequest } from "next/server";
 
+import type { ProductComment } from "@/core/models/product-comment";
 import { COMMENT_BODY_MAX } from "@/lib/comments";
 import { dispatchCommentNotifications } from "@/lib/notifications/comment-events";
+import {
+  assertProductCommentAccess,
+  getProductCommentById,
+  listProductCommentsForProduct,
+} from "@/lib/products/product-comments-server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -24,6 +30,34 @@ function mapWriteError(error: { code?: string; message: string }): string {
     return "A resposta precisa ser no mesmo produto.";
   }
   return error.message;
+}
+
+function serializeComment(comment: ProductComment) {
+  return {
+    ...comment,
+    createdAt: comment.createdAt.toISOString(),
+  };
+}
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: productId } = await params;
+
+  const access = await assertProductCommentAccess(productId);
+  if (!access.ok) {
+    return Response.json({ error: access.error }, { status: access.status });
+  }
+
+  try {
+    const comments = await listProductCommentsForProduct(productId);
+    return Response.json({ comments: comments.map(serializeComment) });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Não foi possível carregar os comentários.";
+    return Response.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(
@@ -78,5 +112,10 @@ export async function POST(
     parentId: payload.parentId,
   });
 
-  return Response.json({ ok: true, id: data.id });
+  const comment = await getProductCommentById(data.id as string);
+  if (!comment) {
+    return Response.json({ ok: true, id: data.id });
+  }
+
+  return Response.json({ ok: true, comment: serializeComment(comment) });
 }

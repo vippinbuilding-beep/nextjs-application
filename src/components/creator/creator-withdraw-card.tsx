@@ -13,7 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatBRL } from "@/lib/money";
-import { creatorWithdrawBalanceDescription } from "@/lib/payments/platform-fee";
+import {
+  creatorWithdrawBalanceDescription,
+  creatorWithdrawFeeDetails,
+} from "@/lib/payments/platform-fee";
 import { toast } from "@/lib/toast";
 
 interface PayoutBalance {
@@ -90,7 +93,7 @@ export function CreatorWithdrawCard() {
           Saldo para saque
         </CardTitle>
         <CardDescription>
-          {creatorWithdrawBalanceDescription()} Mínimo de {minWithdrawalLabel}.
+          {creatorWithdrawBalanceDescription()} Mínimo de {minWithdrawalLabel} para sacar.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
@@ -157,6 +160,13 @@ export function CreatorWithdrawCard() {
             </>
           )}
         </Button>
+
+        <details className="text-muted-foreground group text-xs leading-relaxed">
+          <summary className="cursor-pointer font-medium underline-offset-2 hover:underline">
+            Como o saldo é calculado
+          </summary>
+          <p className="mt-2">{creatorWithdrawFeeDetails()}</p>
+        </details>
       </CardContent>
     </Card>
   );

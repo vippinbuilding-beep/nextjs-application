@@ -1,5 +1,6 @@
 import { Lock } from "lucide-react";
 
+import { FreeProductClaim } from "@/components/products/free-product-claim";
 import { PixCheckout } from "@/components/products/pix-checkout";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
@@ -101,12 +102,10 @@ export function ProductLanding({
         </div>
 
         {isFree ? (
-          <div className="flex flex-col items-center gap-1 rounded-xl border-2 border-dashed border-border bg-muted px-6 py-8 text-center">
-            <p className="font-bold">Conteúdo gratuito</p>
-            <p className="text-muted-foreground text-sm">
-              Fale com @{creatorHandle} para garantir seu acesso.
-            </p>
-          </div>
+          <FreeProductClaim
+            productId={productId}
+            isAuthenticated={isAuthenticated}
+          />
         ) : (
           <PixCheckout
             productId={productId}
