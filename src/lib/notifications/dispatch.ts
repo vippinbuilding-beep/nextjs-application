@@ -2,6 +2,7 @@ import "server-only";
 
 import type { NotificationType } from "@/core/models/notification";
 import { formatBRL } from "@/lib/money";
+import { ABACATEPAY_PIX_SEND_FEE_CENTS } from "@/lib/payments/platform-fee";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export interface CreateNotificationInput {
@@ -356,8 +357,10 @@ export async function notifyCreatorWithdrawSent(input: {
     userId: input.creatorId,
     type: "pix_transfer_sent",
     title: "Saque enviado",
-    body: `${formatBRL(input.netCents)} transferidos para sua chave PIX (${context}).`,
-    href: "/",
+    body:
+      `${formatBRL(input.netCents)} transferidos para sua chave PIX (${context}). ` +
+      `Taxa de transferência: ${formatBRL(ABACATEPAY_PIX_SEND_FEE_CENTS)}.`,
+    href: "/painel/financeiro",
     metadata: {
       kind: "manual_withdraw",
       netCents: input.netCents,
@@ -379,7 +382,7 @@ export async function notifyCreatorWithdrawFailed(input: {
     type: "pix_transfer_failed",
     title: "Saque falhou",
     body: `Não foi possível transferir ${formatBRL(input.netCents)}: ${input.error}`,
-    href: "/profile/edit",
+    href: "/painel/financeiro",
     metadata: {
       kind: "manual_withdraw",
       netCents: input.netCents,

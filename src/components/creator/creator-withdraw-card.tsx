@@ -18,7 +18,6 @@ import {
   creatorWithdrawBalanceDescription,
   creatorWithdrawFeeDetails,
 } from "@/lib/payments/platform-fee";
-import { toast } from "@/lib/toast";
 
 interface PayoutBalance {
   accruedCents: number;
@@ -69,17 +68,11 @@ export function CreatorWithdrawCard() {
       if (!res.ok) {
         throw new Error(body.error ?? "Não foi possível sacar.");
       }
-      toast.success(
-        body.netCents
-          ? `Saque de ${formatBRL(body.netCents)} enviado para sua chave PIX.`
-          : "Saque enviado para sua chave PIX."
-      );
       await loadBalance();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Não foi possível sacar.";
       setError(message);
-      toast.error(message);
     } finally {
       setWithdrawing(false);
     }
