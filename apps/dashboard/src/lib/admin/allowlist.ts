@@ -60,6 +60,35 @@ export async function isAdminEmail(email: string | null | undefined): Promise<bo
 }
 
 /**
+ * Adiciona um e-mail à allowlist `admin_users`. Usado pelo botão "Tornar
+ * admin" no módulo de Usuários. `createdBy` registra qual admin fez a ação
+ * (auditoria simples).
+ */
+export async function addAdminEmail(email: string, createdBy?: string | null): Promise<void> {
+  const url = new URL(`${supabaseUrl}/rest/v1/admin_users`);
+  // A tabela só tem unicidade em `email` (a PK é `id`), então precisamos
+  // apontar explicitamente o alvo do ON CONFLICT para o ignore-duplicates
+  // funcionar em vez de tentar (e falhar) contra a PK.
+  url.searchParams.set("on_conflict", "email");
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      ...restHeaders(),
+      "Content-Type": "application/json",
+      Prefer: "return=minimal,resolution=ignore-duplicates",
+    },
+    body: JSON.stringify({ email, created_by: createdBy ?? null }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Falha ao adicionar admin: ${res.status} ${text}`);
+  }
+}
+
+/**
  * Marca o `user_id` do admin no primeiro login (auditoria + vínculo com
  * auth.users). Best-effort: falhas aqui não bloqueiam o login.
  */

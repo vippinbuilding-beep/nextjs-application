@@ -16,7 +16,7 @@ import { ASK_ME_LIMITS } from "@vippin/core/domain/ask-me";
 
 const TABLE = "ask_me_questions";
 
-type AskMeRow = {
+export type AskMeRow = {
   id: string;
   creator_id: string;
   asker_id: string;
@@ -306,7 +306,7 @@ function toRow(patch: UpdateAskMeQuestionInput): Partial<AskMeRow> {
   return row;
 }
 
-function toQuestion(row: AskMeRow): AskMeQuestion {
+export function toQuestion(row: AskMeRow): AskMeQuestion {
   return {
     id: row.id,
     creatorId: row.creator_id,

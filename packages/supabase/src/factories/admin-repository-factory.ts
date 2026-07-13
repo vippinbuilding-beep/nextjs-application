@@ -3,12 +3,14 @@ import "server-only";
 import type { AskMeQuestionRepository } from "@vippin/core/repositories/ask-me-repository";
 import type { OrderRepository } from "@vippin/core/repositories/order-repository";
 import type { AdminAnalyticsRepository } from "@vippin/core/repositories/admin-analytics-repository";
+import type { AdminAskMeRepository } from "@vippin/core/repositories/admin-ask-me-repository";
 import type { AdminUserRepository } from "@vippin/core/repositories/admin-user-repository";
 
 import { createSupabaseAdminClient } from "../client/admin";
 import { SupabaseAskMeQuestionRepository } from "../infrastructure/supabase/supabase-ask-me-repository";
 import { SupabaseOrderRepository } from "../infrastructure/supabase/supabase-order-repository";
 import { SupabaseAdminAnalyticsRepository } from "../infrastructure/supabase/admin/supabase-admin-analytics-repository";
+import { SupabaseAdminAskMeRepository } from "../infrastructure/supabase/admin/supabase-admin-ask-me-repository";
 import { SupabaseAdminUserRepository } from "../infrastructure/supabase/admin/supabase-admin-user-repository";
 
 /**
@@ -51,4 +53,8 @@ export const adminOrderRepository: OrderRepository = lazyRepository(
 
 export const adminAskMeQuestionRepository: AskMeQuestionRepository = lazyRepository(
   () => new SupabaseAskMeQuestionRepository(createSupabaseAdminClient())
+);
+
+export const adminAskMeRepository: AdminAskMeRepository = lazyRepository(
+  () => new SupabaseAdminAskMeRepository(createSupabaseAdminClient())
 );
