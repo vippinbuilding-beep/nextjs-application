@@ -140,75 +140,14 @@ export default async function AskMePage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Repasses pendentes ({pendingRepasses.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable<AdminAskMeListItem>
-            rows={pendingRepasses}
-            getRowKey={(q) => q.id}
-            emptyMessage="Nenhum repasse pendente."
-            columns={[
-              ...nameColumns,
-              {
-                key: "amount",
-                header: "Repasse",
-                align: "right",
-                cell: (q) => formatBRL(q.creatorAmountCents),
-              },
-            ]}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Reembolsos com falha ({failedRefunds.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable<AdminAskMeListItem>
-            rows={failedRefunds}
-            getRowKey={(q) => q.id}
-            emptyMessage="Nenhum reembolso com falha."
-            columns={[
-              {
-                key: "question",
-                header: "Pergunta",
-                cell: (q) => questionCell(q.questionText),
-              },
-              {
-                key: "asker",
-                header: "Perguntou",
-                cell: (q) => q.askerName ?? "—",
-              },
-              {
-                key: "amount",
-                header: "Valor",
-                align: "right",
-                cell: (q) => formatBRL(q.amountCents),
-              },
-              {
-                key: "error",
-                header: "Erro",
-                cell: (q) => (
-                  <span className="text-destructive">{q.transferError ?? "—"}</span>
-                ),
-              },
-            ]}
-          />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle>Todas as perguntas ({list.total.toLocaleString("pt-BR")})</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
             <Link
               href={buildHref(undefined)}
-              className={`rounded-xl border-2 border-border px-3 py-1.5 text-sm font-semibold ${
-                !status ? "bg-primary text-primary-foreground shadow-cartoon-sm" : "bg-card hover:bg-muted"
-              }`}
+              className={`rounded-xl border-2 border-border px-3 py-1.5 text-sm font-semibold ${!status ? "bg-primary text-primary-foreground shadow-cartoon-sm" : "bg-card hover:bg-muted"
+                }`}
             >
               Todas
             </Link>
@@ -216,9 +155,8 @@ export default async function AskMePage({
               <Link
                 key={opt}
                 href={buildHref(opt)}
-                className={`rounded-xl border-2 border-border px-3 py-1.5 text-sm font-semibold ${
-                  status === opt ? "bg-primary text-primary-foreground shadow-cartoon-sm" : "bg-card hover:bg-muted"
-                }`}
+                className={`rounded-xl border-2 border-border px-3 py-1.5 text-sm font-semibold ${status === opt ? "bg-primary text-primary-foreground shadow-cartoon-sm" : "bg-card hover:bg-muted"
+                  }`}
               >
                 {STATUS_LABELS[opt]}
               </Link>
@@ -289,6 +227,68 @@ export default async function AskMePage({
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Repasses pendentes ({pendingRepasses.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable<AdminAskMeListItem>
+            rows={pendingRepasses}
+            getRowKey={(q) => q.id}
+            emptyMessage="Nenhum repasse pendente."
+            columns={[
+              ...nameColumns,
+              {
+                key: "amount",
+                header: "Repasse",
+                align: "right",
+                cell: (q) => formatBRL(q.creatorAmountCents),
+              },
+            ]}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Reembolsos com falha ({failedRefunds.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable<AdminAskMeListItem>
+            rows={failedRefunds}
+            getRowKey={(q) => q.id}
+            emptyMessage="Nenhum reembolso com falha."
+            columns={[
+              {
+                key: "question",
+                header: "Pergunta",
+                cell: (q) => questionCell(q.questionText),
+              },
+              {
+                key: "asker",
+                header: "Perguntou",
+                cell: (q) => q.askerName ?? "—",
+              },
+              {
+                key: "amount",
+                header: "Valor",
+                align: "right",
+                cell: (q) => formatBRL(q.amountCents),
+              },
+              {
+                key: "error",
+                header: "Erro",
+                cell: (q) => (
+                  <span className="text-destructive">{q.transferError ?? "—"}</span>
+                ),
+              },
+            ]}
+          />
+        </CardContent>
+      </Card>
+
+
     </div>
   );
 }
