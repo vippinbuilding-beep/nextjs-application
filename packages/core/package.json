@@ -1,0 +1,12 @@
+{
+  "name": "@vippin/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./models/*": "./src/models/*.ts",
+    "./repositories/*": "./src/repositories/*.ts",
+    "./payments/*": "./src/payments/*.ts",
+    "./domain/*": "./src/domain/*.ts"
+  }
+}

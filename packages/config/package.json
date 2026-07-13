@@ -1,0 +1,13 @@
+{
+  "name": "@vippin/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./eslint": "./eslint.mjs"
+  },
+  "dependencies": {
+    "@eslint/eslintrc": "^3.2.0"
+  }
+}

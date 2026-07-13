@@ -1,0 +1,149 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Tailwind's automatic content detection scans from the app that runs
+ * PostCSS (e.g. apps/web) and skips node_modules — so it never sees the
+ * classes used inside this package's own components, even though they're
+ * consumed by every app via the @vippin/ui symlink. Without this, utilities
+ * only used here (dialog overlay, button size variants, etc.) never make it
+ * into the generated CSS. Path is relative to this file, so it resolves
+ * correctly regardless of which app imports these tokens.
+ */
+@source "../components/**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Paleta cartoon: amarelo #FFE502, off-white #FAFFFA, preto #000000 */
+  --radius: 1rem;
+  --background: #fafffa;
+  --foreground: #000000;
+  --card: #fafffa;
+  --card-foreground: #000000;
+  --popover: #fafffa;
+  --popover-foreground: #000000;
+  --primary: #ffe502;
+  --primary-foreground: #000000;
+  --secondary: #000000;
+  --secondary-foreground: #fafffa;
+  --muted: #f0f1ec;
+  --muted-foreground: #4b4b4b;
+  --accent: #ffe502;
+  --accent-foreground: #000000;
+  --destructive: #ff4d4d;
+  --border: #000000;
+  --input: #000000;
+  --ring: #ffe502;
+  --chart-1: #ffe502;
+  --chart-2: #000000;
+  --chart-3: #ff4d4d;
+  --chart-4: #4dd2ff;
+  --chart-5: #9b5de5;
+  --sidebar: #fafffa;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #ffe502;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #ffe502;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #000000;
+  --sidebar-ring: #ffe502;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #fafffa;
+  --card: #1a1a1a;
+  --card-foreground: #fafffa;
+  --popover: #1a1a1a;
+  --popover-foreground: #fafffa;
+  --primary: #ffe502;
+  --primary-foreground: #000000;
+  --secondary: #fafffa;
+  --secondary-foreground: #000000;
+  --muted: #2a2a2a;
+  --muted-foreground: #b5b5b5;
+  --accent: #ffe502;
+  --accent-foreground: #000000;
+  --destructive: #ff4d4d;
+  --border: #fafffa;
+  --input: #fafffa;
+  --ring: #ffe502;
+  --chart-1: #ffe502;
+  --chart-2: #fafffa;
+  --chart-3: #ff4d4d;
+  --chart-4: #4dd2ff;
+  --chart-5: #9b5de5;
+  --sidebar: #1a1a1a;
+  --sidebar-foreground: #fafffa;
+  --sidebar-primary: #ffe502;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #ffe502;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #fafffa;
+  --sidebar-ring: #ffe502;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Sombras cartoon "hard shadow" (sem blur) */
+  --shadow-cartoon-sm: 2px 2px 0 0 var(--border);
+  --shadow-cartoon-avatar: 1px 1px 0 0 var(--border);
+  --shadow-cartoon: 4px 4px 0 0 var(--border);
+  --shadow-cartoon-lg: 6px 6px 0 0 var(--border);
+  --shadow-cartoon-xl: 8px 8px 0 0 var(--border);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-weight: 500;
+  }
+}
+
+@keyframes nav-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
