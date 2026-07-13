@@ -18,19 +18,37 @@ import { SupabaseAdminUserRepository } from "../infrastructure/supabase/admin/su
  * for importado de um Client Component, garantindo que a service role nunca
  * vaze para o browser. Consuma daqui apenas em Server Components / Route
  * Handlers do apps/dashboard.
+ *
+ * IMPORTANTE — instanciação PREGUIÇOSA: os repositórios são criados só no
+ * primeiro uso (via Proxy), nunca no carregamento do módulo. Isso evita que o
+ * `SUPABASE_SERVICE_ROLE_KEY` seja exigido em TEMPO DE BUILD (o Next importa
+ * este módulo ao "coletar page data", mesmo com páginas `force-dynamic`). Com a
+ * criação adiada, a chave só é necessária em runtime, ao atender um request.
  */
-const adminClient = createSupabaseAdminClient();
+function lazyRepository<T extends object>(factory: () => T): T {
+  let instance: T | null = null;
+  return new Proxy({} as T, {
+    get(_target, prop, receiver) {
+      instance ??= factory();
+      const value = Reflect.get(instance as object, prop, receiver);
+      return typeof value === "function" ? value.bind(instance) : value;
+    },
+  });
+}
 
-export const adminAnalyticsRepository: AdminAnalyticsRepository =
-  new SupabaseAdminAnalyticsRepository(adminClient);
-
-export const adminUserRepository: AdminUserRepository =
-  new SupabaseAdminUserRepository(adminClient);
-
-// Repositórios já existentes, reaproveitados com o client service role.
-export const adminOrderRepository: OrderRepository = new SupabaseOrderRepository(
-  adminClient
+export const adminAnalyticsRepository: AdminAnalyticsRepository = lazyRepository(
+  () => new SupabaseAdminAnalyticsRepository(createSupabaseAdminClient())
 );
 
-export const adminAskMeQuestionRepository: AskMeQuestionRepository =
-  new SupabaseAskMeQuestionRepository(adminClient);
+export const adminUserRepository: AdminUserRepository = lazyRepository(
+  () => new SupabaseAdminUserRepository(createSupabaseAdminClient())
+);
+
+// Repositórios já existentes, reaproveitados com o client service role.
+export const adminOrderRepository: OrderRepository = lazyRepository(
+  () => new SupabaseOrderRepository(createSupabaseAdminClient())
+);
+
+export const adminAskMeQuestionRepository: AskMeQuestionRepository = lazyRepository(
+  () => new SupabaseAskMeQuestionRepository(createSupabaseAdminClient())
+);
