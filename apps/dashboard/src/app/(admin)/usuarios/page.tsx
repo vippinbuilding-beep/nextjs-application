@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@vippin/ui/card";
 import { DataTable } from "@vippin/ui/data-table";
 
 import { UserGrowthChart } from "@/components/charts/user-growth-chart";
-import { lastNDaysRange } from "@/lib/dashboard/range";
+import { DateRangePicker } from "@/components/dashboard/date-range-picker";
+import { rangeFromSearchParams } from "@/lib/dashboard/range";
 
 export const dynamic = "force-dynamic";
 
@@ -31,16 +32,17 @@ function formatDate(date: Date): string {
 export default async function UsuariosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; role?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; role?: string; page?: string; from?: string; to?: string }>;
 }) {
   const sp = await searchParams;
   const query = sp.q?.trim() ?? "";
   const role = parseRole(sp.role);
   const page = Math.max(1, Number(sp.page) || 1);
+  const range = rangeFromSearchParams(sp);
 
   const [result, growth] = await Promise.all([
     adminUserRepository.search({ query: query || undefined, role, page, pageSize: PAGE_SIZE }),
-    adminAnalyticsRepository.getUserGrowthByDay(lastNDaysRange(30)),
+    adminAnalyticsRepository.getUserGrowthByDay(range),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(result.total / PAGE_SIZE));
@@ -63,8 +65,9 @@ export default async function UsuariosPage({
       </header>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Novos usuários (30 dias)</CardTitle>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle>Novos usuários</CardTitle>
+          <DateRangePicker from={range.from} to={range.to} />
         </CardHeader>
         <CardContent>
           {growth.length === 0 ? (

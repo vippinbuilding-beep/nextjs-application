@@ -3,8 +3,13 @@ import { notFound } from "next/navigation";
 
 import { formatBRL } from "@vippin/core/domain/money";
 import { adminUserRepository } from "@vippin/supabase/factories/admin-repository-factory";
+import { Button } from "@vippin/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@vippin/ui/card";
 import { StatCard } from "@vippin/ui/stat-card";
+
+import { isAdminEmail } from "@/lib/admin/allowlist";
+
+import { makeUserAdmin } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +33,7 @@ export default async function UsuarioDetalhePage({
 
   const displayName =
     user.creatorName || user.displayName || user.name || user.email || user.id;
+  const alreadyAdmin = await isAdminEmail(user.email);
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,6 +61,33 @@ export default async function UsuarioDetalhePage({
             {user.onboardingCompleted ? "onboarding concluído" : "onboarding pendente"}
           </span>
           {user.bio ? <span className="mt-2">{user.bio}</span> : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Acesso ao painel administrativo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {alreadyAdmin ? (
+            <p className="text-sm font-semibold">
+              Este usuário já tem acesso ao dashboard admin.
+            </p>
+          ) : user.email ? (
+            <form action={makeUserAdmin.bind(null, user.id)} className="flex flex-col gap-2">
+              <p className="text-muted-foreground text-sm font-medium">
+                Concede acesso ao painel administrativo para{" "}
+                <strong className="text-foreground">{user.email}</strong>.
+              </p>
+              <Button type="submit" variant="outline" className="w-fit">
+                Tornar admin
+              </Button>
+            </form>
+          ) : (
+            <p className="text-muted-foreground text-sm font-medium">
+              Usuário sem e-mail cadastrado — não é possível torná-lo admin.
+            </p>
+          )}
         </CardContent>
       </Card>
 

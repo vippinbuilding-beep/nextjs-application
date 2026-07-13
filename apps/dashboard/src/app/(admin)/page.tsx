@@ -1,20 +1,13 @@
-import Link from "next/link";
-
 import { formatBRL } from "@vippin/core/domain/money";
 import { adminAnalyticsRepository } from "@vippin/supabase/factories/admin-repository-factory";
 import { Card, CardContent, CardHeader, CardTitle } from "@vippin/ui/card";
 import { StatCard } from "@vippin/ui/stat-card";
 
 import { RevenueChart } from "@/components/charts/revenue-chart";
-import { rangeFromParam } from "@/lib/dashboard/range";
+import { DateRangePicker } from "@/components/dashboard/date-range-picker";
+import { rangeFromSearchParams } from "@/lib/dashboard/range";
 
 export const dynamic = "force-dynamic";
-
-const RANGE_OPTIONS = [
-  { days: 7, label: "7 dias" },
-  { days: 30, label: "30 dias" },
-  { days: 90, label: "90 dias" },
-];
 
 function formatPercent(rate: number): string {
   return `${(rate * 100).toFixed(1)}%`;
@@ -23,10 +16,10 @@ function formatPercent(rate: number): string {
 export default async function VisaoGeralPage({
   searchParams,
 }: {
-  searchParams: Promise<{ range?: string }>;
+  searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const sp = await searchParams;
-  const { days, range } = rangeFromParam(sp.range);
+  const range = rangeFromSearchParams(sp);
 
   const [stats, revenue] = await Promise.all([
     adminAnalyticsRepository.getOverviewStats(range),
@@ -39,24 +32,10 @@ export default async function VisaoGeralPage({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Visão Geral</h1>
           <p className="text-muted-foreground text-sm font-medium">
-            Métricas dos últimos {days} dias.
+            Métricas do período selecionado.
           </p>
         </div>
-        <div className="flex gap-2">
-          {RANGE_OPTIONS.map((opt) => (
-            <Link
-              key={opt.days}
-              href={`/?range=${opt.days}`}
-              className={`rounded-xl border-2 border-border px-3 py-1.5 text-sm font-semibold ${
-                opt.days === days
-                  ? "bg-primary text-primary-foreground shadow-cartoon-sm"
-                  : "bg-card hover:bg-muted"
-              }`}
-            >
-              {opt.label}
-            </Link>
-          ))}
-        </div>
+        <DateRangePicker from={range.from} to={range.to} />
       </header>
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">

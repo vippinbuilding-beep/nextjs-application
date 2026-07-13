@@ -1,9 +1,8 @@
 import type { DateRange } from "@vippin/core/repositories/admin-analytics-repository";
 
-/**
- * Intervalo padrão dos módulos: últimos N dias até agora. `to` é exclusivo
- * (fim do dia atual), `from` é o início do dia N-1 dias atrás.
- */
+export const DATE_PARAM_FORMAT = "yyyy-MM-dd";
+
+/** Intervalo padrão: últimos N dias até agora (fim do dia atual, inclusive). */
 export function lastNDaysRange(days: number): DateRange {
   const to = new Date();
   to.setHours(23, 59, 59, 999);
@@ -13,14 +12,37 @@ export function lastNDaysRange(days: number): DateRange {
   return { from, to };
 }
 
+function parseDateParam(value: string | undefined): Date | null {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export function formatDateParam(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 /**
- * Lê o parâmetro `?range=7|30|90` (dias) da URL, com fallback para 30.
+ * Resolve o intervalo de datas a partir de `?from=YYYY-MM-DD&to=YYYY-MM-DD`.
+ * Sem esses parâmetros, cai no preset de 30 dias. Datas inválidas também
+ * caem no preset (fail-safe).
  */
-export function rangeFromParam(value: string | string[] | undefined): {
-  days: number;
-  range: DateRange;
-} {
-  const raw = Array.isArray(value) ? value[0] : value;
-  const days = raw === "7" || raw === "90" ? Number(raw) : 30;
-  return { days, range: lastNDaysRange(days) };
+export function rangeFromSearchParams(sp: {
+  from?: string;
+  to?: string;
+}): DateRange {
+  const fromDate = parseDateParam(sp.from);
+  const toDate = parseDateParam(sp.to);
+
+  if (!fromDate || !toDate || fromDate > toDate) {
+    return lastNDaysRange(30);
+  }
+
+  fromDate.setHours(0, 0, 0, 0);
+  toDate.setHours(23, 59, 59, 999);
+  return { from: fromDate, to: toDate };
 }
