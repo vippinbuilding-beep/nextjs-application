@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { PublicNavBar } from "@/components/navigation/public-nav-bar";
+import { ExpandableText } from "@/components/ui/expandable-text";
 
 import { ProductCommentsCard } from "@/components/products/product-comments-card";
 import { ProductLessonViewer } from "@/components/products/product-lesson-viewer";
@@ -105,9 +106,10 @@ export function ProductLessonLayout({
               </div>
 
               {description && (
-                <p className="text-muted-foreground max-w-3xl text-sm leading-relaxed break-all lg:text-base">
-                  {description}
-                </p>
+                <ExpandableText
+                  text={description}
+                  className="text-muted-foreground max-w-3xl text-sm leading-relaxed lg:text-base"
+                />
               )}
 
               <ProductCommentsCard

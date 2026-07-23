@@ -1,6 +1,12 @@
 /** Routes that render inside the creator dashboard shell (creator role only). */
 
-const CREATOR_SHELL_PREFIXES = ["/painel", "/products", "/profile"];
+const CREATOR_SHELL_PREFIXES = [
+  "/painel",
+  "/products",
+  "/profile",
+  "/my-products",
+  "/my-questions",
+];
 
 export function isCreatorShellPath(pathname: string): boolean {
   if (pathname === "/") return true;
@@ -14,6 +20,8 @@ export function getCreatorModuleTitle(pathname: string): string {
   if (pathname.startsWith("/painel/financeiro")) return "Financeiro";
   if (pathname.startsWith("/painel/biblioteca")) return "Biblioteca";
   if (pathname.startsWith("/painel/minhas-perguntas")) return "Minhas perguntas";
+  if (pathname.startsWith("/my-products")) return "Biblioteca";
+  if (pathname.startsWith("/my-questions")) return "Minhas perguntas";
   if (pathname.startsWith("/profile/ask-me")) return "Me pergunte";
   if (pathname.startsWith("/profile/links")) return "Links";
   if (pathname.startsWith("/profile/edit")) return "Perfil";

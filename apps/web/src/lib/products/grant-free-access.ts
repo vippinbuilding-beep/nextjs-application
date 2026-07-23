@@ -11,11 +11,11 @@ export async function grantFreeProductAccess(
 
   const { data: product } = await admin
     .from("products")
-    .select("id, creator_id, price_cents")
+    .select("id, creator_id, price_cents, status")
     .eq("id", productId)
     .maybeSingle();
 
-  if (!product) {
+  if (!product || product.status !== "active") {
     throw new Error("Produto não encontrado.");
   }
 

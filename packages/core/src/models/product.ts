@@ -9,12 +9,15 @@
 // A single video lesson or a downloadable document.
 export type ProductType = "single_lesson" | "document";
 
+export type ProductStatus = "active" | "cancelled";
+
 export interface Product {
   id: string;
   creatorId: string;
   type: ProductType;
   title: string;
   description?: string;
+  status: ProductStatus;
   // Price is always stored in cents to avoid floating-point issues.
   priceCents: number;
   // Unique (per creator) public handle used to build the product link:

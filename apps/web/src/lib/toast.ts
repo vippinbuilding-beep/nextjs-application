@@ -15,7 +15,7 @@ export interface ToastItem {
 export const TOAST_MESSAGES = {
   saved: "Alterações salvas com sucesso.",
   published: "Produto publicado com sucesso.",
-  deleted: "Excluído com sucesso.",
+  cancelled: "Produto cancelado com sucesso.",
   added: "Adicionado com sucesso.",
   removed: "Removido com sucesso.",
   sent: "Enviado com sucesso.",
@@ -120,8 +120,8 @@ export const toast = {
   published() {
     push(TOAST_MESSAGES.published, "success");
   },
-  deleted() {
-    push(TOAST_MESSAGES.deleted, "success");
+  cancelled() {
+    push(TOAST_MESSAGES.cancelled, "success");
   },
   added() {
     push(TOAST_MESSAGES.added, "success");

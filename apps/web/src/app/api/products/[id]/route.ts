@@ -2,37 +2,15 @@ import type { NextRequest } from "next/server";
 
 import { createSupabaseAdminClient } from "@vippin/supabase/client/admin";
 import { createSupabaseServerClient } from "@vippin/supabase/client/server";
-import { PRODUCTS_BUCKET } from "@/lib/supabase/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function deleteProductStorage(
-  creatorId: string,
-  productId: string
-): Promise<void> {
-  const admin = createSupabaseAdminClient();
-  const folder = `${creatorId}/${productId}`;
-
-  const { data, error } = await admin.storage.from(PRODUCTS_BUCKET).list(folder);
-  if (error) {
-    console.error("[products] failed to list storage files:", error.message);
-    return;
-  }
-
-  if (!data?.length) return;
-
-  const paths = data.map((file) => `${folder}/${file.name}`);
-  const { error: removeError } = await admin.storage
-    .from(PRODUCTS_BUCKET)
-    .remove(paths);
-
-  if (removeError) {
-    console.error("[products] failed to remove storage files:", removeError.message);
-  }
-}
-
-/** Deletes a product owned by the authenticated creator (DB row + storage files). */
+/**
+ * Cancels a product owned by the authenticated creator (soft delete: sets
+ * status = 'cancelled'). No cascade — comments and buyer access history are
+ * preserved, and the product becomes invisible to everyone except its owner.
+ */
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -63,16 +41,14 @@ export async function DELETE(
     return Response.json({ error: "Produto não encontrado." }, { status: 404 });
   }
 
-  await deleteProductStorage(product.creator_id, id);
-
-  const { error: deleteError } = await admin
+  const { error: updateError } = await admin
     .from("products")
-    .delete()
+    .update({ status: "cancelled" })
     .eq("id", id)
     .eq("creator_id", user.id);
 
-  if (deleteError) {
-    return Response.json({ error: deleteError.message }, { status: 500 });
+  if (updateError) {
+    return Response.json({ error: updateError.message }, { status: 500 });
   }
 
   return Response.json({ ok: true });

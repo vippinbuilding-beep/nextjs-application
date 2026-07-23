@@ -341,7 +341,9 @@ export function toQuestion(row: AskMeRow): AskMeQuestion {
 function toAskerPreview(row: ProfilePreviewRow | undefined) {
   return {
     id: row?.id ?? "",
-    name: row?.consumer_name ?? row?.name ?? "Usuário",
+    // Asker may be a consumer (consumer_name) or a creator asking another
+    // creator (creator_name) — never fall back to the legal `name` column.
+    name: row?.consumer_name ?? row?.creator_name ?? "Usuário",
     avatarPath: row?.avatar_path ?? undefined,
     avatarUrl: row?.avatar_url ?? undefined,
   };

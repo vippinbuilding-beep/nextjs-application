@@ -5,6 +5,7 @@ import { useCallback, useEffect } from "react";
 
 import { AskMeConsumerInbox } from "@/components/ask-me/ask-me-consumer-inbox";
 import { BackButton } from "@/components/navigation/back-button";
+import { CreatorConsumerQuestionsPanel } from "@/components/creator/creator-consumer-questions-panel";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
+import { isCreator } from "@/lib/user-role";
 export default function MyQuestionsPage() {
   const router = useRouter();
   const redirectToLogin = useLoginRedirect();
@@ -38,6 +40,12 @@ export default function MyQuestionsPage() {
 
   if (loading || !user) {
     return <ScreenLoading />;
+  }
+
+  // Creators get the dashboard shell's header/nav (via CreatorDashboardGate);
+  // this bare panel is meant to render inside it.
+  if (isCreator(user)) {
+    return <CreatorConsumerQuestionsPanel />;
   }
 
   return (

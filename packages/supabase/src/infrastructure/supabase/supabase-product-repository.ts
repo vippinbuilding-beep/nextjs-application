@@ -1,6 +1,10 @@
 import { supabase } from "../../client/client";
 import { PRODUCTS_BUCKET } from "../../constants/buckets";
-import type { Product, ProductType } from "@vippin/core/models/product";
+import type {
+  Product,
+  ProductStatus,
+  ProductType,
+} from "@vippin/core/models/product";
 import type {
   ExploreProductsParams,
   ExploreProductsResult,
@@ -31,6 +35,7 @@ type ProductRow = {
   thumbnail_height: number | null;
   media_width: number | null;
   media_height: number | null;
+  status: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -213,6 +218,7 @@ export class SupabaseProductRepository implements ProductRepository {
     let builder = supabase
       .from(TABLE)
       .select("*", { count: "exact" })
+      .eq("status", "active")
       .order("created_at", { ascending: false });
 
     if (query) {
@@ -245,20 +251,21 @@ export class SupabaseProductRepository implements ProductRepository {
     const { data, error } = await supabase
       .from(TABLE)
       .select("*")
+      .eq("status", "active")
       .in("id", ids)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return attachCreators(data as ProductRow[]);
   }
 
-  async delete(id: string): Promise<void> {
+  async cancel(id: string): Promise<void> {
     const response = await fetch(`/api/products/${id}`, { method: "DELETE" });
 
     if (!response.ok) {
       const body = (await response.json().catch(() => null)) as
         | { error?: string }
         | null;
-      throw new Error(body?.error ?? "Falha ao excluir o produto.");
+      throw new Error(body?.error ?? "Falha ao cancelar o produto.");
     }
   }
 
@@ -322,6 +329,7 @@ function toProduct(row: ProductRow): Product {
     thumbnailHeight: row.thumbnail_height ?? undefined,
     mediaWidth: row.media_width ?? undefined,
     mediaHeight: row.media_height ?? undefined,
+    status: (row.status as ProductStatus) ?? "active",
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   };

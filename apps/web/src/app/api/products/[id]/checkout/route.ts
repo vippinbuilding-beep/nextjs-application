@@ -37,11 +37,11 @@ export async function POST(
   const admin = createSupabaseAdminClient();
   const { data: product } = await admin
     .from("products")
-    .select("id, creator_id, title, price_cents")
+    .select("id, creator_id, title, price_cents, status")
     .eq("id", id)
     .maybeSingle();
 
-  if (!product) {
+  if (!product || product.status !== "active") {
     return Response.json({ error: "Produto não encontrado." }, { status: 404 });
   }
 

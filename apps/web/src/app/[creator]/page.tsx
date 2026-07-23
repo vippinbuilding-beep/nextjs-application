@@ -105,6 +105,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       "id, type, title, description, price_cents, slug, thumbnail_path, thumbnail_width, thumbnail_height, media_width, media_height"
     )
     .eq("creator_id", profile.id)
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
   const products = rows ?? [];

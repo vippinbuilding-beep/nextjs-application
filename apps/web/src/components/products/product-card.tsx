@@ -29,6 +29,8 @@ interface ProductCardProps {
      * use in the creator's own dashboard.
      */
     mode?: "public" | "manage";
+    /** Shows a "Cancelado" badge in `manage` mode when the product isn't active. */
+    status?: "active" | "cancelled";
 }
 
 /**
@@ -38,7 +40,7 @@ interface ProductCardProps {
  * - `document`: a compact row with a small thumbnail, meant to be shown in
  *   a list.
  */
-const ProductCard = ({ product, profile, type, mode = "public" }: ProductCardProps) => {
+const ProductCard = ({ product, profile, type, mode = "public", status }: ProductCardProps) => {
     const thumbnailUrl = product.thumbnailPath
         ? getProductThumbnailUrl(product.id)
         : null;
@@ -52,6 +54,7 @@ const ProductCard = ({ product, profile, type, mode = "public" }: ProductCardPro
         mode === "manage"
             ? `/products/${product.id}/edit`
             : `/@${profile.slug}/${product.slug}`;
+    const showCancelledBadge = mode === "manage" && status === "cancelled";
 
     if (type === "document") {
         return (
@@ -67,7 +70,14 @@ const ProductCard = ({ product, profile, type, mode = "public" }: ProductCardPro
                 />
 
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="font-bold">{product.title}</span>
+                    <span className="flex items-center gap-2">
+                        <span className="font-bold">{product.title}</span>
+                        {showCancelledBadge && (
+                            <span className="shrink-0 rounded-full border-2 border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                                Cancelado
+                            </span>
+                        )}
+                    </span>
                     {product.description ? (
                         <span className="text-muted-foreground line-clamp-1 text-xs font-mediu truncate">
                             {product.description}
@@ -101,8 +111,15 @@ const ProductCard = ({ product, profile, type, mode = "public" }: ProductCardPro
             />
 
             <span className="flex min-w-0 flex-1 flex-col gap-1.5 p-4">
-                <span className="line-clamp-2 text-base leading-snug font-bold">
-                    {product.title}
+                <span className="flex items-center gap-2">
+                    <span className="line-clamp-2 text-base leading-snug font-bold">
+                        {product.title}
+                    </span>
+                    {showCancelledBadge && (
+                        <span className="shrink-0 rounded-full border-2 border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                            Cancelado
+                        </span>
+                    )}
                 </span>
 
                 {product.description && (

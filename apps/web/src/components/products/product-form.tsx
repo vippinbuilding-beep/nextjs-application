@@ -282,20 +282,20 @@ export function ProductForm({ type, product }: ProductFormProps) {
     }
   }
 
-  async function handleDeleteProduct() {
+  async function handleCancelProduct() {
     if (!product) return;
 
     setError(null);
     setDeleting(true);
 
     try {
-      await productRepository.delete(product.id);
+      await productRepository.cancel(product.id);
       setShowDeleteConfirm(false);
-      toast.deleted();
+      toast.cancelled();
       router.replace("/");
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Erro ao excluir o produto.";
+        err instanceof Error ? err.message : "Erro ao cancelar o produto.";
       setError(message);
       toast.error(message);
       setDeleting(false);
@@ -421,8 +421,9 @@ export function ProductForm({ type, product }: ProductFormProps) {
             <div className="rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 p-4">
               <p className="text-sm font-bold text-destructive">Zona de perigo</p>
               <p className="text-muted-foreground mt-1 text-xs">
-                Excluir remove o produto, comentários e acessos de compradores.
-                Esta ação não pode ser desfeita.
+                Cancelar tira o produto do ar: ele deixa de aparecer para novos
+                compradores. Comentários e o acesso de quem já comprou são
+                mantidos.
               </p>
               <Button
                 type="button"
@@ -432,7 +433,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
                 disabled={submitting || deleting}
               >
                 <Trash2 className="size-4" />
-                Excluir produto
+                Cancelar produto
               </Button>
             </div>
           )}
@@ -496,11 +497,11 @@ export function ProductForm({ type, product }: ProductFormProps) {
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Excluir produto?</DialogTitle>
+            <DialogTitle>Cancelar produto?</DialogTitle>
             <DialogDescription>
               {product?.title
-                ? `"${product.title}" será removido permanentemente. Compradores perderão o acesso e todos os comentários serão apagados.`
-                : "Este produto será removido permanentemente."}
+                ? `"${product.title}" sairá do ar para novos compradores. Quem já comprou mantém o acesso, e os comentários continuam existindo.`
+                : "Este produto sairá do ar para novos compradores."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -510,15 +511,15 @@ export function ProductForm({ type, product }: ProductFormProps) {
               onClick={() => setShowDeleteConfirm(false)}
               disabled={deleting}
             >
-              Cancelar
+              Voltar
             </Button>
             <Button
               type="button"
               variant="destructive"
-              onClick={() => void handleDeleteProduct()}
+              onClick={() => void handleCancelProduct()}
               disabled={deleting}
             >
-              {deleting ? "Excluindo..." : "Excluir permanentemente"}
+              {deleting ? "Cancelando..." : "Cancelar produto"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -40,14 +40,14 @@ export function isAllowedLessonVideo(
 
 /**
  * Product field limits. These mirror the CHECK constraints on
- * `public.products` (see `supabase/migrations/20260708_product_limits.sql` and
- * `20260716_product_price_minimum.sql`):
+ * `public.products` (see `supabase/migrations/20260708_product_limits.sql`,
+ * `20260716_product_price_minimum.sql` and `20260816_product_description_5000.sql`):
  * the client validation here is just UX, the database is the real guard.
  */
 export const PRODUCT_LIMITS = {
   titleMin: 2,
   titleMax: 80,
-  descriptionMax: 255,
+  descriptionMax: 5000,
   /** R$ 5,00 in cents — minimum for paid products (free = 0 is still allowed). */
   priceMinCents: 500,
   /** R$ 100,00 in cents. */

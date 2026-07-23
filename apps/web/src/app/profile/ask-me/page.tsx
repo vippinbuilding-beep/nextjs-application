@@ -14,8 +14,8 @@ import {
   Card,
   CardContent,
 } from "@vippin/ui/card";
-import { Input } from "@vippin/ui/input";
 import { Label } from "@vippin/ui/label";
+import { PriceInput } from "@vippin/ui/price-input";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vippin/ui/tabs";
 import {
@@ -23,7 +23,7 @@ import {
   resolveAskMePriceCents,
   validateAskMePriceInput,
 } from "@vippin/core/domain/ask-me";
-import { centsToReaisInput, formatBRL, parseReaisToCents } from "@vippin/core/domain/money";
+import { formatBRL } from "@vippin/core/domain/money";
 import { creatorMePergunteFeeDescription } from "@/lib/payments/platform-fee";
 import { isCreator } from "@/lib/user-role";
 import { userRepository } from "@vippin/supabase/factories/repository-factory";
@@ -35,8 +35,8 @@ export default function AskMeProfilePage() {
   const { user, loading, refreshUser } = useAuth();
 
   const [enabled, setEnabled] = useState(false);
-  const [priceInput, setPriceInput] = useState(
-    centsToReaisInput(ASK_ME_LIMITS.defaultPriceCents)
+  const [priceCents, setPriceCents] = useState<number>(
+    ASK_ME_LIMITS.defaultPriceCents
   );
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -61,11 +61,9 @@ export default function AskMeProfilePage() {
   useEffect(() => {
     if (!user?.id) return;
     setEnabled(user.askMeEnabled ?? false);
-    const cents = resolveAskMePriceCents(
-      user.askMeEnabled ?? false,
-      user.askMePriceCents
+    setPriceCents(
+      resolveAskMePriceCents(user.askMeEnabled ?? false, user.askMePriceCents)
     );
-    setPriceInput(centsToReaisInput(cents));
     setHydrated(true);
   }, [user?.id, user?.askMeEnabled, user?.askMePriceCents]);
 
@@ -74,8 +72,7 @@ export default function AskMeProfilePage() {
     if (!user) return;
 
     setError(null);
-    const priceCents = enabled ? parseReaisToCents(priceInput) : null;
-    if (enabled && priceCents != null) {
+    if (enabled) {
       const priceError = validateAskMePriceInput(priceCents);
       if (priceError) {
         setError(priceError);
@@ -105,7 +102,7 @@ export default function AskMeProfilePage() {
     return <ScreenLoading />;
   }
 
-  const effectivePrice = resolveAskMePriceCents(enabled, parseReaisToCents(priceInput));
+  const effectivePrice = resolveAskMePriceCents(enabled, priceCents);
   const defaultTab = pendingCount > 0 ? "unanswered" : "settings";
 
   return (
@@ -158,13 +155,12 @@ export default function AskMeProfilePage() {
 
                 {enabled && (
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="ask-me-price">Valor por pergunta (R$)</Label>
-                    <Input
+                    <Label htmlFor="ask-me-price">Valor por pergunta</Label>
+                    <PriceInput
                       id="ask-me-price"
-                      inputMode="decimal"
-                      value={priceInput}
-                      onChange={(e) => setPriceInput(e.target.value)}
-                      placeholder="5,00"
+                      valueCents={priceCents}
+                      onChangeCents={setPriceCents}
+                      maxCents={ASK_ME_LIMITS.maxPriceCents}
                       disabled={submitting}
                     />
                     <p className="text-muted-foreground text-xs">

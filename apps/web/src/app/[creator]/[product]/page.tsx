@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { ProductCommentsCard } from "@/components/products/product-comments-card";
 import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { ProductLanding } from "@/components/products/product-landing";
@@ -248,8 +249,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   )}
                 </div>
                 {row.description && type === "document" && (
-                  <CardDescription className="text-base break-all text-muted-foreground">
-                    {row.description}
+                  <CardDescription className="text-base text-muted-foreground">
+                    <ExpandableText text={row.description} />
                   </CardDescription>
                 )}
               </CardHeader>

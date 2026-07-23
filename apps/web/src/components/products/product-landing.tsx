@@ -1,5 +1,6 @@
 import { Lock } from "lucide-react";
 
+import { ExpandableText } from "@/components/ui/expandable-text";
 import { FreeProductClaim } from "@/components/products/free-product-claim";
 import { PixCheckout } from "@/components/products/pix-checkout";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
@@ -74,8 +75,8 @@ export function ProductLanding({
       <CardHeader>
         <CardTitle className="text-2xl">{title}</CardTitle>
         {description && (
-          <CardDescription className="text-base break-all text-muted-foreground">
-            {description}
+          <CardDescription className="text-base text-muted-foreground">
+            <ExpandableText text={description} />
           </CardDescription>
         )}
       </CardHeader>

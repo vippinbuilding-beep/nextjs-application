@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { BackButton } from "@/components/navigation/back-button";
+import { CreatorLibraryPanel } from "@/components/creator/creator-library-panel";
 import { ProductFeed } from "@/components/products/product-feed";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -19,6 +19,7 @@ import { LayoutBackground } from "@vippin/ui/layout-background";
 import { Loading } from "@vippin/ui/loading";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import type { ProductWithCreator } from "@vippin/core/repositories/product-repository";
+import { isCreator } from "@/lib/user-role";
 import {
   productAccessRepository,
   productRepository,
@@ -63,6 +64,12 @@ export default function MyProductsPage() {
 
   if (loading || !user) {
     return <ScreenLoading />;
+  }
+
+  // Creators get the dashboard shell's header/nav (via CreatorDashboardGate);
+  // this bare panel is meant to render inside it.
+  if (isCreator(user)) {
+    return <CreatorLibraryPanel />;
   }
 
   return (

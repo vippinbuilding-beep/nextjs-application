@@ -68,7 +68,12 @@ export interface ProductRepository {
   searchExplore(params?: ExploreProductsParams): Promise<ExploreProductsResult>;
   /** Fetches products by id and attaches public creator profile metadata. */
   listByIds(ids: string[]): Promise<ProductWithCreator[]>;
-  delete(id: string): Promise<void>;
+  /**
+   * Cancels a product (soft delete): marks it as `cancelled` instead of
+   * removing the row, so comments and buyer access history are preserved.
+   * The product becomes invisible to everyone except its creator.
+   */
+  cancel(id: string): Promise<void>;
   /**
    * Returns an available slug (unique within the caller's products) derived
    * from `base` (usually the product title). It does not persist anything.

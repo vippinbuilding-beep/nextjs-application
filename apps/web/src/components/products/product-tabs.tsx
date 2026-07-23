@@ -16,6 +16,7 @@ interface ProductListItem {
     mediaHeight?: number | null;
     slug: string;
     type: ProductType;
+    status?: "active" | "cancelled";
 }
 
 interface ProductTabsProps {
@@ -88,6 +89,7 @@ export function ProductTabs({
                                         profile={profile}
                                         type={product.type}
                                         mode={mode}
+                                        status={product.status}
                                     />
                                 </li>
                             ))}
@@ -107,6 +109,7 @@ export function ProductTabs({
                                         profile={profile}
                                         type={product.type}
                                         mode={mode}
+                                        status={product.status}
                                     />
                                 </li>
                             ))}
