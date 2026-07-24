@@ -407,10 +407,9 @@ export function VideoPlayer({
     <div
       ref={containerRef}
       onContextMenu={(e) => e.preventDefault()}
-      style={containerStyle}
       className={cn(
         "group/player relative w-full overflow-hidden bg-black",
-        theatre && "mx-auto rounded-none border-0 shadow-none",
+        theatre && "rounded-none border-0 shadow-none",
         !theatre &&
         immersive &&
         "rounded-none border-0 shadow-none lg:rounded-xl lg:border-2 lg:border-border lg:shadow-cartoon-sm",
@@ -419,103 +418,102 @@ export function VideoPlayer({
         className
       )}
     >
-      <video
-        ref={videoRef}
-        src={src}
-        playsInline
-        preload="auto"
-        controlsList="nodownload noremoteplayback noplaybackrate"
-        disablePictureInPicture
-        disableRemotePlayback
-        onContextMenu={(e) => e.preventDefault()}
-        onClick={() => {
-          if (ready || playing) togglePlay();
-        }}
-        onPlay={() => setPlaying(true)}
-        onPause={(e) => {
-          setPlaying(false);
-          saveProgress(e.currentTarget.currentTime, e.currentTarget.duration);
-        }}
-        onEnded={(e) =>
-          saveProgress(e.currentTarget.currentTime, e.currentTarget.duration)
-        }
-        onWaiting={() => setLoading(true)}
-        onStalled={() => setLoading(true)}
-        onCanPlay={() => {
-          setReady(true);
-          setLoading(false);
-        }}
-        onPlaying={() => setLoading(false)}
-        onLoadedData={() => setShowPoster(false)}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={(e) => {
-          syncAspectRatioFromVideo(e.currentTarget);
-          setDuration(e.currentTarget.duration);
-          const pendingResumeSeconds = pendingResumeSecondsRef.current;
-          if (pendingResumeSeconds != null) {
-            applySavedProgress(pendingResumeSeconds);
-          }
-        }}
-        onError={() => {
-          setReady(false);
-          setLoading(false);
-        }}
-        onVolumeChange={(e) => {
-          setMuted(e.currentTarget.muted);
-          setVolume(e.currentTarget.volume);
-        }}
-        className="absolute inset-0 size-full object-contain"
+      {/* Video frame: centered/capped in theatre mode (letterboxed with black
+          margins); fills the stage entirely in fullscreen. The controls bar
+          below is a sibling, not nested here, so it can span the full stage
+          width instead of just this frame's width. */}
+      <div
+        style={fullscreen ? undefined : containerStyle}
+        className={cn(
+          "relative mx-auto w-full",
+          fullscreen && "absolute inset-0"
+        )}
       >
-        Seu navegador não suporta a reprodução de vídeo.
-      </video>
-
-      {poster && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={poster}
-          alt=""
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-0 size-full object-contain transition-opacity duration-200",
-            showPoster ? "opacity-100" : "opacity-0"
-          )}
-        />
-      )}
-
-      {watermark && (
-        <span className="pointer-events-none absolute right-3 top-3 select-none rounded-md bg-black/40 px-2 py-0.5 text-xs font-bold text-white/60">
-          {watermark}
-        </span>
-      )}
-
-      {!playing && ready && !loading && (
-        <button
-          type="button"
-          onClick={togglePlay}
-          aria-label="Reproduzir"
-          className="absolute cursor-pointer inset-0 flex items-center justify-center bg-black/20 transition-colors hover:bg-black/30"
+        <video
+          ref={videoRef}
+          src={src}
+          playsInline
+          preload="auto"
+          controlsList="nodownload noremoteplayback noplaybackrate"
+          disablePictureInPicture
+          disableRemotePlayback
+          onContextMenu={(e) => e.preventDefault()}
+          onClick={() => {
+            if (ready || playing) togglePlay();
+          }}
+          onPlay={() => setPlaying(true)}
+          onPause={(e) => {
+            setPlaying(false);
+            saveProgress(e.currentTarget.currentTime, e.currentTarget.duration);
+          }}
+          onEnded={(e) =>
+            saveProgress(e.currentTarget.currentTime, e.currentTarget.duration)
+          }
+          onWaiting={() => setLoading(true)}
+          onStalled={() => setLoading(true)}
+          onCanPlay={() => {
+            setReady(true);
+            setLoading(false);
+          }}
+          onPlaying={() => setLoading(false)}
+          onLoadedData={() => setShowPoster(false)}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={(e) => {
+            syncAspectRatioFromVideo(e.currentTarget);
+            setDuration(e.currentTarget.duration);
+            const pendingResumeSeconds = pendingResumeSecondsRef.current;
+            if (pendingResumeSeconds != null) {
+              applySavedProgress(pendingResumeSeconds);
+            }
+          }}
+          onError={() => {
+            setReady(false);
+            setLoading(false);
+          }}
+          onVolumeChange={(e) => {
+            setMuted(e.currentTarget.muted);
+            setVolume(e.currentTarget.volume);
+          }}
+          className="absolute inset-0 size-full object-contain"
         >
-          <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
-            <Play className="size-7 translate-x-0.5" />
-          </span>
-        </button>
-      )}
+          Seu navegador não suporta a reprodução de vídeo.
+        </video>
 
-      {!ready && loading && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-          <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
-            <Loader2 className="size-7 animate-spin" />
-          </span>
-        </div>
-      )}
+        {poster && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={poster}
+            alt=""
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-0 size-full object-contain transition-opacity duration-200",
+              showPoster ? "opacity-100" : "opacity-0"
+            )}
+          />
+        )}
 
-      {playing && loading && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-          <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
-            <Loader2 className="size-7 animate-spin" />
+        {watermark && (
+          <span className="pointer-events-none absolute right-3 top-3 select-none rounded-md bg-black/40 px-2 py-0.5 text-xs font-bold text-white/60">
+            {watermark}
           </span>
-        </div>
-      )}
+        )}
+
+        {!ready && loading && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
+            <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
+              <Loader2 className="size-7 animate-spin" />
+            </span>
+          </div>
+        )}
+
+        {playing && loading && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
+            <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
+              <Loader2 className="size-7 animate-spin" />
+            </span>
+          </div>
+        )}
+      </div>
 
       <div
         className={cn(
