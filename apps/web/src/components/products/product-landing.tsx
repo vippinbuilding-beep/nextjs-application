@@ -3,6 +3,7 @@ import { Lock } from "lucide-react";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { FreeProductClaim } from "@/components/products/free-product-claim";
 import { PixCheckout } from "@/components/products/pix-checkout";
+import { PriceTransparency } from "@/components/products/price-transparency";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
 import {
@@ -107,6 +108,8 @@ export function ProductLanding({
               {isFree ? "Grátis" : formatBRL(priceCents)}
             </span>
           </div>
+
+          {!isFree && <PriceTransparency priceCents={priceCents} />}
 
           {isFree ? (
             <FreeProductClaim

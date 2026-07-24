@@ -519,9 +519,8 @@ export function VideoPlayer({
 
       <div
         className={cn(
-          "absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3 opacity-0 transition-opacity pointer-events-none",
-          "group-hover/player:opacity-100 group-hover/player:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto",
-          !playing && "opacity-100 pointer-events-auto"
+          "absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3 opacity-20 transition-opacity pointer-events-none",
+          "group-hover/player:opacity-100 group-hover/player:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto"
         )}
       >
         <input
