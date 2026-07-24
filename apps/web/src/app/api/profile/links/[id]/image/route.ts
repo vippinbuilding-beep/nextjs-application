@@ -45,7 +45,9 @@ export async function GET(
 
   const headers = avatarResponseHeaders(
     upstream.headers.get("content-type") || link.image_mime || "image/jpeg",
-    upstream.headers.get("content-length")
+    upstream.headers.get("content-length"),
+    undefined,
+    true
   );
 
   return new Response(upstream.body, { status: 200, headers });

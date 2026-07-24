@@ -53,14 +53,26 @@ export async function fetchPlatformProfileImage(
 export function avatarResponseHeaders(
   contentType: string,
   contentLength?: string | null,
-  maxAgeSeconds: number = AVATAR_BROWSER_CACHE_SECONDS
+  maxAgeSeconds: number = AVATAR_BROWSER_CACHE_SECONDS,
+  /**
+   * Adds `s-maxage` so Vercel's edge network (a shared cache) may serve the
+   * SAME cached response to every visitor, without invoking this function
+   * again. Only set this for routes whose response is identical for anyone
+   * requesting that exact URL — i.e. public, versioned resources (profile
+   * avatar, link image). Never set it for per-user routes with an
+   * unversioned URL (onboarding preview, live link editor preview): a shared
+   * cache keyed only by URL would risk serving one user's photo to another.
+   */
+  shared = false
 ): Headers {
   const headers = new Headers();
   headers.set("content-type", contentType);
   if (contentLength) headers.set("content-length", contentLength);
   headers.set(
     "cache-control",
-    `public, max-age=${maxAgeSeconds}, stale-while-revalidate=86400`
+    shared
+      ? `public, max-age=${maxAgeSeconds}, s-maxage=${maxAgeSeconds}, stale-while-revalidate=86400`
+      : `private, max-age=${maxAgeSeconds}, stale-while-revalidate=86400`
   );
   return headers;
 }

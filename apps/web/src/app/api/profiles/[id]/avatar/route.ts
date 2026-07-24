@@ -56,7 +56,9 @@ export async function GET(
         upstream.headers.get("content-type") ||
           profile.avatar_mime ||
           "image/jpeg",
-        upstream.headers.get("content-length")
+        upstream.headers.get("content-length"),
+        undefined,
+        true
       ),
     });
   }
@@ -73,7 +75,9 @@ export async function GET(
       status: 200,
       headers: avatarResponseHeaders(
         upstream.headers.get("content-type") || "image/jpeg",
-        upstream.headers.get("content-length")
+        upstream.headers.get("content-length"),
+        undefined,
+        true
       ),
     });
   }

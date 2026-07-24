@@ -62,7 +62,10 @@ export async function GET(
   );
   const contentLength = upstream.headers.get("content-length");
   if (contentLength) headers.set("content-length", contentLength);
-  headers.set("cache-control", `public, max-age=${CACHE_SECONDS}`);
+  headers.set(
+    "cache-control",
+    `public, max-age=${CACHE_SECONDS}, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=86400`
+  );
 
   return new Response(upstream.body, { status: 200, headers });
 }
