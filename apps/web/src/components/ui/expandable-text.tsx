@@ -25,7 +25,7 @@ export function ExpandableText({
   const preview = isLong ? `${text.slice(0, previewLength).trimEnd()}…` : text;
 
   return (
-    <p className={cn("break-all", className)}>
+    <p className={cn("break-all whitespace-pre-line", className)}>
       {expanded || !isLong ? text : preview}
       {isLong && (
         <>
