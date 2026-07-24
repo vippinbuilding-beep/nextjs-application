@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { ContactEmailLink } from "@/components/ui/contact-email-link";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
 import { AlertDot } from "@vippin/ui/alert-dot";
@@ -141,6 +142,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
           <LogOut className="size-4" />
           Sair
         </Button>
+        <ContactEmailLink className="justify-center px-2 pt-1" />
       </div>
     </div>
   );

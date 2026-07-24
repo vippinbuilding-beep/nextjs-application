@@ -23,6 +23,7 @@ import { toast } from "@/lib/toast";
 import { isConsumer } from "@/lib/user-role";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { PublicNavBar } from "@/components/navigation/public-nav-bar";
+import { ContactEmailLink } from "@/components/ui/contact-email-link";
 import { clearOnboardingDraft } from "@/components/onboarding/types";
 
 const MENU_OPTIONS = [
@@ -184,6 +185,7 @@ export default function ConsumerHomePage() {
             </div>
           </CardContent>
         </Card>
+        <ContactEmailLink className="mt-4" />
       </div>
     </LayoutBackground>
   );

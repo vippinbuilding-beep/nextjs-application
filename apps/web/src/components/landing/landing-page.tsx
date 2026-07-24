@@ -39,6 +39,7 @@ import { cn } from "@vippin/ui/lib/utils";
 import { LandingNavbar } from "./landing-navbar";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { ContactEmailLink } from "@/components/ui/contact-email-link";
 
 const CREATOR_FEATURES = [
   {
@@ -373,11 +374,12 @@ export function LandingPage() {
 
       {/* FOOTER */}
       <footer className="border-t-2 border-border bg-background">
-        <div className="mx-auto flex flex-col items-center gap-5 px-4 py-8">
+        <div className="mx-auto flex flex-col items-center gap-3 px-4 py-8">
           <SiteLogo size={32} nameClassName="text-lg" />
           <p className="text-sm font-medium text-muted-foreground">
             © {new Date().getFullYear()} Vippin. Conhecimento que gera renda.
           </p>
+          <ContactEmailLink />
         </div>
       </footer>
     </LayoutBackground>

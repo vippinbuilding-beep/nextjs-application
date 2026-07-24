@@ -78,7 +78,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
     product?.thumbnailPath && product?.id
-      ? getProductThumbnailUrl(product.id)
+      ? getProductThumbnailUrl(product.id, product.thumbnailPath)
       : null
   );
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +109,9 @@ export function ProductForm({ type, product }: ProductFormProps) {
       if (!product?.thumbnailPath) {
         setThumbnailPreview(null);
       } else if (product?.id) {
-        setThumbnailPreview(getProductThumbnailUrl(product.id));
+        setThumbnailPreview(
+          getProductThumbnailUrl(product.id, product.thumbnailPath)
+        );
       }
       return;
     }

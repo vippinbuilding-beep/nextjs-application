@@ -26,10 +26,17 @@ export function getProductDownloadUrl(productId: string, token: string): string 
 
 /**
  * URL of the thumbnail route (redirects to a short-lived signed URL). Thumbnails
- * are not sensitive, so this route is public and cacheable.
+ * are not sensitive, so this route is public and cacheable — pass the current
+ * `thumbnailPath` as `cacheKey` so a new upload (new storage path) busts the
+ * browser/CDN cache instead of serving the old image for up to 5 minutes.
  */
-export function getProductThumbnailUrl(productId: string): string {
-  return `/api/products/${productId}/thumbnail`;
+export function getProductThumbnailUrl(
+  productId: string,
+  cacheKey?: string | null
+): string {
+  const base = `/api/products/${productId}/thumbnail`;
+  if (!cacheKey) return base;
+  return `${base}?v=${encodeURIComponent(cacheKey)}`;
 }
 
 /** Public avatar route (streams uploaded bytes or proxies an external URL). */

@@ -122,7 +122,7 @@ function ProductFeedCard({
   emphasizePrice: boolean;
 }) {
   const thumbnailUrl = item.thumbnailPath
-    ? getProductThumbnailUrl(item.id)
+    ? getProductThumbnailUrl(item.id, item.thumbnailPath)
     : null;
   const href = `/@${item.creator.slug}/${item.slug}`;
 

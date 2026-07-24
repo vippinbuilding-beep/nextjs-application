@@ -42,7 +42,7 @@ interface ProductCardProps {
  */
 const ProductCard = ({ product, profile, type, mode = "public", status }: ProductCardProps) => {
     const thumbnailUrl = product.thumbnailPath
-        ? getProductThumbnailUrl(product.id)
+        ? getProductThumbnailUrl(product.id, product.thumbnailPath)
         : null;
     const bannerAspectRatio = productAspectRatio({
         thumbnailWidth: product.thumbnailWidth,

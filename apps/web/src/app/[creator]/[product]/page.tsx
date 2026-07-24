@@ -123,7 +123,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const canAccess = isOwner || hasEntitlement;
 
   const thumbnailUrl = row.thumbnail_path
-    ? getProductThumbnailUrl(row.id)
+    ? getProductThumbnailUrl(row.id, row.thumbnail_path)
     : null;
   const bannerAspectRatio = productAspectRatio({
     thumbnailWidth: row.thumbnail_width,
