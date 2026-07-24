@@ -315,11 +315,36 @@ export class SupabaseProductRepository implements ProductRepository {
     productId: string,
     file: File
   ): Promise<ThumbnailMetadata> {
-    const thumbnailPath = await uploadViaSignedUrl(productId, file, "thumbnail");
+    const uploadedPath = await uploadViaSignedUrl(productId, file, "thumbnail");
+    const { path, mime } = await transcodeThumbnailToWebp(productId, uploadedPath);
     return {
-      thumbnailPath,
-      thumbnailMime: file.type || "application/octet-stream",
+      thumbnailPath: path,
+      thumbnailMime: mime || file.type || "application/octet-stream",
     };
+  }
+}
+
+/**
+ * Asks the server to convert the just-uploaded thumbnail to WebP in place. On
+ * any failure it falls back to the original path/mime, so the save still works.
+ */
+async function transcodeThumbnailToWebp(
+  productId: string,
+  path: string
+): Promise<{ path: string; mime: string | null }> {
+  try {
+    const response = await fetch(
+      `/api/products/${productId}/thumbnail/transcode`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ path }),
+      }
+    );
+    if (!response.ok) return { path, mime: null };
+    return (await response.json()) as { path: string; mime: string | null };
+  } catch {
+    return { path, mime: null };
   }
 }
 

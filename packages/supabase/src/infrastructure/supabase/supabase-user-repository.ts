@@ -157,11 +157,32 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async uploadAvatar(userId: string, file: File): Promise<AvatarMetadata> {
-    const avatarPath = await uploadAvatarViaSignedUrl(userId, file);
+    const uploadedPath = await uploadAvatarViaSignedUrl(userId, file);
+    const { path, mime } = await transcodeAvatarToWebp(uploadedPath);
     return {
-      avatarPath,
-      avatarMime: file.type || "application/octet-stream",
+      avatarPath: path,
+      avatarMime: mime || file.type || "application/octet-stream",
     };
+  }
+}
+
+/**
+ * Asks the server to convert the just-uploaded avatar to WebP in place. On any
+ * failure it falls back to the original path/mime, so the upload still succeeds.
+ */
+async function transcodeAvatarToWebp(
+  path: string
+): Promise<{ path: string; mime: string | null }> {
+  try {
+    const response = await fetch("/api/profile/avatar/transcode", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ path }),
+    });
+    if (!response.ok) return { path, mime: null };
+    return (await response.json()) as { path: string; mime: string | null };
+  } catch {
+    return { path, mime: null };
   }
 }
 
