@@ -73,7 +73,7 @@ const CONSUMER_FEATURES = [
     icon: PlayCircle,
     title: "Aprenda no seu ritmo",
     description:
-      "Assista às aulas quando e quantas vezes quiser. O player faz seek e buffer direto, sem travar.",
+      "Pause, volte e pule quando quiser. Assista quantas vezes for necessário e continue de onde parou.",
   },
   {
     icon: FileText,

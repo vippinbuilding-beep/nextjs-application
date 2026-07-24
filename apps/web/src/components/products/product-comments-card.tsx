@@ -88,7 +88,7 @@ export function ProductCommentsCard({
 
       </CardHeader>
 
-      <CardContent className="max-h-full overflow-y-auto px-3 py-3">
+      <CardContent className="h-full overflow-y-auto px-3 py-3">
 
         <ProductCommentsPanel
           productId={productId}

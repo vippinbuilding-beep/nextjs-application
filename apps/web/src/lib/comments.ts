@@ -39,6 +39,27 @@ export function buildCommentTree(comments: ProductComment[]): CommentNode[] {
   return roots;
 }
 
+/**
+ * Sorts root comments by priority: user's own comments first, then others by
+ * creation date (oldest first). Does not sort replies.
+ */
+export function prioritizeComments(
+  roots: CommentNode[],
+  currentUserId?: string
+): CommentNode[] {
+  if (!currentUserId) return roots;
+
+  return [...roots].sort((a, b) => {
+    const aIsUser = a.userId === currentUserId;
+    const bIsUser = b.userId === currentUserId;
+
+    if (aIsUser && !bIsUser) return -1;
+    if (bIsUser && !aIsUser) return 1;
+
+    return a.createdAt.getTime() - b.createdAt.getTime();
+  });
+}
+
 export function authorLabel(
   comment: Pick<CommentNode, "authorName" | "authorSlug">
 ): string {

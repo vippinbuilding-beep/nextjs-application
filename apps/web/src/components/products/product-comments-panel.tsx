@@ -13,6 +13,7 @@ import { Textarea } from "@vippin/ui/textarea";
 import type { ProductComment } from "@vippin/core/models/product-comment";
 import {
   buildCommentTree,
+  prioritizeComments,
   COMMENT_BODY_MAX,
   type CommentNode,
   validateCommentBody,
@@ -67,7 +68,9 @@ export function ProductCommentsPanel({
       }
 
       const payload = (await response.json()) as { comments: CommentPayload[] };
-      setTree(buildCommentTree(parseComments(payload.comments)));
+      const tree = buildCommentTree(parseComments(payload.comments));
+      const prioritized = prioritizeComments(tree, currentUserId);
+      setTree(prioritized);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Não foi possível carregar os comentários."
@@ -75,7 +78,7 @@ export function ProductCommentsPanel({
     } finally {
       setLoading(false);
     }
-  }, [productId]);
+  }, [productId, currentUserId]);
 
   useEffect(() => {
     void loadComments();
