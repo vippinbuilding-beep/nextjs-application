@@ -40,14 +40,17 @@ export function buildCommentTree(comments: ProductComment[]): CommentNode[] {
 }
 
 /**
- * Sorts root comments by priority: user's own comments first, then others by
- * creation date (oldest first). Does not sort replies.
+ * Sorts root comments by priority: user's own comments first (newest first),
+ * then others by creation date (newest first). Does not sort replies.
  */
 export function prioritizeComments(
   roots: CommentNode[],
   currentUserId?: string
 ): CommentNode[] {
-  if (!currentUserId) return roots;
+  if (!currentUserId) {
+    // No current user: sort all by newest first
+    return [...roots].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
 
   return [...roots].sort((a, b) => {
     const aIsUser = a.userId === currentUserId;
@@ -56,7 +59,8 @@ export function prioritizeComments(
     if (aIsUser && !bIsUser) return -1;
     if (bIsUser && !aIsUser) return 1;
 
-    return a.createdAt.getTime() - b.createdAt.getTime();
+    // Both user's or both others: sort by newest first
+    return b.createdAt.getTime() - a.createdAt.getTime();
   });
 }
 
