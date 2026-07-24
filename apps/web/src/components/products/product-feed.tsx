@@ -4,6 +4,7 @@ import { ChevronRight, FileText } from "lucide-react";
 import type { ProductType } from "@vippin/core/models/product";
 import type { ProductWithCreator } from "@vippin/core/repositories/product-repository";
 import { formatBRL } from "@vippin/core/domain/money";
+import { richTextPreview } from "@vippin/core/domain/rich-text";
 import { productAspectRatio } from "@/lib/media-dimensions";
 import { PRODUCT_TYPES } from "@/lib/products";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
@@ -125,6 +126,8 @@ function ProductFeedCard({
     ? getProductThumbnailUrl(item.id, item.thumbnailPath)
     : null;
   const href = `/@${item.creator.slug}/${item.slug}`;
+  // A descrição é texto rico: no card mostramos só o texto puro.
+  const descriptionPreview = richTextPreview(item.description, 160);
 
   if (item.type === "document") {
     return (
@@ -201,9 +204,9 @@ function ProductFeedCard({
           {item.creator.handle}
         </span>
 
-        {item.description ? (
+        {descriptionPreview ? (
           <span className="text-muted-foreground line-clamp-2 text-xs font-medium">
-            {item.description}
+            {descriptionPreview}
           </span>
         ) : (
           <span className="text-muted-foreground text-xs font-medium">

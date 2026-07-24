@@ -77,6 +77,27 @@ function isKeyboardInputTarget(target: EventTarget | null): boolean {
 }
 
 /**
+ * A barra de controles fica **totalmente transparente** enquanto o ponteiro não
+ * está sobre o player, para não competir com o vídeo. Enquanto invisível ela
+ * também precisa ficar inerte — senão o usuário clicaria em botões que não vê
+ * (e o clique no vídeo, que dá play/pause, seria engolido).
+ *
+ * Em telas sem hover (toque) não existe estado intermediário, então os controles
+ * ficam visíveis e clicáveis o tempo todo.
+ */
+const CONTROLS_VISIBILITY = cn(
+  "opacity-0 transition-opacity",
+  "group-hover/player:opacity-100 focus-within:opacity-100",
+  "[@media(hover:none)]:opacity-100"
+);
+
+const CONTROLS_INTERACTIVE = cn(
+  "pointer-events-none",
+  "group-hover/player:pointer-events-auto group-focus-within/player:pointer-events-auto",
+  "[@media(hover:none)]:pointer-events-auto"
+);
+
+/**
  * Hardened custom video player for platform lessons.
  *
  * Security posture (deterrence, not DRM): the source is our gated `media`
@@ -517,8 +538,8 @@ export function VideoPlayer({
 
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3 opacity-20 transition-opacity",
-          "group-hover/player:opacity-100 focus-within:opacity-100"
+          "pointer-events-none absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3",
+          CONTROLS_VISIBILITY
         )}
       >
         <input
@@ -530,10 +551,13 @@ export function VideoPlayer({
           onChange={handleSeek}
           aria-label="Progresso do vídeo"
           style={progressTrackStyle}
-          className="pointer-events-auto h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/30 accent-primary"
+          className={cn(
+            "h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/30 accent-primary",
+            CONTROLS_INTERACTIVE
+          )}
         />
 
-        <div className="pointer-events-auto flex items-center gap-2 text-white">
+        <div className={cn("flex items-center gap-2 text-white", CONTROLS_INTERACTIVE)}>
           <button
             type="button"
             onClick={togglePlay}

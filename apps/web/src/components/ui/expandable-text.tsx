@@ -2,7 +2,11 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
+import { richTextLength } from "@vippin/core/domain/rich-text";
+import { RichTextContent } from "@vippin/ui/rich-text-content";
+
 interface ExpandableTextProps {
+  /** Texto puro ou HTML de texto rico (descrições de produto). */
   text: string;
   /** Characters shown before truncating and offering "Mostrar mais". */
   previewLength?: number;
@@ -18,6 +22,9 @@ function collapsedLineCount(previewLength: number): number {
  * Shows a clamped preview of long text with a "Mostrar mais"/"Mostrar menos"
  * toggle. The height animates smoothly between the collapsed and full state so
  * expanding/collapsing doesn't jump.
+ *
+ * Aceita HTML de texto rico — a marcação é sanitizada por `RichTextContent`. O
+ * limite da prévia conta os caracteres visíveis, não a marcação.
  */
 export function ExpandableText({
   text,
@@ -25,8 +32,8 @@ export function ExpandableText({
   className,
 }: ExpandableTextProps) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = text.length > previewLength;
-  const paragraphRef = useRef<HTMLParagraphElement>(null);
+  const isLong = richTextLength(text) > previewLength;
+  const contentRef = useRef<HTMLDivElement>(null);
   const [heights, setHeights] = useState<{ collapsed: number; full: number } | null>(
     null
   );
@@ -38,7 +45,7 @@ export function ExpandableText({
   // preview never flashes fully expanded on mount. Start with max-height: 0
   // (hidden) so no flash occurs, then measure and reveal.
   useLayoutEffect(() => {
-    const el = paragraphRef.current;
+    const el = contentRef.current;
     if (!el || !isLong) {
       setHeights(null);
       setMeasuring(false);
@@ -66,9 +73,7 @@ export function ExpandableText({
         className="overflow-hidden transition-[max-height] duration-300 ease-out"
         style={maxHeight !== undefined ? { maxHeight } : undefined}
       >
-        <p ref={paragraphRef} className="break-words whitespace-pre-line">
-          {text}
-        </p>
+        <RichTextContent ref={contentRef} value={text} />
       </div>
       {isLong && (
         <button

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { richTextPreview } from "@vippin/core/domain/rich-text";
+
 /** Fallback when `NEXT_PUBLIC_SITE_URL` is not set (local dev). */
 const LOCAL_SITE_URL = "http://localhost:3000";
 
@@ -186,8 +188,9 @@ export function createProductMetadata({
   const fallbackDescription = priceLabel
     ? `${typeLabel} ${priceLabel} de ${creatorHandle} no Vippin.`
     : `${typeLabel} de ${creatorHandle} no Vippin.`;
+  // A descrição é texto rico: nas metatags entra só o texto puro.
   const metaDescription = truncateDescription(
-    description?.trim() || fallbackDescription,
+    richTextPreview(description) || fallbackDescription,
   );
   const path = `/@${creatorSlug}/${productSlug}`;
   const ogImage = thumbnailPath
