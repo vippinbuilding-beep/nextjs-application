@@ -31,10 +31,9 @@ import {
 import { Input } from "@vippin/ui/input";
 import { Label } from "@vippin/ui/label";
 import { PriceInput } from "@vippin/ui/price-input";
-import { RichTextEditor } from "@vippin/ui/rich-text-editor";
+import { Textarea } from "@vippin/ui/textarea";
 import type { Product, ProductType } from "@vippin/core/models/product";
 import { formatBRL } from "@vippin/core/domain/money";
-import { isRichTextEmpty, richTextLength } from "@vippin/core/domain/rich-text";
 import { creatorProductFeeDescription } from "@/lib/payments/platform-fee";
 import {
   formatFileSize,
@@ -138,12 +137,8 @@ export function ProductForm({ type, product }: ProductFormProps) {
       return;
     }
 
-    // A descrição é HTML: contamos só os caracteres visíveis e descartamos o
-    // valor quando o editor está vazio (ele guarda um `<p></p>` residual).
-    const trimmedDescription = isRichTextEmpty(description)
-      ? ""
-      : description.trim();
-    if (richTextLength(trimmedDescription) > DESCRIPTION_MAX) {
+    const trimmedDescription = description.trim();
+    if (trimmedDescription.length > DESCRIPTION_MAX) {
       setError(
         `A descrição pode ter no máximo ${DESCRIPTION_MAX} caracteres.`
       );
@@ -389,14 +384,19 @@ export function ProductForm({ type, product }: ProductFormProps) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="description">Descrição</Label>
-            <RichTextEditor
+            <Textarea
               id="description"
               value={description}
-              onChange={setDescription}
+              onChange={(e) =>
+                setDescription(e.target.value.slice(0, DESCRIPTION_MAX))
+              }
+              className="min-h-96"
               maxLength={DESCRIPTION_MAX}
-              disabled={submitting || deleting}
               placeholder="Conte o que sua audiência vai receber."
             />
+            <p className="text-muted-foreground text-right text-xs">
+              {description.length}/{DESCRIPTION_MAX}
+            </p>
           </div>
 
           <div className="flex flex-col gap-2">

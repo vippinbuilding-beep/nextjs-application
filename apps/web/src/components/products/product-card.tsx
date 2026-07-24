@@ -5,7 +5,6 @@ import { ChevronRight } from "lucide-react";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
 import { productAspectRatio } from "@/lib/media-dimensions";
 import { PRODUCT_TYPES } from "@/lib/products";
-import { richTextPreview } from "@vippin/core/domain/rich-text";
 
 interface ProductCardProps {
     product: {
@@ -56,8 +55,6 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
             ? `/products/${product.id}/edit`
             : `/@${profile.slug}/${product.slug}`;
     const showCancelledBadge = mode === "manage" && status === "cancelled";
-    // A descrição é texto rico: no card mostramos só o texto puro.
-    const descriptionPreview = richTextPreview(product.description, 160);
 
     if (type === "document") {
         return (
@@ -81,9 +78,9 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
                             </span>
                         )}
                     </span>
-                    {descriptionPreview ? (
+                    {product.description ? (
                         <span className="text-muted-foreground line-clamp-1 text-xs font-mediu truncate">
-                            {descriptionPreview}
+                            {product.description}
                         </span>
                     ) : (
                         <span className="text-muted-foreground text-xs font-medium truncate">
@@ -125,9 +122,9 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
                     )}
                 </span>
 
-                {descriptionPreview && (
+                {product.description && (
                     <span className="text-muted-foreground line-clamp-2 text-xs font-medium truncate">
-                        {descriptionPreview}
+                        {product.description}
                     </span>
                 )}
             </span>
