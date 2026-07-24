@@ -55,66 +55,73 @@ export function ProductLanding({
   const isFree = priceCents <= 0;
 
   return (
-    <Card className="overflow-hidden">
-      <div className="relative">
-        <ProductThumbnail
-          type={type}
-          thumbnailUrl={thumbnailUrl}
-          rounded="rounded-t-2xl rounded-b-none"
-          className="-mt-6 w-full border-0 border-b-2"
-          iconClassName="size-14"
-          sizes="(min-width: 672px) 672px, 100vw"
-          aspectRatio={bannerAspectRatio}
-        />
-        <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2.5 py-1 text-xs font-bold shadow-cartoon-sm">
-          <Lock className="size-3.5" />
-          Conteúdo exclusivo
-        </span>
-      </div>
-
-      <CardHeader>
-        <CardTitle className="text-2xl">{title}</CardTitle>
-        {description && (
-          <CardDescription className="text-base text-muted-foreground">
-            <ExpandableText text={description} />
-          </CardDescription>
-        )}
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-5">
-        <CreatorProfileLink
-          userId={creatorId}
-          slug={creatorSlug}
-          handle={creatorHandle}
-          avatarPath={creatorAvatarPath}
-          avatarUrl={creatorAvatarUrl}
-        />
-
-        <div className="flex items-center justify-between gap-3 border-none">
-          <span className="text-muted-foreground text-sm font-medium">
-            {isFree ? "Preço" : "Você paga"}
-          </span>
-          <span className={cn(
-            "text-2xl font-bold",
-            isFree && "text-green-500",
-          )}>
-            {isFree ? "Grátis" : formatBRL(priceCents)}
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
+      <Card className="overflow-hidden">
+        <div className="relative">
+          <ProductThumbnail
+            type={type}
+            thumbnailUrl={thumbnailUrl}
+            rounded="rounded-t-2xl rounded-b-none"
+            className="-mt-6 w-full border-0 border-b-2"
+            iconClassName="size-16"
+            sizes="(min-width: 1024px) 640px, 100vw"
+            aspectRatio={bannerAspectRatio ?? 16 / 9}
+          />
+          <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2.5 py-1 text-xs font-bold shadow-cartoon-sm">
+            <Lock className="size-3.5" />
+            Conteúdo exclusivo
           </span>
         </div>
 
-        {isFree ? (
-          <FreeProductClaim
-            productId={productId}
-            isAuthenticated={isAuthenticated}
-          />
-        ) : (
-          <PixCheckout
-            productId={productId}
-            priceCents={priceCents}
-            isAuthenticated={isAuthenticated}
-          />
+        <CardHeader>
+          <CardTitle className="text-2xl lg:text-3xl">{title}</CardTitle>
+        </CardHeader>
+
+        {description && (
+          <CardContent>
+            <CardDescription className="text-base text-muted-foreground">
+              <ExpandableText text={description} previewLength={360} />
+            </CardDescription>
+          </CardContent>
         )}
-      </CardContent>
-    </Card>
+      </Card>
+
+      <Card className="lg:sticky lg:top-6">
+        <CardContent className="flex flex-col gap-5">
+          <CreatorProfileLink
+            userId={creatorId}
+            slug={creatorSlug}
+            handle={creatorHandle}
+            avatarPath={creatorAvatarPath}
+            avatarUrl={creatorAvatarUrl}
+          />
+
+          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-border bg-muted/40 px-4 py-3">
+            <span className="text-muted-foreground text-sm font-medium">
+              {isFree ? "Preço" : "Você paga"}
+            </span>
+            <span className={cn(
+              "text-2xl font-bold",
+              isFree && "text-green-500",
+            )}>
+              {isFree ? "Grátis" : formatBRL(priceCents)}
+            </span>
+          </div>
+
+          {isFree ? (
+            <FreeProductClaim
+              productId={productId}
+              isAuthenticated={isAuthenticated}
+            />
+          ) : (
+            <PixCheckout
+              productId={productId}
+              priceCents={priceCents}
+              isAuthenticated={isAuthenticated}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
