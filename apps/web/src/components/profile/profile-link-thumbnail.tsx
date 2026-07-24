@@ -212,7 +212,7 @@ export function ProfileLinkThumbnail({
   const imgRef = useRef<HTMLImageElement>(null);
   const sizeClasses = SIZE_CLASSES[size];
   const storedImageUrl =
-    linkId && imagePath ? getProfileLinkImageUrl(linkId) : null;
+    linkId && imagePath ? getProfileLinkImageUrl(linkId, imagePath) : null;
   const profileImageUrl = storedImageUrl ?? livePreviewUrl ?? null;
   const showProfileImage = Boolean(profileImageUrl) && !imageFailed;
   const showPreviewLoading = previewLoading && Boolean(livePreviewUrl);

@@ -51,9 +51,18 @@ export function getProfileAvatarPreviewUrl(): string {
   return "/api/profile/avatar/preview";
 }
 
-/** Public route for a stored profile link preview image. */
-export function getProfileLinkImageUrl(linkId: string): string {
-  return `/api/profile/links/${linkId}/image`;
+/**
+ * Public route for a stored profile link preview image. Pass the current
+ * `imagePath` as `cacheKey` so a new upload (new storage path) busts the
+ * long-lived browser cache instead of serving the old image.
+ */
+export function getProfileLinkImageUrl(
+  linkId: string,
+  cacheKey?: string | null
+): string {
+  const base = `/api/profile/links/${linkId}/image`;
+  if (!cacheKey) return base;
+  return `${base}?v=${encodeURIComponent(cacheKey)}`;
 }
 
 /** Gated route for an ask-me answer video. */

@@ -1,4 +1,5 @@
 import {
+  AVATAR_PREVIEW_CACHE_SECONDS,
   avatarResponseHeaders,
   fetchPlatformProfileImage,
 } from "@/lib/avatar-proxy";
@@ -46,7 +47,8 @@ export async function GET(request: Request) {
       status: 200,
       headers: avatarResponseHeaders(
         upstream.headers.get("content-type") || "image/jpeg",
-        upstream.headers.get("content-length")
+        upstream.headers.get("content-length"),
+        AVATAR_PREVIEW_CACHE_SECONDS
       ),
     });
   } catch {

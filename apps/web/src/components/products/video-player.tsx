@@ -519,8 +519,8 @@ export function VideoPlayer({
 
       <div
         className={cn(
-          "absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3 opacity-20 transition-opacity pointer-events-none",
-          "group-hover/player:opacity-100 group-hover/player:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto"
+          "pointer-events-none absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3 opacity-20 transition-opacity",
+          "group-hover/player:opacity-100 focus-within:opacity-100"
         )}
       >
         <input
@@ -532,10 +532,10 @@ export function VideoPlayer({
           onChange={handleSeek}
           aria-label="Progresso do vídeo"
           style={progressTrackStyle}
-          className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/30 accent-primary"
+          className="pointer-events-auto h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/30 accent-primary"
         />
 
-        <div className="flex items-center gap-2 text-white">
+        <div className="pointer-events-auto flex items-center gap-2 text-white">
           <button
             type="button"
             onClick={togglePlay}

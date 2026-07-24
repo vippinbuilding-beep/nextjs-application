@@ -1,5 +1,6 @@
 import { extractGoogleAvatarUrl } from "@/lib/profile";
 import {
+  AVATAR_PREVIEW_CACHE_SECONDS,
   avatarResponseHeaders,
   fetchExternalAvatar,
 } from "@/lib/avatar-proxy";
@@ -36,7 +37,8 @@ export async function GET() {
     status: 200,
     headers: avatarResponseHeaders(
       upstream.headers.get("content-type") || "image/jpeg",
-      upstream.headers.get("content-length")
+      upstream.headers.get("content-length"),
+      AVATAR_PREVIEW_CACHE_SECONDS
     ),
   });
 }

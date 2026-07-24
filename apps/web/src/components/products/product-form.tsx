@@ -390,6 +390,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
               onChange={(e) =>
                 setDescription(e.target.value.slice(0, DESCRIPTION_MAX))
               }
+              className="min-h-96"
               maxLength={DESCRIPTION_MAX}
               placeholder="Conte o que sua audiência vai receber."
             />

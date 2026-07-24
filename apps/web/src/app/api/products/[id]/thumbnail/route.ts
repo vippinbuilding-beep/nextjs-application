@@ -8,8 +8,13 @@ export const dynamic = "force-dynamic";
 
 /** Signed URL lifetime used internally to fetch the thumbnail bytes. */
 const SIGNED_TTL_SECONDS = 60;
-/** How long clients (and the Next image optimizer) may cache the bytes. */
-const CACHE_SECONDS = 60 * 5;
+/**
+ * How long clients (and the Next image optimizer) may cache the bytes. Safe to
+ * keep long: the URL is versioned by `?v=<thumbnailPath>` (see
+ * `getProductThumbnailUrl`), so a new upload always gets a fresh URL instead of
+ * serving the stale cached image.
+ */
+const CACHE_SECONDS = 60 * 60 * 24 * 30;
 
 /**
  * Streams a product thumbnail through the server. Thumbnails are not sensitive
