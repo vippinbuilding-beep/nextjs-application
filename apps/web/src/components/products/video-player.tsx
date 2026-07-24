@@ -12,7 +12,6 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@vippin/ui/lib/utils";
@@ -37,7 +36,6 @@ interface VideoPlayerProps {
 }
 
 const PLAYBACK_RATES = [1, 1.25, 1.5, 2, 0.5] as const;
-const COMMENTS_DRAWER_MS = 300;
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -108,17 +106,17 @@ export function VideoPlayer({
   const [rate, setRate] = useState<number>(1);
   const [fullscreen, setFullscreen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [commentsPanelVisible, setCommentsPanelVisible] = useState(false);
-  const [commentsPanelClosing, setCommentsPanelClosing] = useState(false);
-  const commentsPanelVisibleRef = useRef(false);
-  const commentsCloseTimerRef = useRef<number | null>(null);
+  // Mounted lazily on first open and kept mounted while the in-player comments
+  // are available (fullscreen), so reopening never refetches the comments and
+  // there is no unmount/remount flash on close.
+  const [commentsMounted, setCommentsMounted] = useState(false);
   const defaultAspectRatio = initialAspectRatio ?? 16 / 9;
   const [aspectRatio, setAspectRatio] = useState(defaultAspectRatio);
   const [showPoster, setShowPoster] = useState(Boolean(poster));
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
-  const showPlayerComments =
-    Boolean(commentsSlot) && (isLargeScreen || fullscreen);
-  const mobileCommentsFullscreen = showPlayerComments && !isLargeScreen && !fullscreen;
+  // On desktop the docked sidebar already shows the comments, so the in-player
+  // comments button is only needed in fullscreen (where that sidebar is gone).
+  const showPlayerComments = Boolean(commentsSlot) && fullscreen;
   const theatreDesktop = theatre && isLargeScreen && !fullscreen;
   const progressPercent =
     duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
@@ -331,59 +329,31 @@ export function VideoPlayer({
     return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
-  const clearCommentsCloseTimer = useCallback(() => {
-    if (commentsCloseTimerRef.current !== null) {
-      window.clearTimeout(commentsCloseTimerRef.current);
-      commentsCloseTimerRef.current = null;
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isLargeScreen && !fullscreen) {
-      setCommentsOpen(false);
-    }
-  }, [fullscreen, isLargeScreen]);
-
+  // When the in-player comments stop being available (leaving fullscreen),
+  // close and unmount them so re-entering fullscreen loads a fresh panel.
   useEffect(() => {
     if (!showPlayerComments) {
-      clearCommentsCloseTimer();
-      commentsPanelVisibleRef.current = false;
       setCommentsOpen(false);
-      setCommentsPanelVisible(false);
-      setCommentsPanelClosing(false);
-      return;
+      setCommentsMounted(false);
     }
+  }, [showPlayerComments]);
 
+  const toggleComments = useCallback(() => {
     if (commentsOpen) {
-      clearCommentsCloseTimer();
-      commentsPanelVisibleRef.current = true;
-      setCommentsPanelVisible(true);
-      setCommentsPanelClosing(false);
+      setCommentsOpen(false);
       return;
     }
-
-    if (!commentsPanelVisibleRef.current) return;
-
-    setCommentsPanelClosing(true);
-    clearCommentsCloseTimer();
-    commentsCloseTimerRef.current = window.setTimeout(() => {
-      commentsPanelVisibleRef.current = false;
-      setCommentsPanelVisible(false);
-      commentsCloseTimerRef.current = null;
-    }, COMMENTS_DRAWER_MS);
-
-    return clearCommentsCloseTimer;
-  }, [commentsOpen, showPlayerComments, clearCommentsCloseTimer]);
-
-  useEffect(() => {
-    if (!mobileCommentsFullscreen || !commentsOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [commentsOpen, mobileCommentsFullscreen]);
+    if (commentsMounted) {
+      setCommentsOpen(true);
+      return;
+    }
+    // First open: mount the (off-screen) panel, then flip it open on the next
+    // frames so the slide-in transition runs from the closed state.
+    setCommentsMounted(true);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => setCommentsOpen(true))
+    );
+  }, [commentsOpen, commentsMounted]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -593,7 +563,7 @@ export function VideoPlayer({
             {showPlayerComments && (
               <button
                 type="button"
-                onClick={() => setCommentsOpen((open) => !open)}
+                onClick={toggleComments}
                 aria-label={commentsOpen ? "Fechar comentários" : "Abrir comentários"}
                 aria-expanded={commentsOpen}
                 className={cn(
@@ -630,92 +600,54 @@ export function VideoPlayer({
         </div>
       </div>
 
-      {showPlayerComments && commentsPanelVisible && (
+      {showPlayerComments && commentsMounted && (
         <>
-          {mobileCommentsFullscreen && typeof document !== "undefined"
-            ? createPortal(
-              <aside
-                role="dialog"
-                aria-modal="true"
-                aria-label="Comentários"
-                className={cn(
-                  "fixed inset-0 z-50 flex flex-col overflow-hidden bg-background text-foreground",
-                  commentsPanelClosing
-                    ? "animate-out fade-out-0 slide-out-to-bottom duration-300"
-                    : "animate-in fade-in-0 slide-in-from-bottom duration-300"
-                )}
-              >
-                <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-border px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
-                  <span className="flex items-center gap-2 text-sm font-bold">
-                    <MessageSquare className="size-4" />
-                    Comentários
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setCommentsOpen(false)}
-                    aria-label="Fechar comentários"
-                    className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-muted"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-                <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-                  {commentsSlot}
-                </div>
-              </aside>,
-              document.body
-            )
-            : null}
-
-          {!mobileCommentsFullscreen && (
-            <>
+          <button
+            type="button"
+            aria-label="Fechar comentários"
+            tabIndex={commentsOpen ? 0 : -1}
+            onClick={() => setCommentsOpen(false)}
+            className={cn(
+              "absolute inset-0 z-30 bg-black/45 transition-opacity duration-300",
+              commentsOpen ? "opacity-100" : "pointer-events-none opacity-0"
+            )}
+          />
+          <aside
+            aria-hidden={!commentsOpen}
+            className={cn(
+              "absolute z-40 flex flex-col overflow-hidden",
+              "rounded-2xl border-2 border-border bg-background text-foreground shadow-cartoon-lg",
+              "transition-[transform,opacity] duration-300 ease-out",
+              commentsOpen
+                ? "translate-x-0 opacity-100"
+                : "pointer-events-none translate-x-[110%] opacity-0",
+              !isLargeScreen && fullscreen
+                ? "inset-0 rounded-none border-0 shadow-none"
+                : fullscreen
+                  ? "top-6 right-5 bottom-10 w-[min(calc(100%-2.5rem),380px)]"
+                  : immersive
+                    ? "inset-2 rounded-xl"
+                    : "top-4 right-3 bottom-6 w-[min(calc(100%-1.25rem),340px)]"
+            )}
+          >
+            <div className="flex items-center justify-between gap-2 border-b-2 border-border px-3 py-2">
+              <span className="flex items-center gap-2 text-sm font-bold">
+                <MessageSquare className="size-4" />
+                Comentários
+              </span>
               <button
                 type="button"
-                aria-label="Fechar comentários"
-                className={cn(
-                  "absolute inset-0 z-30 bg-black/45",
-                  commentsPanelClosing
-                    ? "animate-out fade-out-0 duration-300"
-                    : "animate-in fade-in-0 duration-300"
-                )}
                 onClick={() => setCommentsOpen(false)}
-              />
-              <aside
-                className={cn(
-                  "absolute z-40 flex flex-col overflow-hidden",
-                  "rounded-2xl border-2 border-border bg-background text-foreground shadow-cartoon-lg",
-                  commentsPanelClosing
-                    ? "animate-out fade-out-0 slide-out-to-right duration-300"
-                    : "animate-in fade-in-0 slide-in-from-right duration-300",
-                  !isLargeScreen && fullscreen
-                    ? "inset-0 rounded-none border-0 shadow-none"
-                    : fullscreen
-                      ? "top-6 right-5 bottom-10 w-[min(calc(100%-2.5rem),380px)]"
-                      : immersive
-                        ? "inset-2 rounded-xl"
-                        : "top-4 right-3 bottom-6 w-[min(calc(100%-1.25rem),340px)]"
-                )}
+                aria-label="Fechar comentários"
+                className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-muted"
               >
-                <div className="flex items-center justify-between gap-2 border-b-2 border-border px-3 py-2">
-                  <span className="flex items-center gap-2 text-sm font-bold">
-                    <MessageSquare className="size-4" />
-                    Comentários
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setCommentsOpen(false)}
-                    aria-label="Fechar comentários"
-                    className="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-muted"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-                <div className="min-h-0 flex-1 overflow-y-auto px-1 py-1">
-                  {commentsSlot}
-                </div>
-              </aside>
-            </>
-          )}
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-1 py-1">
+              {commentsSlot}
+            </div>
+          </aside>
         </>
       )}
     </div>

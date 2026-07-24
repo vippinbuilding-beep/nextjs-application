@@ -326,7 +326,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl">
+    <form onSubmit={handleSubmit} className="w-full">
       <Card className="w-full">
         <CardHeader>
           <div className="mb-1 flex items-center justify-between gap-2">
