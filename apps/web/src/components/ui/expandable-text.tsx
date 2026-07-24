@@ -30,26 +30,32 @@ export function ExpandableText({
   const [heights, setHeights] = useState<{ collapsed: number; full: number } | null>(
     null
   );
+  const [measuring, setMeasuring] = useState(isLong);
 
   const lines = collapsedLineCount(previewLength);
 
   // Measure the collapsed (N lines) and full heights before paint so the
-  // preview never flashes fully expanded on mount.
+  // preview never flashes fully expanded on mount. Start with max-height: 0
+  // (hidden) so no flash occurs, then measure and reveal.
   useLayoutEffect(() => {
     const el = paragraphRef.current;
     if (!el || !isLong) {
       setHeights(null);
+      setMeasuring(false);
       return;
     }
     const full = el.scrollHeight;
     const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 20;
     const collapsed = Math.min(full, Math.round(lineHeight * lines));
     setHeights({ collapsed, full });
+    setMeasuring(false);
   }, [isLong, lines, text]);
 
   const maxHeight =
-    !isLong || !heights
-      ? undefined
+    !isLong || !heights || measuring
+      ? measuring
+        ? "0px"
+        : undefined
       : expanded
         ? heights.full
         : heights.collapsed;

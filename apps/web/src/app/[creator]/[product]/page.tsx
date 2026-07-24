@@ -249,7 +249,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   )}
                 </div>
                 {row.description && type === "document" && (
-                  <CardDescription className="text-base text-muted-foreground">
+                  <CardDescription className="text-base text-muted-foreground min-w-0 break-words">
                     <ExpandableText text={row.description} />
                   </CardDescription>
                 )}
