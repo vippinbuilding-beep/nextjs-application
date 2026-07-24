@@ -101,6 +101,17 @@ const CONTROLS_INTERACTIVE = cn(
 const POINTER_IDLE_MS = 2500;
 
 /**
+ * `true` só quando o foco dentro do player veio do teclado. Um clique também
+ * deixa o botão focado, mas isso não significa que a pessoa está navegando por
+ * ali — por isso `:focus-visible` em vez de `:focus`.
+ */
+function isKeyboardFocusInside(container: HTMLElement | null): boolean {
+  const active = document.activeElement;
+  if (!container || !active || !container.contains(active)) return false;
+  return active.matches(":focus-visible");
+}
+
+/**
  * Hardened custom video player for platform lessons.
  *
  * Security posture (deterrence, not DRM): the source is our gated `media`
@@ -127,6 +138,7 @@ export function VideoPlayer({
   const restoredProgressRef = useRef(false);
   const lastSavedProgressRef = useRef({ positionSeconds: 0, savedAt: 0 });
   const pointerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pointerDownRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
   // True until the video has buffered enough to play, and again whenever
@@ -463,15 +475,39 @@ export function VideoPlayer({
 
       clearPointerIdleTimer();
       pointerIdleTimerRef.current = setTimeout(() => {
-        // Enquanto o usuário está mexendo num controle (barra de progresso,
-        // volume, teclado), esconder atrapalharia mais do que ajuda.
-        const container = containerRef.current;
-        if (container && container.contains(document.activeElement)) return;
+        // Arrastando a barra de progresso ou o volume: não some no meio do gesto.
+        if (pointerDownRef.current) return;
+        // Navegando por teclado, esconder atrapalharia. O foco deixado por um
+        // clique não conta — senão bastava apertar "play" para o overlay nunca
+        // mais sumir.
+        if (isKeyboardFocusInside(containerRef.current)) return;
         setPointerIdle(true);
       }, POINTER_IDLE_MS);
     },
     [clearPointerIdleTimer, commentsOpen]
   );
+
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType === "mouse") pointerDownRef.current = true;
+      handlePointerActivity(event);
+    },
+    [handlePointerActivity]
+  );
+
+  // O gesto pode terminar fora do player (arrastar a barra e soltar longe), daí
+  // ouvirmos o `pointerup` no documento em vez de só no container.
+  useEffect(() => {
+    const onPointerUp = () => {
+      pointerDownRef.current = false;
+    };
+    document.addEventListener("pointerup", onPointerUp);
+    document.addEventListener("pointercancel", onPointerUp);
+    return () => {
+      document.removeEventListener("pointerup", onPointerUp);
+      document.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, []);
 
   const handlePointerLeave = useCallback(() => {
     clearPointerIdleTimer();
@@ -482,8 +518,9 @@ export function VideoPlayer({
     <div
       ref={containerRef}
       onContextMenu={(e) => e.preventDefault()}
+      onPointerEnter={handlePointerActivity}
       onPointerMove={handlePointerActivity}
-      onPointerDown={handlePointerActivity}
+      onPointerDown={handlePointerDown}
       onPointerLeave={handlePointerLeave}
       className={cn(
         "group/player relative w-full overflow-hidden bg-black",
