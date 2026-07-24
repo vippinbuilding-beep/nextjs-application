@@ -190,7 +190,7 @@ export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
   }
 
   const formContent = (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl">
+    <form onSubmit={handleSubmit} className="w-full">
       <Card>
         <CardHeader>
           <CardTitle>Editar perfil</CardTitle>

@@ -37,6 +37,16 @@ interface VideoPlayerProps {
 
 const PLAYBACK_RATES = [1, 1.25, 1.5, 2, 0.5] as const;
 
+/** Cap the non-fullscreen theatre player height so it always fits the viewport. */
+const PLAYER_MAX_HEIGHT = "min(80svh, 820px)";
+
+/**
+ * Inline (non-fullscreen) theatre player keeps a fixed 16:9 frame — same size
+ * regardless of the video's own ratio, like YouTube. Off-ratio videos are
+ * letterboxed inside it (object-contain); only fullscreen adapts to the screen.
+ */
+const THEATRE_ASPECT_RATIO = 16 / 9;
+
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
   const total = Math.floor(seconds);
@@ -117,12 +127,25 @@ export function VideoPlayer({
   // On desktop the docked sidebar already shows the comments, so the in-player
   // comments button is only needed in fullscreen (where that sidebar is gone).
   const showPlayerComments = Boolean(commentsSlot) && fullscreen;
-  const theatreDesktop = theatre && isLargeScreen && !fullscreen;
   const progressPercent =
     duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
   const progressTrackStyle: React.CSSProperties = {
     background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${progressPercent}%, rgb(255 255 255 / 0.3) ${progressPercent}%, rgb(255 255 255 / 0.3) 100%)`,
   };
+
+  // In theatre mode (lesson pages) size the player by its aspect ratio, but cap
+  // its height to the viewport and its width to `cap * ratio` so it stays fully
+  // visible and centered on any screen — YouTube-style — instead of filling the
+  // column and pushing the rest of the page out of reach.
+  const containerStyle: React.CSSProperties | undefined = fullscreen
+    ? undefined
+    : theatre
+      ? {
+          aspectRatio: THEATRE_ASPECT_RATIO,
+          maxHeight: PLAYER_MAX_HEIGHT,
+          maxWidth: `calc(${PLAYER_MAX_HEIGHT} * ${THEATRE_ASPECT_RATIO})`,
+        }
+      : { aspectRatio };
 
   const syncAspectRatioFromVideo = useCallback((video: HTMLVideoElement) => {
     if (aspectRatioLockedRef.current) return;
@@ -384,11 +407,10 @@ export function VideoPlayer({
     <div
       ref={containerRef}
       onContextMenu={(e) => e.preventDefault()}
-      style={fullscreen || theatreDesktop ? undefined : { aspectRatio }}
+      style={containerStyle}
       className={cn(
         "group/player relative w-full overflow-hidden bg-black",
-        theatre && "rounded-none border-0 shadow-none",
-        theatreDesktop && "h-full",
+        theatre && "mx-auto rounded-none border-0 shadow-none",
         !theatre &&
         immersive &&
         "rounded-none border-0 shadow-none lg:rounded-xl lg:border-2 lg:border-border lg:shadow-cartoon-sm",
@@ -442,7 +464,7 @@ export function VideoPlayer({
           setMuted(e.currentTarget.muted);
           setVolume(e.currentTarget.volume);
         }}
-        className="absolute inset-0 size-full object-cover"
+        className="absolute inset-0 size-full object-contain"
       >
         Seu navegador não suporta a reprodução de vídeo.
       </video>
@@ -454,7 +476,7 @@ export function VideoPlayer({
           alt=""
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-0 size-full object-cover transition-opacity duration-200",
+            "pointer-events-none absolute inset-0 size-full object-contain transition-opacity duration-200",
             showPoster ? "opacity-100" : "opacity-0"
           )}
         />

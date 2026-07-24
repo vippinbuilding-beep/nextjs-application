@@ -55,7 +55,7 @@ export function ProductLessonLayout({
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:items-stretch">
         {/* Player + stream info */}
         <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
-          <div className="relative min-h-48 w-full bg-black lg:min-h-0 lg:flex-1">
+          <div className="w-full shrink-0 bg-black">
             {hasFile && mediaUrl ? (
               <ProductLessonViewer
                 productId={productId}
@@ -66,10 +66,10 @@ export function ProductLessonLayout({
                 watermark={watermark}
                 initialAspectRatio={bannerAspectRatio}
                 theatre
-                className="lg:absolute lg:inset-0 lg:h-full lg:w-full"
+                className="mx-auto"
               />
             ) : (
-              <div className="flex aspect-video w-full items-center justify-center px-4 py-16 text-center text-sm text-white/70">
+              <div className="mx-auto flex aspect-video max-h-[80svh] w-full items-center justify-center px-4 py-16 text-center text-sm text-white/70">
                 O conteúdo desta aula ainda não está disponível.
               </div>
             )}

@@ -47,7 +47,7 @@ export default function NewProductPage() {
         description="Escolha o tipo de conteúdo que quer publicar."
       />
 
-      <Card className="w-full max-w-md">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Qual tipo de produto?</CardTitle>
           <CardDescription>
