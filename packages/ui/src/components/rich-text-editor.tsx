@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { EditorContent, useEditor, type Editor } from "@tiptap/react";
+import type { EditorState } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
@@ -19,7 +20,6 @@ import {
   Undo2,
 } from "lucide-react";
 
-import { richTextLength } from "@vippin/core/domain/rich-text";
 import { Button } from "./button";
 import {
   Dialog,
@@ -49,6 +49,14 @@ interface RichTextEditorProps {
 /** O editor guarda `<p></p>` quando está vazio; para o formulário isso é "". */
 function normalizeHtml(editor: Editor): string {
   return editor.isEmpty ? "" : editor.getHTML();
+}
+
+/**
+ * Caracteres visíveis do documento. Lê direto do estado do ProseMirror — bem
+ * mais barato que serializar em HTML e limpar as tags depois.
+ */
+function plainTextLength(state: EditorState): number {
+  return state.doc.textBetween(0, state.doc.content.size, "\n").length;
 }
 
 interface ToolbarButtonProps {
@@ -99,6 +107,12 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const [linkOpen, setLinkOpen] = React.useState(false);
   const [linkUrl, setLinkUrl] = React.useState("");
+  const [plainLength, setPlainLength] = React.useState(0);
+
+  // Último HTML que este componente emitiu. Serializar o documento é caro em
+  // textos longos, então guardamos o resultado para comparar com o `value` que
+  // volta do formulário em vez de chamar `getHTML()` a cada render.
+  const emittedHtmlRef = React.useRef(value);
 
   const editor = useEditor({
     // O conteúdo é renderizado só no cliente para não quebrar a hidratação.
@@ -124,29 +138,39 @@ export function RichTextEditor({
         "aria-multiline": "true",
         class: cn(
           richTextProseClassName,
-          "min-h-64 w-full px-3.5 py-3 text-base font-medium outline-none md:text-sm"
+          "w-full px-3.5 py-3 text-base font-medium outline-none",
+          // A área de escrita rola por dentro: a barra de ferramentas continua
+          // visível mesmo em descrições longas, em vez de sumir página acima.
+          "min-h-64 max-h-[60vh] overflow-y-auto"
         ),
       },
-      // O limite vale para o texto visível: bloqueia digitação e corta o colado.
+      // O limite vale para o texto visível: bloqueia a digitação que passaria do
+      // teto (o valor colado é barrado na validação do formulário).
       handleTextInput: (view, from, to, text) => {
         if (!maxLength) return false;
-        const nextLength =
-          view.state.doc.textBetween(0, view.state.doc.content.size, "\n").length -
-          (to - from) +
-          text.length;
+        const nextLength = plainTextLength(view.state) - (to - from) + text.length;
         return nextLength > maxLength;
       },
     },
+    onCreate: ({ editor: current }) => {
+      setPlainLength(plainTextLength(current.state));
+    },
     onUpdate: ({ editor: current }) => {
-      onChange(normalizeHtml(current));
+      const html = normalizeHtml(current);
+      emittedHtmlRef.current = html;
+      setPlainLength(plainTextLength(current.state));
+      onChange(html);
     },
   });
 
-  // Sincroniza quando o valor muda por fora (ex.: reset do formulário).
+  // Sincroniza quando o valor muda por fora (ex.: reset do formulário). Compara
+  // com o que emitimos para não re-serializar o documento a cada tecla.
   React.useEffect(() => {
     if (!editor) return;
-    if (value === normalizeHtml(editor)) return;
+    if (value === emittedHtmlRef.current) return;
+    emittedHtmlRef.current = value;
     editor.commands.setContent(value || "", { emitUpdate: false });
+    setPlainLength(plainTextLength(editor.state));
   }, [editor, value]);
 
   React.useEffect(() => {
@@ -164,7 +188,6 @@ export function RichTextEditor({
     );
   }
 
-  const plainLength = richTextLength(normalizeHtml(editor));
   const atLimit = Boolean(maxLength && plainLength >= maxLength);
 
   function openLinkDialog() {

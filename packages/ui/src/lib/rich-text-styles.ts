@@ -12,8 +12,10 @@ export const richTextProseClassName = cn(
   "break-words",
   "[&_p]:my-0 [&_p+p]:mt-3",
   "[&_strong]:font-bold [&_em]:italic [&_u]:underline [&_s]:line-through",
-  "[&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-foreground",
-  "[&_h3]:mt-4 [&_h3]:mb-1.5 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-foreground",
+  // Os títulos precisam se distinguir do corpo à primeira vista — senão parece
+  // que o botão de título não fez nada.
+  "[&_h2]:mt-5 [&_h2]:mb-2 [&_h2]:text-2xl [&_h2]:leading-tight [&_h2]:font-bold [&_h2]:text-foreground",
+  "[&_h3]:mt-4 [&_h3]:mb-1.5 [&_h3]:text-xl [&_h3]:leading-snug [&_h3]:font-bold [&_h3]:text-foreground",
   "[&_h2:first-child]:mt-0 [&_h3:first-child]:mt-0",
   "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5",
   "[&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5",

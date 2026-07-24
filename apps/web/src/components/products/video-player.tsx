@@ -97,6 +97,9 @@ const CONTROLS_INTERACTIVE = cn(
   "[@media(hover:none)]:pointer-events-auto"
 );
 
+/** Tempo de ponteiro parado sobre o player antes de esconder controles e cursor. */
+const POINTER_IDLE_MS = 2500;
+
 /**
  * Hardened custom video player for platform lessons.
  *
@@ -123,6 +126,7 @@ export function VideoPlayer({
   const pendingResumeSecondsRef = useRef<number | null>(null);
   const restoredProgressRef = useRef(false);
   const lastSavedProgressRef = useRef({ positionSeconds: 0, savedAt: 0 });
+  const pointerIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [playing, setPlaying] = useState(false);
   // True until the video has buffered enough to play, and again whenever
@@ -144,6 +148,8 @@ export function VideoPlayer({
   const defaultAspectRatio = initialAspectRatio ?? 16 / 9;
   const [aspectRatio, setAspectRatio] = useState(defaultAspectRatio);
   const [showPoster, setShowPoster] = useState(Boolean(poster));
+  /** Ponteiro parado sobre o player: esconde controles e cursor. */
+  const [pointerIdle, setPointerIdle] = useState(false);
   const isLargeScreen = useMediaQuery("(min-width: 1024px)");
   // On desktop the docked sidebar already shows the comments, so the in-player
   // comments button is only needed in fullscreen (where that sidebar is gone).
@@ -424,12 +430,64 @@ export function VideoPlayer({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [ready, togglePlay]);
 
+  const clearPointerIdleTimer = useCallback(() => {
+    if (pointerIdleTimerRef.current) {
+      clearTimeout(pointerIdleTimerRef.current);
+      pointerIdleTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearPointerIdleTimer, [clearPointerIdleTimer]);
+
+  // Abrir os comentários traz controles e cursor de volta na hora.
+  useEffect(() => {
+    if (!commentsOpen) return;
+    clearPointerIdleTimer();
+    setPointerIdle(false);
+  }, [commentsOpen, clearPointerIdleTimer]);
+
+  /**
+   * Mouse parado sobre o player esconde controles e cursor, como num player de
+   * cinema. Só vale para mouse: em toque não há "parado sobre o player", e o
+   * ponteiro nunca desaparece.
+   */
+  const handlePointerActivity = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (event.pointerType !== "mouse") return;
+      // Com o painel de comentários aberto o player deixa de ser só vídeo:
+      // esconder o cursor enquanto a pessoa lê seria hostil.
+      if (commentsOpen) return;
+
+      // `setState` a cada movimento seria caro; só saímos do estado ocioso.
+      setPointerIdle((idle) => (idle ? false : idle));
+
+      clearPointerIdleTimer();
+      pointerIdleTimerRef.current = setTimeout(() => {
+        // Enquanto o usuário está mexendo num controle (barra de progresso,
+        // volume, teclado), esconder atrapalharia mais do que ajuda.
+        const container = containerRef.current;
+        if (container && container.contains(document.activeElement)) return;
+        setPointerIdle(true);
+      }, POINTER_IDLE_MS);
+    },
+    [clearPointerIdleTimer, commentsOpen]
+  );
+
+  const handlePointerLeave = useCallback(() => {
+    clearPointerIdleTimer();
+    setPointerIdle(false);
+  }, [clearPointerIdleTimer]);
+
   return (
     <div
       ref={containerRef}
       onContextMenu={(e) => e.preventDefault()}
+      onPointerMove={handlePointerActivity}
+      onPointerDown={handlePointerActivity}
+      onPointerLeave={handlePointerLeave}
       className={cn(
         "group/player relative w-full overflow-hidden bg-black",
+        pointerIdle && "cursor-none",
         theatre && "rounded-none border-0 shadow-none",
         !theatre &&
         immersive &&
@@ -539,7 +597,10 @@ export function VideoPlayer({
       <div
         className={cn(
           "pointer-events-none absolute inset-0 flex flex-col justify-end gap-1 bg-linear-to-t from-black/80 via-black/40 via-30% to-transparent p-3",
-          CONTROLS_VISIBILITY
+          // Com o ponteiro parado o overlay sai de cena; fora disso vale a regra
+          // de hover/foco. Forçamos aqui em vez de empilhar mais um variant para
+          // não depender da ordem das classes no CSS gerado.
+          pointerIdle ? "opacity-0 transition-opacity" : CONTROLS_VISIBILITY
         )}
       >
         <input
@@ -553,11 +614,16 @@ export function VideoPlayer({
           style={progressTrackStyle}
           className={cn(
             "h-1.5 w-full cursor-pointer appearance-none rounded-full bg-white/30 accent-primary",
-            CONTROLS_INTERACTIVE
+            pointerIdle ? "pointer-events-none" : CONTROLS_INTERACTIVE
           )}
         />
 
-        <div className={cn("flex items-center gap-2 text-white", CONTROLS_INTERACTIVE)}>
+        <div
+          className={cn(
+            "flex items-center gap-2 text-white",
+            pointerIdle ? "pointer-events-none" : CONTROLS_INTERACTIVE
+          )}
+        >
           <button
             type="button"
             onClick={togglePlay}
