@@ -52,9 +52,9 @@ export function ProductLessonLayout({
   return (
     <main className="flex min-h-svh flex-col bg-background">
       <PublicNavBar />
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:items-stretch">
+      <div className="flex flex-col lg:flex-row">
         {/* Player + stream info */}
-        <div className="flex min-w-0 flex-1 flex-col lg:h-svh lg:overflow-y-auto">
+        <div className="flex min-w-0 flex-1 flex-col">
           <div className="w-full shrink-0 bg-black">
             {hasFile && mediaUrl ? (
               <ProductLessonViewer
@@ -123,11 +123,11 @@ export function ProductLessonLayout({
           </div>
         </div>
 
-        {/* Docked chat — desktop */}
+        {/* Comments sidebar — desktop */}
         <aside
           className={cn(
             "hidden lg:flex lg:w-[min(100%,25vw)] lg:shrink-0 lg:flex-col",
-            "lg:sticky lg:top-0 lg:h-svh lg:border-l-2 lg:border-border lg:bg-muted/20"
+            "lg:border-l-2 lg:border-border lg:bg-muted/20"
           )}
         >
           <ProductCommentsCard
