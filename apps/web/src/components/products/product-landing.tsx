@@ -55,7 +55,7 @@ export function ProductLanding({
   const isFree = priceCents <= 0;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start">
+    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start lg:grid-cols-[minmax(0,1fr)_23rem]">
       <Card className="overflow-hidden">
         <div className="relative">
           <ProductThumbnail
@@ -67,9 +67,9 @@ export function ProductLanding({
             sizes="(min-width: 1024px) 640px, 100vw"
             aspectRatio={bannerAspectRatio ?? 16 / 9}
           />
-          <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2.5 py-1 text-xs font-bold shadow-cartoon-sm">
-            <Lock className="size-3.5" />
-            Conteúdo exclusivo
+          <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2 py-1 text-xs font-bold shadow-cartoon-sm sm:px-2.5">
+            <Lock className="size-3.5 shrink-0" />
+            <span className="whitespace-nowrap">Conteúdo exclusivo</span>
           </span>
         </div>
 
@@ -86,7 +86,7 @@ export function ProductLanding({
         )}
       </Card>
 
-      <Card className="lg:sticky lg:top-6">
+      <Card className="md:sticky md:top-6">
         <CardContent className="flex flex-col gap-5">
           <CreatorProfileLink
             userId={creatorId}
@@ -96,12 +96,12 @@ export function ProductLanding({
             avatarUrl={creatorAvatarUrl}
           />
 
-          <div className="flex items-center justify-between gap-3 rounded-xl border-2 border-border bg-muted/40 px-4 py-3">
-            <span className="text-muted-foreground text-sm font-medium">
+          <div className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-muted/40 px-3 py-3 sm:gap-3 sm:px-4">
+            <span className="text-muted-foreground min-w-0 truncate text-sm font-medium">
               {isFree ? "Preço" : "Você paga"}
             </span>
             <span className={cn(
-              "text-2xl font-bold",
+              "shrink-0 text-xl font-bold sm:text-2xl",
               isFree && "text-green-500",
             )}>
               {isFree ? "Grátis" : formatBRL(priceCents)}

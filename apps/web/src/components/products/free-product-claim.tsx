@@ -50,14 +50,14 @@ export function FreeProductClaim({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-6 py-8 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-4 py-6 text-center sm:px-6 sm:py-8">
         <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm">
           <Gift className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">
           Entre na sua conta para aderir a este conteúdo gratuito.
         </p>
-        <LoginRolePicker next={returnPath} className="max-w-xs" />
+        <LoginRolePicker next={returnPath} />
       </div>
     );
   }
