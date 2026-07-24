@@ -74,6 +74,8 @@ export interface ProductRepository {
    * The product becomes invisible to everyone except its creator.
    */
   cancel(id: string): Promise<void>;
+  /** Restores a cancelled product back to `active`. */
+  restore(id: string): Promise<void>;
   /**
    * Returns an available slug (unique within the caller's products) derived
    * from `base` (usually the product title). It does not persist anything.

@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, FileText, Film, Trash2 } from "lucide-react";
+import { ExternalLink, FileText, Film, RotateCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -86,6 +86,8 @@ export function ProductForm({ type, product }: ProductFormProps) {
   const [deleting, setDeleting] = useState(false);
   const [showFreeConfirm, setShowFreeConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const isCancelled = product?.status === "cancelled";
 
   useEffect(() => {
     if (!thumbnailFile) return;
@@ -304,6 +306,25 @@ export function ProductForm({ type, product }: ProductFormProps) {
     }
   }
 
+  async function handleRestoreProduct() {
+    if (!product) return;
+
+    setError(null);
+    setRestoring(true);
+
+    try {
+      await productRepository.restore(product.id);
+      toast.restored();
+      router.replace("/");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erro ao restaurar o produto.";
+      setError(message);
+      toast.error(message);
+      setRestoring(false);
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-2xl">
       <Card className="w-full">
@@ -419,7 +440,27 @@ export function ProductForm({ type, product }: ProductFormProps) {
             </p>
           )}
 
-          {isEdit && product && (
+          {isEdit && product && isCancelled && (
+            <div className="rounded-xl border-2 border-dashed border-border bg-muted/40 p-4">
+              <p className="text-sm font-bold">Produto cancelado</p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Este produto está fora do ar para novos compradores. Restaure
+                para publicá-lo de novo.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-3 w-full sm:w-auto"
+                onClick={() => void handleRestoreProduct()}
+                disabled={submitting || restoring}
+              >
+                <RotateCcw className="size-4" />
+                {restoring ? "Restaurando..." : "Restaurar produto"}
+              </Button>
+            </div>
+          )}
+
+          {isEdit && product && !isCancelled && (
             <div className="rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 p-4">
               <p className="text-sm font-bold text-destructive">Zona de perigo</p>
               <p className="text-muted-foreground mt-1 text-xs">

@@ -248,10 +248,12 @@ export class SupabaseProductRepository implements ProductRepository {
   async listByIds(ids: string[]): Promise<ProductWithCreator[]> {
     if (!ids.length) return [];
 
+    // Used by the buyer/creator "library" views: shows everything the caller
+    // already has access to, including cancelled products (the purchase isn't
+    // revoked by a cancellation).
     const { data, error } = await supabase
       .from(TABLE)
       .select("*")
-      .eq("status", "active")
       .in("id", ids)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -266,6 +268,17 @@ export class SupabaseProductRepository implements ProductRepository {
         | { error?: string }
         | null;
       throw new Error(body?.error ?? "Falha ao cancelar o produto.");
+    }
+  }
+
+  async restore(id: string): Promise<void> {
+    const response = await fetch(`/api/products/${id}`, { method: "PATCH" });
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      throw new Error(body?.error ?? "Falha ao restaurar o produto.");
     }
   }
 

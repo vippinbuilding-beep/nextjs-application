@@ -16,6 +16,7 @@ export const TOAST_MESSAGES = {
   saved: "Alterações salvas com sucesso.",
   published: "Produto publicado com sucesso.",
   cancelled: "Produto cancelado com sucesso.",
+  restored: "Produto restaurado com sucesso.",
   added: "Adicionado com sucesso.",
   removed: "Removido com sucesso.",
   sent: "Enviado com sucesso.",
@@ -122,6 +123,9 @@ export const toast = {
   },
   cancelled() {
     push(TOAST_MESSAGES.cancelled, "success");
+  },
+  restored() {
+    push(TOAST_MESSAGES.restored, "success");
   },
   added() {
     push(TOAST_MESSAGES.added, "success");

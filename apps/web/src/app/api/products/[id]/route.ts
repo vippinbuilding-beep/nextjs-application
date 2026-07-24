@@ -53,3 +53,47 @@ export async function DELETE(
 
   return Response.json({ ok: true });
 }
+
+/** Restores a cancelled product owned by the authenticated creator back to `active`. */
+export async function PATCH(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  const server = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await server.auth.getUser();
+
+  if (!user) {
+    return Response.json({ error: "Não autenticado." }, { status: 401 });
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data: product, error: readError } = await admin
+    .from("products")
+    .select("id, creator_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (readError) {
+    return Response.json({ error: readError.message }, { status: 500 });
+  }
+
+  if (!product || product.creator_id !== user.id) {
+    return Response.json({ error: "Produto não encontrado." }, { status: 404 });
+  }
+
+  const { error: updateError } = await admin
+    .from("products")
+    .update({ status: "active" })
+    .eq("id", id)
+    .eq("creator_id", user.id);
+
+  if (updateError) {
+    return Response.json({ error: updateError.message }, { status: 500 });
+  }
+
+  return Response.json({ ok: true });
+}
