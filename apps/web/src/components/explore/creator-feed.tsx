@@ -70,7 +70,7 @@ function CreatorFeedHeader({ searching }: { searching: boolean }) {
       <p className="text-muted-foreground text-xs font-medium">
         {searching
           ? "Perfis que batem com a sua busca. Toque para ver a vitrine."
-          : "Criadores com produtos publicados. Use a busca acima para filtrar por nome."}
+          : "Criadores na plataforma. Use a busca acima para filtrar por nome."}
       </p>
     </div>
   );
