@@ -65,6 +65,32 @@ export interface ProductsByTypeCount {
   count: number;
 }
 
+export interface VisitsOverview {
+  /** Soma de todas as visitas de perfil (contagem exata por navegador). */
+  totalProfileVisits: number;
+  /** Quantos perfis já receberam ao menos uma visita. */
+  visitedProfiles: number;
+  /** Soma de todas as visitas de produto. */
+  totalProductVisits: number;
+  /** Quantos produtos já receberam ao menos uma visita. */
+  visitedProducts: number;
+}
+
+export interface TopVisitedProduct {
+  productId: string;
+  title: string;
+  creatorId: string;
+  creatorName: string | null;
+  visitCount: number;
+}
+
+export interface TopVisitedCreator {
+  creatorId: string;
+  creatorName: string | null;
+  slug: string | null;
+  visitCount: number;
+}
+
 export interface OrdersByStatusCount {
   status: string;
   count: number;
@@ -91,4 +117,7 @@ export interface AdminAnalyticsRepository {
   getProductsByType(): Promise<ProductsByTypeCount[]>;
   getOrdersByStatus(): Promise<OrdersByStatusCount[]>;
   getAskMeOverview(): Promise<AskMeOverview>;
+  getVisitsOverview(): Promise<VisitsOverview>;
+  getTopVisitedProducts(limit: number): Promise<TopVisitedProduct[]>;
+  getTopVisitedCreators(limit: number): Promise<TopVisitedCreator[]>;
 }

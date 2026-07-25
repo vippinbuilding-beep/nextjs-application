@@ -4,6 +4,8 @@ export interface PublicCreator {
   handle: string;
   avatarPath?: string;
   avatarUrl?: string;
+  /** Exact number of unique-browser visits to this creator's profile. */
+  visitCount: number;
 }
 
 export interface ExploreCreatorsParams {

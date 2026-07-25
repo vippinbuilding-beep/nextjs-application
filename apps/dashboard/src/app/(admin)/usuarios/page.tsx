@@ -2,12 +2,14 @@ import Link from "next/link";
 
 import type { UserRole } from "@vippin/core/models/user";
 import type { AdminUserListItem } from "@vippin/core/repositories/admin-user-repository";
+import type { TopVisitedCreator } from "@vippin/core/repositories/admin-analytics-repository";
 import {
   adminAnalyticsRepository,
   adminUserRepository,
 } from "@vippin/supabase/factories/admin-repository-factory";
 import { Card, CardContent, CardHeader, CardTitle } from "@vippin/ui/card";
 import { DataTable } from "@vippin/ui/data-table";
+import { StatCard } from "@vippin/ui/stat-card";
 
 import { UserGrowthChart } from "@/components/charts/user-growth-chart";
 import { DateRangePicker } from "@/components/dashboard/date-range-picker";
@@ -40,9 +42,11 @@ export default async function UsuariosPage({
   const page = Math.max(1, Number(sp.page) || 1);
   const range = rangeFromSearchParams(sp);
 
-  const [result, growth] = await Promise.all([
+  const [result, growth, visits, topVisited] = await Promise.all([
     adminUserRepository.search({ query: query || undefined, role, page, pageSize: PAGE_SIZE }),
     adminAnalyticsRepository.getUserGrowthByDay(range),
+    adminAnalyticsRepository.getVisitsOverview(),
+    adminAnalyticsRepository.getTopVisitedCreators(20),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(result.total / PAGE_SIZE));
@@ -79,6 +83,61 @@ export default async function UsuariosPage({
           )}
         </CardContent>
       </Card>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+          Visitas em perfis
+        </h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard
+            label="Visitas em perfis"
+            value={visits.totalProfileVisits.toLocaleString("pt-BR")}
+            hint="Contagem exata por navegador"
+          />
+          <StatCard
+            label="Perfis visitados"
+            value={visits.visitedProfiles.toLocaleString("pt-BR")}
+          />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Criadores mais visitados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable<TopVisitedCreator>
+              rows={topVisited}
+              getRowKey={(c) => c.creatorId}
+              emptyMessage="Nenhuma visita registrada ainda."
+              columns={[
+                {
+                  key: "creator",
+                  header: "Criador",
+                  cell: (c) => (
+                    <Link
+                      href={`/usuarios/${c.creatorId}`}
+                      className="font-semibold underline-offset-2 hover:underline"
+                    >
+                      {c.creatorName || (c.slug ? `@${c.slug}` : c.creatorId.slice(0, 8))}
+                    </Link>
+                  ),
+                },
+                {
+                  key: "handle",
+                  header: "Handle",
+                  cell: (c) => (c.slug ? `@${c.slug}` : "—"),
+                },
+                {
+                  key: "visits",
+                  header: "Visitas",
+                  align: "right",
+                  cell: (c) => c.visitCount.toLocaleString("pt-BR"),
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </section>
 
       <form method="get" action="/usuarios" className="flex flex-wrap gap-2">
         <input

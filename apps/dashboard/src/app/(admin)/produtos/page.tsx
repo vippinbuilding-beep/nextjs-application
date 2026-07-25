@@ -2,6 +2,7 @@ import { formatBRL } from "@vippin/core/domain/money";
 import type {
   ProductWithoutSales,
   TopProduct,
+  TopVisitedProduct,
 } from "@vippin/core/repositories/admin-analytics-repository";
 import { adminAnalyticsRepository } from "@vippin/supabase/factories/admin-repository-factory";
 import { Card, CardContent, CardHeader, CardTitle } from "@vippin/ui/card";
@@ -28,10 +29,12 @@ function creatorLabel(name: string | null, id: string): string {
 }
 
 export default async function ProdutosPage() {
-  const [byType, topProducts, withoutSales] = await Promise.all([
+  const [byType, topProducts, withoutSales, visits, topVisited] = await Promise.all([
     adminAnalyticsRepository.getProductsByType(),
     adminAnalyticsRepository.getTopProducts(20),
     adminAnalyticsRepository.getProductsWithoutSales(20),
+    adminAnalyticsRepository.getVisitsOverview(),
+    adminAnalyticsRepository.getTopVisitedProducts(20),
   ]);
 
   return (
@@ -51,6 +54,50 @@ export default async function ProdutosPage() {
             value={t.count.toLocaleString("pt-BR")}
           />
         ))}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+          Visitas
+        </h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard
+            label="Visitas em produtos"
+            value={visits.totalProductVisits.toLocaleString("pt-BR")}
+            hint="Contagem exata por navegador"
+          />
+          <StatCard
+            label="Produtos visitados"
+            value={visits.visitedProducts.toLocaleString("pt-BR")}
+          />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Produtos mais visitados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable<TopVisitedProduct>
+              rows={topVisited}
+              getRowKey={(p) => p.productId}
+              emptyMessage="Nenhuma visita registrada ainda."
+              columns={[
+                { key: "title", header: "Produto", cell: (p) => p.title },
+                {
+                  key: "creator",
+                  header: "Criador",
+                  cell: (p) => creatorLabel(p.creatorName, p.creatorId),
+                },
+                {
+                  key: "visits",
+                  header: "Visitas",
+                  align: "right",
+                  cell: (p) => p.visitCount.toLocaleString("pt-BR"),
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
       </section>
 
       <Card>

@@ -10,6 +10,7 @@ import { ProductLanding } from "@/components/products/product-landing";
 import { ProductLessonLayout } from "@/components/products/product-lesson-layout";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
+import { VisitTracker } from "@/components/visits/visit-tracker";
 import { Button } from "@vippin/ui/button";
 import {
   Card,
@@ -141,6 +142,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         className="flex min-h-svh flex-col"
       >
         <PublicNavBar backFallback={`/@${profile.slug}`} sticky={false} />
+        <VisitTracker scope="product" targetId={row.id} disabled={isOwner} />
         <div className="flex flex-1 flex-col items-center justify-center p-4 py-10">
           <div className="flex w-full max-w-4xl flex-col gap-6">
             <ProductLanding
@@ -183,6 +185,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   if (isLesson && canAccess) {
     return (
+      <>
+      <VisitTracker scope="product" targetId={row.id} disabled={isOwner} />
       <ProductLessonLayout
         productId={row.id}
         title={row.title}
@@ -202,6 +206,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           avatarUrl: profile.avatar_url,
         }}
       />
+      </>
     );
   }
 
@@ -211,6 +216,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       className="flex min-h-svh flex-col"
     >
       <PublicNavBar backFallback={`/@${profile.slug}`} sticky={false} />
+      <VisitTracker scope="product" targetId={row.id} disabled={isOwner} />
       <div className="flex-1 p-4 py-10">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,400px)] lg:items-start">

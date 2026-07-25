@@ -10,7 +10,10 @@ import type {
   ProductWithoutSales,
   RevenueByDayPoint,
   TopProduct,
+  TopVisitedCreator,
+  TopVisitedProduct,
   UserGrowthByDayPoint,
+  VisitsOverview,
 } from "@vippin/core/repositories/admin-analytics-repository";
 
 /**
@@ -170,6 +173,70 @@ export class SupabaseAdminAnalyticsRepository implements AdminAnalyticsRepositor
       status: row.status,
       count: Number(row.count),
       amountCents: Number(row.amount_cents),
+    }));
+  }
+
+  async getVisitsOverview(): Promise<VisitsOverview> {
+    const { data, error } = await this.client
+      .rpc("admin_visits_overview")
+      .single();
+
+    if (error) throw new Error(error.message);
+
+    const row = data as {
+      total_profile_visits: number;
+      visited_profiles: number;
+      total_product_visits: number;
+      visited_products: number;
+    };
+
+    return {
+      totalProfileVisits: Number(row.total_profile_visits),
+      visitedProfiles: Number(row.visited_profiles),
+      totalProductVisits: Number(row.total_product_visits),
+      visitedProducts: Number(row.visited_products),
+    };
+  }
+
+  async getTopVisitedProducts(limit: number): Promise<TopVisitedProduct[]> {
+    const { data, error } = await this.client.rpc("admin_top_visited_products", {
+      lim: limit,
+    });
+
+    if (error) throw new Error(error.message);
+
+    return (data ?? []).map((row: {
+      product_id: string;
+      title: string;
+      creator_id: string;
+      creator_name: string | null;
+      visit_count: number;
+    }) => ({
+      productId: row.product_id,
+      title: row.title,
+      creatorId: row.creator_id,
+      creatorName: row.creator_name,
+      visitCount: Number(row.visit_count),
+    }));
+  }
+
+  async getTopVisitedCreators(limit: number): Promise<TopVisitedCreator[]> {
+    const { data, error } = await this.client.rpc("admin_top_visited_creators", {
+      lim: limit,
+    });
+
+    if (error) throw new Error(error.message);
+
+    return (data ?? []).map((row: {
+      creator_id: string;
+      creator_name: string | null;
+      slug: string | null;
+      visit_count: number;
+    }) => ({
+      creatorId: row.creator_id,
+      creatorName: row.creator_name,
+      slug: row.slug,
+      visitCount: Number(row.visit_count),
     }));
   }
 

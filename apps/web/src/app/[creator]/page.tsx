@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { AskMeProfileButton } from "@/components/ask-me/ask-me-dialog";
+import { VisitTracker } from "@/components/visits/visit-tracker";
 import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { CreatorOwnerToolbar } from "@/components/profile/creator-owner-toolbar";
 import { CreatorPageTabs } from "@/components/profile/creator-page-tabs";
@@ -153,6 +154,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
       className="flex min-h-svh flex-col"
     >
       <PublicNavBar backFallback="/explore" sticky={false} />
+      <VisitTracker scope="creator" targetId={profile.id} disabled={isOwner} />
       <div className="flex flex-1 flex-col items-center p-4 py-6 sm:py-8">
         <div className="w-full max-w-md sm:max-w-3xl">
           {isOwner && <CreatorOwnerToolbar />}

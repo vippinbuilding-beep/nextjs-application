@@ -98,6 +98,7 @@ export class SupabaseAdminUserRepository implements AdminUserRepository {
       bio: string | null;
       ask_me_enabled: boolean | null;
       ask_me_price_cents: number | null;
+      profile_visit_count: number;
       products_count: number;
       sales_count: number;
       gross_sales_cents: number;
@@ -113,6 +114,7 @@ export class SupabaseAdminUserRepository implements AdminUserRepository {
       bio: row.bio,
       askMeEnabled: Boolean(row.ask_me_enabled),
       askMePriceCents: row.ask_me_price_cents,
+      profileVisitCount: Number(row.profile_visit_count),
       productsCount: Number(row.products_count),
       salesCount: Number(row.sales_count),
       grossSalesCents: Number(row.gross_sales_cents),

@@ -96,6 +96,7 @@ export default async function UsuarioDetalhePage({
           Como criador
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard label="Visitas no perfil" value={user.profileVisitCount.toLocaleString("pt-BR")} />
           <StatCard label="Produtos" value={user.productsCount.toLocaleString("pt-BR")} />
           <StatCard label="Vendas" value={user.salesCount.toLocaleString("pt-BR")} />
           <StatCard label="Receita bruta" value={formatBRL(user.grossSalesCents)} />

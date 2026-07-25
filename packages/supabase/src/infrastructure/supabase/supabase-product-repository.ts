@@ -215,10 +215,13 @@ export class SupabaseProductRepository implements ProductRepository {
       );
     }
 
+    // Recomendação: produtos mais visitados primeiro (contagem exata por
+    // navegador), com desempate pelos mais recentes.
     let builder = supabase
       .from(TABLE)
       .select("*", { count: "exact" })
       .eq("status", "active")
+      .order("visit_count", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (query) {

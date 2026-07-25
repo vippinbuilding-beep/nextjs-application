@@ -34,6 +34,8 @@ export interface AdminUserDetail extends AdminUserListItem {
   bio: string | null;
   askMeEnabled: boolean;
   askMePriceCents: number | null;
+  /** Visitas ao perfil público (contagem exata por navegador). */
+  profileVisitCount: number;
   // Como criador.
   productsCount: number;
   salesCount: number;
