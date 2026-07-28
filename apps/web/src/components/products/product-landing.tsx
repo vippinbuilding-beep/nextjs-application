@@ -109,8 +109,6 @@ export function ProductLanding({
             </span>
           </div>
 
-          {!isFree && <PriceTransparency priceCents={priceCents} />}
-
           {isFree ? (
             <FreeProductClaim
               productId={productId}
