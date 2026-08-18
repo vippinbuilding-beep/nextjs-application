@@ -50,11 +50,22 @@ export async function isAdminEmail(email: string | null | undefined): Promise<bo
       headers: restHeaders(),
       cache: "no-store",
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      // TEMP DEBUG
+      console.error("[allowlist] isAdminEmail non-ok response", {
+        status: res.status,
+        statusText: res.statusText,
+        body: await res.text().catch(() => "<unreadable>"),
+      });
+      return false;
+    }
 
     const rows = (await res.json()) as unknown[];
     return Array.isArray(rows) && rows.length > 0;
-  } catch {
+  } catch (error) {
+    // TEMP DEBUG: esse catch normalmente engole o erro real (ex.: falha de
+    // handshake SSL). Logar para conseguir ver a causa nos logs da Vercel.
+    console.error("[allowlist] isAdminEmail fetch failed", error);
     return false;
   }
 }
