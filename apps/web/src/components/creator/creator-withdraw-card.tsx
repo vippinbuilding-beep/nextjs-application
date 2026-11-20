@@ -21,6 +21,9 @@ import {
 
 interface PayoutBalance {
   accruedCents: number;
+  heldCents?: number;
+  heldCount?: number;
+  adjustmentsCents?: number;
   netCents: number;
   orderCount: number;
   askMeCount: number;
@@ -116,6 +119,28 @@ export function CreatorWithdrawCard() {
                 {balance.askMeCount > 0 &&
                   `${balance.askMeCount} Me pergunte`}
               </p>
+            )}
+            {(balance.adjustmentsCents ?? 0) > 0 && (
+              <p className="text-muted-foreground text-sm">
+                Inclui desconto de {formatBRL(balance.adjustmentsCents!)} em ajustes de
+                frete (medidas do pacote alteradas no envio).
+              </p>
+            )}
+            {(balance.heldCents ?? 0) > 0 && (
+              <div className="rounded-xl border-2 border-dashed border-border bg-muted/40 px-3 py-2 text-sm">
+                <p className="font-bold">
+                  {formatBRL(balance.heldCents!)} em retenção
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {balance.heldCount === 1
+                    ? "1 produto físico aguardando entrega."
+                    : `${balance.heldCount} produtos físicos aguardando entrega.`}{" "}
+                  O valor é liberado quando o rastreio confirma a entrega.{" "}
+                  <Link href="/painel/envios" className="underline">
+                    Ver envios
+                  </Link>
+                </p>
+              </div>
             )}
             {!balance.hasPixKey && (
               <p className="text-sm font-medium">

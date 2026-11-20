@@ -1,6 +1,14 @@
 "use client";
 
 import { ExternalLink, FileText, Film, RotateCcw, Trash2 } from "lucide-react";
+
+import {
+  PhysicalProductFields,
+  parsePhysicalFields,
+  physicalFieldsFromProduct,
+  validatePhysicalFields,
+  type PhysicalFieldsValue,
+} from "@/components/shipping/physical-product-fields";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -34,6 +42,7 @@ import { PriceInput } from "@vippin/ui/price-input";
 import { Textarea } from "@vippin/ui/textarea";
 import type { Product, ProductType } from "@vippin/core/models/product";
 import { formatBRL } from "@vippin/core/domain/money";
+import { PHYSICAL_PRODUCT_LIMITS } from "@vippin/core/domain/shipping";
 import { creatorProductFeeDescription } from "@/lib/payments/platform-fee";
 import {
   formatFileSize,
@@ -70,11 +79,17 @@ export function ProductForm({ type, product }: ProductFormProps) {
   const { user } = useAuth();
   const config = getProductTypeConfig(type);
   const isEdit = Boolean(product);
+  const isPhysical = type === "physical";
+  const priceMinCents = isPhysical ? PHYSICAL_PRODUCT_LIMITS.priceMinCents : PRICE_MIN_CENTS;
+  const priceMaxCents = isPhysical ? PHYSICAL_PRODUCT_LIMITS.priceMaxCents : PRICE_MAX_CENTS;
 
   const [title, setTitle] = useState(product?.title ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [priceCents, setPriceCents] = useState(product?.priceCents ?? 0);
   const [file, setFile] = useState<File | null>(null);
+  const [physical, setPhysical] = useState<PhysicalFieldsValue>(() =>
+    physicalFieldsFromProduct(product)
+  );
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
     product?.thumbnailPath && product?.id
@@ -145,17 +160,29 @@ export function ProductForm({ type, product }: ProductFormProps) {
       return;
     }
 
-    if (priceCents > PRICE_MAX_CENTS) {
-      setError(`O preço máximo é ${formatBRL(PRICE_MAX_CENTS)}.`);
+    if (priceCents > priceMaxCents) {
+      setError(`O preço máximo é ${formatBRL(priceMaxCents)}.`);
       return;
     }
 
-    if (priceCents > 0 && priceCents < PRICE_MIN_CENTS) {
-      setError(`O preço mínimo para produtos pagos é ${formatBRL(PRICE_MIN_CENTS)}.`);
+    if ((priceCents > 0 || isPhysical) && priceCents < priceMinCents) {
+      setError(
+        isPhysical
+          ? `Produtos físicos custam a partir de ${formatBRL(priceMinCents)}.`
+          : `O preço mínimo para produtos pagos é ${formatBRL(priceMinCents)}.`
+      );
       return;
     }
 
-    if (!isEdit && !file) {
+    if (isPhysical) {
+      const physicalError = validatePhysicalFields(physical);
+      if (physicalError) {
+        setError(physicalError);
+        return;
+      }
+    }
+
+    if (!isEdit && !file && !isPhysical) {
       setError("Envie um arquivo para o seu produto.");
       return;
     }
@@ -167,7 +194,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
     // Ao criar ou ao mudar o preço para grátis na edição, confirmamos antes de
     // salvar. Se o produto já era gratuito, não interrompe de novo.
     const wasAlreadyFree = isEdit && (product?.priceCents ?? 0) <= 0;
-    if (priceCents === 0 && !options?.confirmedFree && !wasAlreadyFree) {
+    if (!isPhysical && priceCents === 0 && !options?.confirmedFree && !wasAlreadyFree) {
       setError(null);
       setShowFreeConfirm(true);
       return;
@@ -178,12 +205,14 @@ export function ProductForm({ type, product }: ProductFormProps) {
 
     try {
       const description_ = trimmedDescription || undefined;
+      const physicalData = isPhysical ? parsePhysicalFields(physical) : {};
 
       if (isEdit && product) {
         await productRepository.update(product.id, {
           title: trimmedTitle,
           description: description_,
           priceCents,
+          ...physicalData,
         });
         if (file) {
           const uploaded = await productRepository.uploadFile(product.id, file);
@@ -235,25 +264,28 @@ export function ProductForm({ type, product }: ProductFormProps) {
         description: description_,
         priceCents,
         slug,
+        ...physicalData,
       });
 
-      const uploaded = await productRepository.uploadFile(created.id, file!);
-      const mediaDimensions =
-        type === "single_lesson"
-          ? await readVideoDimensions(file!).catch(() => null)
-          : null;
-      await productRepository.update(created.id, {
-        filePath: uploaded.filePath,
-        fileName: uploaded.fileName,
-        fileMime: uploaded.fileMime,
-        fileSize: uploaded.fileSize,
-        ...(mediaDimensions
-          ? {
-            mediaWidth: mediaDimensions.width,
-            mediaHeight: mediaDimensions.height,
-          }
-          : {}),
-      });
+      if (file && !isPhysical) {
+        const uploaded = await productRepository.uploadFile(created.id, file);
+        const mediaDimensions =
+          type === "single_lesson"
+            ? await readVideoDimensions(file).catch(() => null)
+            : null;
+        await productRepository.update(created.id, {
+          filePath: uploaded.filePath,
+          fileName: uploaded.fileName,
+          fileMime: uploaded.fileMime,
+          fileSize: uploaded.fileSize,
+          ...(mediaDimensions
+            ? {
+              mediaWidth: mediaDimensions.width,
+              mediaHeight: mediaDimensions.height,
+            }
+            : {}),
+        });
+      }
 
       if (thumbnailFile) {
         const uploadedThumbnail = await productRepository.uploadThumbnail(
@@ -405,15 +437,29 @@ export function ProductForm({ type, product }: ProductFormProps) {
               id="price"
               valueCents={priceCents}
               onChangeCents={setPriceCents}
-              maxCents={PRICE_MAX_CENTS}
+              maxCents={priceMaxCents}
             />
             <p className="text-muted-foreground text-xs">
-              Grátis ou de {formatBRL(PRICE_MIN_CENTS)} a {formatBRL(PRICE_MAX_CENTS)}.{" "}
+              {isPhysical
+                ? `De ${formatBRL(priceMinCents)} a ${formatBRL(priceMaxCents)}, sem contar o frete. `
+                : `Grátis ou de ${formatBRL(priceMinCents)} a ${formatBRL(priceMaxCents)}. `}
               {creatorProductFeeDescription()}
             </p>
-            <CreatorPayoutPreview grossCents={priceCents} />
+            {(!isPhysical || physical.shippingMode === "buyer_pays") && (
+              <CreatorPayoutPreview grossCents={priceCents} />
+            )}
           </div>
 
+          {isPhysical && (
+            <PhysicalProductFields
+              value={physical}
+              onChange={setPhysical}
+              priceCents={priceCents}
+              disabled={submitting}
+            />
+          )}
+
+          {!isPhysical && (
           <div className="flex flex-col gap-2">
             <Label htmlFor="file">{config.uploadLabel}</Label>
             <FileUploadField
@@ -434,6 +480,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
               hint={`${config.allowedHint}. Máx. ${formatFileSize(config.maxSize)}.`}
             />
           </div>
+          )}
 
           {error && (
             <p className="text-destructive text-sm" role="alert">

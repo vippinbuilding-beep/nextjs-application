@@ -2,7 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { CreatorModuleHeader } from "@/components/creator/creator-module-header";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -19,11 +19,20 @@ import type { ProductType } from "@vippin/core/models/product";
 import { isCreator } from "@/lib/user-role";
 import { PRODUCT_TYPES } from "@/lib/products";
 import ProductTypeIcon from "@/components/icons/ProductTypeIcon";
+import { fetchShipFromStatus } from "@/components/shipping/ship-from-form";
 
 export default function NewProductPage() {
   const router = useRouter();
   const redirectToLogin = useLoginRedirect();
   const { user, loading } = useAuth();
+  const [physicalAllowed, setPhysicalAllowed] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchShipFromStatus()
+      .then((status) => setPhysicalAllowed(status.allowed))
+      .catch(() => setPhysicalAllowed(false));
+  }, [user]);
 
   useEffect(() => {
     if (loading) return;
@@ -55,7 +64,9 @@ export default function NewProductPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          {(Object.keys(PRODUCT_TYPES) as ProductType[]).map((type) => {
+          {(Object.keys(PRODUCT_TYPES) as ProductType[])
+            .filter((type) => type !== "physical" || physicalAllowed)
+            .map((type) => {
             const config = PRODUCT_TYPES[type];
             return (
               <button

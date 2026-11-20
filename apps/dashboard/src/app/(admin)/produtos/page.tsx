@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 const TYPE_LABELS: Record<string, string> = {
   single_lesson: "Aula avulsa",
   document: "Documento",
+  physical: "Produto físico",
 };
 
 function formatDate(date: Date): string {

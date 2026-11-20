@@ -6,6 +6,7 @@ const CREATOR_SHELL_PREFIXES = [
   "/profile",
   "/my-products",
   "/my-questions",
+  "/my-orders",
 ];
 
 export function isCreatorShellPath(pathname: string): boolean {
@@ -18,6 +19,8 @@ export function getCreatorModuleTitle(pathname: string): string {
   if (pathname.startsWith("/painel/desempenho")) return "Desempenho";
   if (pathname.startsWith("/painel/produtos")) return "Produtos";
   if (pathname.startsWith("/painel/financeiro")) return "Financeiro";
+  if (pathname.startsWith("/painel/envios")) return "Envios";
+  if (pathname.startsWith("/my-orders")) return "Meus pedidos";
   if (pathname.startsWith("/painel/biblioteca")) return "Biblioteca";
   if (pathname.startsWith("/painel/minhas-perguntas")) return "Minhas perguntas";
   if (pathname.startsWith("/my-products")) return "Biblioteca";

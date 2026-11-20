@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   MessageCircleQuestion,
   Package,
+  Truck,
   Users,
   Wallet,
   type LucideIcon,
@@ -25,6 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/usuarios", label: "Usuários", icon: Users },
   { href: "/produtos", label: "Produtos", icon: Package },
   { href: "/financeiro", label: "Financeiro", icon: Wallet },
+  { href: "/envios", label: "Envios", icon: Truck },
   { href: "/ask-me", label: "Ask Me", icon: MessageCircleQuestion },
 ];
 

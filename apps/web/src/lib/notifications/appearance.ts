@@ -6,11 +6,13 @@ const FINANCIAL_SUCCESS_TYPES = new Set<NotificationType>([
   "pix_transfer_sent",
   "product_sale",
   "ask_me_new_question",
+  "physical_sale",
+  "order_released",
 ]);
 
 /** Visual tone for in-app notification surfaces (dialog list + toast). */
 export function getNotificationTone(type: NotificationType): NotificationTone {
-  if (type === "pix_transfer_failed") return "financial-error";
+  if (type === "pix_transfer_failed" || type === "shipment_problem") return "financial-error";
   if (FINANCIAL_SUCCESS_TYPES.has(type)) return "financial";
   return "default";
 }

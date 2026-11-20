@@ -42,6 +42,7 @@ export function ProductFeed({
 
   const lessons = products.filter((item) => item.type === "single_lesson");
   const documents = products.filter((item) => item.type === "document");
+  const physical = products.filter((item) => item.type === "physical");
 
   return (
     <div className="flex flex-col gap-6">
@@ -74,6 +75,28 @@ export function ProductFeed({
           )}
           <ul className="flex flex-col gap-3">
             {documents.map((item) => (
+              <li key={item.id}>
+                <ProductFeedCard item={item} emphasizePrice={emphasizePrice} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {physical.length > 0 && (
+        <section className="flex flex-col gap-3">
+          {(lessons.length > 0 || documents.length > 0) && (
+            <h3 className="text-sm font-bold uppercase tracking-wide">Produtos</h3>
+          )}
+          <ul
+            className={cn(
+              "grid grid-cols-1 gap-4",
+              wideGrid
+                ? "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                : "sm:grid-cols-2"
+            )}
+          >
+            {physical.map((item) => (
               <li key={item.id}>
                 <ProductFeedCard item={item} emphasizePrice={emphasizePrice} />
               </li>

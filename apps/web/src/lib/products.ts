@@ -50,7 +50,7 @@ export const PRODUCT_LIMITS = {
   descriptionMax: 5000,
   /** R$ 5,00 in cents — minimum for paid products (free = 0 is still allowed). */
   priceMinCents: 500,
-  /** R$ 100,00 in cents. */
+  /** R$ 100,00 in cents (digital). Physical: see PHYSICAL_PRODUCT_LIMITS. */
   priceMaxCents: 10_000,
 } as const;
 
@@ -74,6 +74,16 @@ export const PRODUCT_TYPES: Record<ProductType, ProductTypeConfig> = {
     maxSize: 100 * MB,
     uploadLabel: "Enviar documento",
   },
+  physical: {
+    label: "Produto físico",
+    shortLabel: "Produto",
+    description:
+      "Um item que você envia pelos Correios ou transportadora. A etiqueta sai pela Vippin.",
+    accept: "",
+    allowedHint: "",
+    maxSize: 0,
+    uploadLabel: "",
+  },
 };
 
 /** Thumbnail images accept common web formats and are capped at 50 MB. */
@@ -81,7 +91,12 @@ export const THUMBNAIL_MAX_SIZE = 50 * MB;
 export const THUMBNAIL_ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
 
 export function isProductType(value: string): value is ProductType {
-  return value === "single_lesson" || value === "document";
+  return value === "single_lesson" || value === "document" || value === "physical";
+}
+
+/** Physical products ship a package instead of a file. */
+export function productHasFile(type: ProductType): boolean {
+  return type !== "physical";
 }
 
 export function getProductTypeConfig(type: ProductType): ProductTypeConfig {

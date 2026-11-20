@@ -1,4 +1,4 @@
-import { FileText, PlayCircle } from "lucide-react";
+import { FileText, Package, PlayCircle } from "lucide-react";
 import Image from "next/image";
 
 import type { ProductType } from "@vippin/core/models/product";
@@ -31,7 +31,8 @@ export function ProductThumbnail({
   sizes = "96px",
   aspectRatio,
 }: ProductThumbnailProps) {
-  const Icon = type === "single_lesson" ? PlayCircle : FileText;
+  const Icon =
+    type === "single_lesson" ? PlayCircle : type === "physical" ? Package : FileText;
   const aspectStyle = aspectRatio ? { aspectRatio } : undefined;
 
   if (thumbnailUrl) {
