@@ -4,6 +4,7 @@ import type {
   Product,
   ProductStatus,
   ProductType,
+  ShippingMode,
 } from "@vippin/core/models/product";
 import type {
   ExploreProductsParams,
@@ -36,6 +37,12 @@ type ProductRow = {
   media_width: number | null;
   media_height: number | null;
   status: string | null;
+  weight_grams: number | null;
+  length_cm: number | null;
+  width_cm: number | null;
+  height_cm: number | null;
+  stock: number | null;
+  shipping_mode: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -125,6 +132,7 @@ export class SupabaseProductRepository implements ProductRepository {
         description: data.description ?? null,
         price_cents: data.priceCents,
         slug: data.slug,
+        ...physicalColumns(data),
       })
       .select("*")
       .single();
@@ -152,6 +160,7 @@ export class SupabaseProductRepository implements ProductRepository {
     if (data.thumbnailHeight !== undefined) row.thumbnail_height = data.thumbnailHeight;
     if (data.mediaWidth !== undefined) row.media_width = data.mediaWidth;
     if (data.mediaHeight !== undefined) row.media_height = data.mediaHeight;
+    Object.assign(row, physicalColumns(data));
 
     const { error } = await supabase.from(TABLE).update(row).eq("id", id);
     if (error) throw mapWriteError(error);
@@ -351,6 +360,18 @@ async function transcodeThumbnailToWebp(
   }
 }
 
+/** Physical product columns present in `data` (undefined keys are skipped). */
+function physicalColumns(data: Partial<ProductInput>): Partial<ProductRow> {
+  const row: Partial<ProductRow> = {};
+  if (data.weightGrams !== undefined) row.weight_grams = data.weightGrams;
+  if (data.lengthCm !== undefined) row.length_cm = data.lengthCm;
+  if (data.widthCm !== undefined) row.width_cm = data.widthCm;
+  if (data.heightCm !== undefined) row.height_cm = data.heightCm;
+  if (data.stock !== undefined) row.stock = data.stock;
+  if (data.shippingMode !== undefined) row.shipping_mode = data.shippingMode;
+  return row;
+}
+
 function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
@@ -371,6 +392,12 @@ function toProduct(row: ProductRow): Product {
     mediaWidth: row.media_width ?? undefined,
     mediaHeight: row.media_height ?? undefined,
     status: (row.status as ProductStatus) ?? "active",
+    weightGrams: row.weight_grams ?? undefined,
+    lengthCm: row.length_cm ?? undefined,
+    widthCm: row.width_cm ?? undefined,
+    heightCm: row.height_cm ?? undefined,
+    stock: row.stock ?? undefined,
+    shippingMode: (row.shipping_mode as ShippingMode | null) ?? undefined,
     createdAt: row.created_at ? new Date(row.created_at) : new Date(),
     updatedAt: row.updated_at ? new Date(row.updated_at) : new Date(),
   };

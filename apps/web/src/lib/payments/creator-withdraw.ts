@@ -22,6 +22,11 @@ const ABACATE_MIN_SEND_CENTS = 100;
 export interface CreatorPayoutBalance {
   /** Soma das partes do criador após taxas da venda/pergunta (antes da taxa PIX do saque). */
   accruedCents: number;
+  /** Produtos físicos ainda em retenção (aguardando entrega). */
+  heldCents: number;
+  heldCount: number;
+  /** Ajustes de frete cobrados do criador, descontados no próximo saque. */
+  adjustmentsCents: number;
   /** Líquido que cai no PIX no saque (acumulado − R$ 0,80 de taxa PIX). */
   netCents: number;
   orderCount: number;
@@ -43,8 +48,29 @@ export interface CreatorWithdrawResult {
 interface CreatorBatch {
   orderIds: string[];
   askMeQuestionIds: string[];
+  adjustmentIds: string[];
   accruedCents: number;
   withdrawNetCents: number;
+}
+
+type AdminClient = ReturnType<typeof createSupabaseAdminClient>;
+
+/** Open freight adjustments charged to the creator (positive = creator owes). */
+async function listOpenCreatorAdjustments(
+  admin: AdminClient,
+  creatorId: string
+): Promise<{ ids: string[]; totalCents: number }> {
+  const { data } = await admin
+    .from("shipping_adjustments")
+    .select("id, amount_cents")
+    .eq("creator_id", creatorId)
+    .eq("charged_to", "creator")
+    .is("settled_at", null);
+  const rows = (data ?? []) as { id: string; amount_cents: number }[];
+  return {
+    ids: rows.map((row) => row.id),
+    totalCents: Math.max(0, rows.reduce((sum, row) => sum + row.amount_cents, 0)),
+  };
 }
 
 function sumAccruedCents(
@@ -64,7 +90,7 @@ export async function getCreatorPayoutBalance(
   const orderRepo = getOrderRepository();
   const askMeRepo = new SupabaseAskMeQuestionRepository(admin);
 
-  const [orders, questions, profile] = await Promise.all([
+  const [orders, questions, profile, held, adjustments] = await Promise.all([
     orderRepo.listPendingCreatorRepassesByCreator(creatorId),
     askMeRepo.listPendingCreatorRepassesByCreator(creatorId),
     admin
@@ -72,14 +98,22 @@ export async function getCreatorPayoutBalance(
       .select("pix_key, pix_key_type")
       .eq("id", creatorId)
       .maybeSingle(),
+    orderRepo.listHeldByCreator(creatorId),
+    listOpenCreatorAdjustments(admin, creatorId),
   ]);
 
-  const accruedCents = sumAccruedCents(orders, questions);
+  const accruedCents = Math.max(
+    0,
+    sumAccruedCents(orders, questions) - adjustments.totalCents
+  );
   const netCents = creatorWithdrawNetCents(accruedCents);
   const hasPixKey = Boolean(profile.data?.pix_key && profile.data?.pix_key_type);
 
   return {
     accruedCents,
+    heldCents: held.reduce((sum, order) => sum + order.creatorAmountCents, 0),
+    heldCount: held.length,
+    adjustmentsCents: adjustments.totalCents,
     netCents,
     orderCount: orders.length,
     askMeCount: questions.length,
@@ -101,17 +135,22 @@ export async function withdrawCreatorPayout(
   const askMeRepo = new SupabaseAskMeQuestionRepository(admin);
   const gateway = getPaymentGateway();
 
-  const [orders, questions] = await Promise.all([
+  const [orders, questions, adjustments] = await Promise.all([
     orderRepo.listPendingCreatorRepassesByCreator(creatorId),
     askMeRepo.listPendingCreatorRepassesByCreator(creatorId),
+    listOpenCreatorAdjustments(admin, creatorId),
   ]);
 
-  const accruedCents = sumAccruedCents(orders, questions);
+  const accruedCents = Math.max(
+    0,
+    sumAccruedCents(orders, questions) - adjustments.totalCents
+  );
   const withdrawNetCents = creatorWithdrawNetCents(accruedCents);
 
   const batch: CreatorBatch = {
     orderIds: orders.map((o) => o.id),
     askMeQuestionIds: questions.map((q) => q.id),
+    adjustmentIds: adjustments.ids,
     accruedCents,
     withdrawNetCents,
   };
@@ -208,6 +247,15 @@ async function markCreatorBatchSent(
       .from("ask_me_questions")
       .update(patch)
       .in("id", batch.askMeQuestionIds);
+    if (error) throw new Error(error.message);
+  }
+
+  if (batch.adjustmentIds.length > 0) {
+    const { error } = await admin
+      .from("shipping_adjustments")
+      .update({ settled_at: new Date().toISOString() })
+      .in("id", batch.adjustmentIds)
+      .is("settled_at", null);
     if (error) throw new Error(error.message);
   }
 }

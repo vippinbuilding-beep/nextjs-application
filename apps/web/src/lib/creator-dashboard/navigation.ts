@@ -7,6 +7,8 @@ import {
   Link2,
   MessageCircleQuestion,
   Package,
+  ShoppingBag,
+  Truck,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -59,6 +61,11 @@ export const CREATOR_NAV_SECTIONS: CreatorNavSection[] = [
         icon: Link2,
       },
       {
+        href: "/painel/envios",
+        label: "Envios",
+        icon: Truck,
+      },
+      {
         href: "/painel/financeiro",
         label: "Financeiro",
         icon: Banknote,
@@ -83,6 +90,11 @@ export const CREATOR_NAV_SECTIONS: CreatorNavSection[] = [
         href: "/painel/minhas-perguntas",
         label: "Minhas perguntas",
         icon: MessageCircleQuestion,
+      },
+      {
+        href: "/my-orders",
+        label: "Meus pedidos",
+        icon: ShoppingBag,
       },
       {
         href: "/explore",

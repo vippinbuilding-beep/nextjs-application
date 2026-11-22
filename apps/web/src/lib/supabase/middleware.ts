@@ -8,7 +8,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Rotas que exigem usuário autenticado.
-const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile", "/my-products", "/my-questions", "/painel"];
+const PROTECTED_PREFIXES = ["/onboarding", "/products", "/profile", "/my-products", "/my-questions", "/my-orders", "/painel"];
 
 const CREATOR_ONLY_PREFIXES = ["/products", "/profile/links", "/profile/ask-me", "/painel"];
 

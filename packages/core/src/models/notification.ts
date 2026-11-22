@@ -14,7 +14,16 @@ export type NotificationType =
   | "profile_onboarding_complete"
   | "profile_updated"
   | "pix_transfer_sent"
-  | "pix_transfer_failed";
+  | "pix_transfer_failed"
+  | "physical_order_paid"
+  | "physical_sale"
+  | "shipment_deadline_soon"
+  | "shipment_label_ready"
+  | "shipment_posted"
+  | "shipment_delivered"
+  | "shipment_problem"
+  | "order_released"
+  | "order_refunded";
 
 export interface AppNotification {
   id: string;

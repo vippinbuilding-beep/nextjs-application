@@ -2,12 +2,14 @@ import "server-only";
 
 import type { Order } from "@vippin/core/models/order";
 import { sendOrderPaidNotifications } from "@/lib/notifications/order-events";
+import { onPhysicalOrderPaid } from "@/lib/payments/escrow";
 import { getOrderRepository, getPaymentGateway } from "@vippin/supabase/factories/payment-factory";
 import { createSupabaseAdminClient } from "@vippin/supabase/client/admin";
 
 /**
  * Confirms an order against the payment provider and, if paid, runs the
- * post-payment side effects exactly once: grant the buyer access. Creator
+ * post-payment side effects exactly once: grant the buyer access (digital) or
+ * open the escrow and the pending shipment (physical). Creator
  * repasses are withdrawn manually by the creator (see `withdrawCreatorPayout`).
  *
  * This is intentionally idempotent and safe to call from BOTH the webhook and
@@ -39,6 +41,12 @@ export async function finalizeOrder(orderId: string): Promise<Order | null> {
 
   const paidOrder = await orders.transitionToPaid(orderId);
   if (!paidOrder) return orders.getById(orderId);
+
+  // Physical product: no content to unlock — enter escrow and wait for the
+  // creator to ship (see lib/payments/escrow.ts).
+  if (paidOrder.shippingMode) {
+    return (await onPhysicalOrderPaid(paidOrder)) ?? paidOrder;
+  }
 
   await grantAccess(paidOrder);
   await sendOrderPaidNotifications(paidOrder);

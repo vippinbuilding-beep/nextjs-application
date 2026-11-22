@@ -39,5 +39,6 @@ export async function GET(
     status: order.status,
     transferStatus: order.transferStatus,
     paid: order.status === "paid",
+    fulfillmentStatus: order.fulfillmentStatus,
   });
 }

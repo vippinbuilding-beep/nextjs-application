@@ -1,8 +1,11 @@
-import { Lock } from "lucide-react";
+import { Lock, Package, Pencil } from "lucide-react";
+import Link from "next/link";
 
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { FreeProductClaim } from "@/components/products/free-product-claim";
 import { PixCheckout } from "@/components/products/pix-checkout";
+import { PhysicalCheckout } from "@/components/shipping/physical-checkout";
+import { Button } from "@vippin/ui/button";
 import { PriceTransparency } from "@/components/products/price-transparency";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
@@ -13,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@vippin/ui/card";
-import type { ProductType } from "@vippin/core/models/product";
+import type { ProductType, ShippingMode } from "@vippin/core/models/product";
 import { formatBRL } from "@vippin/core/domain/money";
 import { cn } from "@vippin/ui/lib/utils";
 
@@ -31,6 +34,10 @@ interface ProductLandingProps {
   creatorAvatarPath?: string | null;
   creatorAvatarUrl?: string | null;
   isAuthenticated: boolean;
+  /** Physical products: freight payer and stock. */
+  physical?: { shippingMode: ShippingMode; inStock: boolean };
+  /** Creator viewing their own physical product page. */
+  isOwner?: boolean;
 }
 
 /**
@@ -52,8 +59,11 @@ export function ProductLanding({
   creatorAvatarPath,
   creatorAvatarUrl,
   isAuthenticated,
+  physical,
+  isOwner = false,
 }: ProductLandingProps) {
   const isFree = priceCents <= 0;
+  const isPhysical = type === "physical";
 
   return (
     <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start lg:grid-cols-[minmax(0,1fr)_23rem]">
@@ -69,8 +79,14 @@ export function ProductLanding({
             aspectRatio={bannerAspectRatio ?? 16 / 9}
           />
           <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2 py-1 text-xs font-bold shadow-cartoon-sm sm:px-2.5">
-            <Lock className="size-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Conteúdo exclusivo</span>
+            {isPhysical ? (
+              <Package className="size-3.5 shrink-0" />
+            ) : (
+              <Lock className="size-3.5 shrink-0" />
+            )}
+            <span className="whitespace-nowrap">
+              {isPhysical ? "Produto físico" : "Conteúdo exclusivo"}
+            </span>
           </span>
         </div>
 
@@ -99,7 +115,13 @@ export function ProductLanding({
 
           <div className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-muted/40 px-3 py-3 sm:gap-3 sm:px-4">
             <span className="text-muted-foreground min-w-0 truncate text-sm font-medium">
-              {isFree ? "Preço" : "Você paga"}
+              {isPhysical
+                ? physical?.shippingMode === "free"
+                  ? "Preço (frete grátis)"
+                  : "Preço + frete"
+                : isFree
+                  ? "Preço"
+                  : "Você paga"}
             </span>
             <span className={cn(
               "shrink-0 text-xl font-bold sm:text-2xl",
@@ -109,7 +131,21 @@ export function ProductLanding({
             </span>
           </div>
 
-          {isFree ? (
+          {isPhysical && isOwner ? (
+            <Button asChild variant="outline">
+              <Link href={`/products/${productId}/edit`}>
+                <Pencil className="size-4" /> Editar produto
+              </Link>
+            </Button>
+          ) : isPhysical ? (
+            <PhysicalCheckout
+              productId={productId}
+              priceCents={priceCents}
+              shippingMode={physical?.shippingMode ?? "buyer_pays"}
+              inStock={physical?.inStock ?? false}
+              isAuthenticated={isAuthenticated}
+            />
+          ) : isFree ? (
             <FreeProductClaim
               productId={productId}
               isAuthenticated={isAuthenticated}

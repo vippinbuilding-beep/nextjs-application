@@ -52,7 +52,8 @@ export function CreatorPageTabs({
 }: CreatorPageTabsProps) {
   const hasLinks = links.length > 0;
   const lessons = products.filter((product) => product.type === "single_lesson");
-  const documents = products.filter((product) => product.type === "document");
+  // Physical products are listed together with documents ("Vips").
+  const documents = products.filter((product) => product.type !== "single_lesson");
   const hasLessons = lessons.length > 0;
   const hasDocuments = documents.length > 0;
   const hasAnyContent = hasLinks || hasLessons || hasDocuments;

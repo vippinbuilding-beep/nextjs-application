@@ -23,7 +23,7 @@ interface PixCheckoutProps {
   isAuthenticated: boolean;
 }
 
-interface CheckoutResponse {
+export interface CheckoutResponse {
   orderId: string;
   amountCents: number;
   brCode: string;
@@ -35,7 +35,7 @@ type Phase = "idle" | "creating" | "awaiting" | "paid" | "error";
 
 const POLL_INTERVAL_MS = 4000;
 
-function PixQrPanel({
+export function PixQrPanel({
   order,
   copied,
   onCopy,

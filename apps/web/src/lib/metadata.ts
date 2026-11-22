@@ -179,9 +179,10 @@ export function createProductMetadata({
   productSlug: string;
   productId: string;
   thumbnailPath: string | null;
-  type: "single_lesson" | "document";
+  type: "single_lesson" | "document" | "physical";
 }): Metadata {
-  const typeLabel = type === "single_lesson" ? "Aula" : "Material";
+  const typeLabel =
+    type === "single_lesson" ? "Aula" : type === "physical" ? "Produto" : "Material";
   const priceLabel = priceCents === 0 ? "Grátis" : undefined;
   const fallbackDescription = priceLabel
     ? `${typeLabel} ${priceLabel} de ${creatorHandle} no Vippin.`

@@ -133,9 +133,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
     mediaHeight: row.media_height,
   });
 
+  const isPhysical = type === "physical";
+
   // Visitors without access only ever see the public sales page — no media
   // tokens are minted for them, so the gated routes stay out of reach.
-  if (!canAccess) {
+  // Physical products have no gated content: everyone (owner included) sees
+  // the sales page; buyers track their orders in "Meus pedidos".
+  if (!canAccess || isPhysical) {
     return (
       <LayoutBackground
         element="main"
@@ -159,6 +163,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
               creatorAvatarPath={profile.avatar_path}
               creatorAvatarUrl={profile.avatar_url}
               isAuthenticated={Boolean(user)}
+              isOwner={isOwner}
+              physical={
+                isPhysical
+                  ? {
+                      shippingMode: row.shipping_mode === "free" ? "free" : "buyer_pays",
+                      inStock: (row.stock ?? 0) > 0,
+                    }
+                  : undefined
+              }
             />
           </div>
         </div>

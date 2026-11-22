@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@vippin/supabase/client/admin";
 import { createSupabaseServerClient } from "@vippin/supabase/client/server";
 import { splitAmount, validateGrossCoversSaleFees } from "@/lib/payments/split";
 import { PRODUCT_LIMITS } from "@/lib/products";
+import { createPhysicalCheckout } from "@/lib/shipping/physical-checkout";
 import { getOrderRepository, getPaymentGateway } from "@vippin/supabase/factories/payment-factory";
 
 export const runtime = "nodejs";
@@ -37,12 +38,24 @@ export async function POST(
   const admin = createSupabaseAdminClient();
   const { data: product } = await admin
     .from("products")
-    .select("id, creator_id, title, price_cents, status")
+    .select("id, creator_id, title, price_cents, status, type")
     .eq("id", id)
     .maybeSingle();
 
   if (!product || product.status !== "active") {
     return Response.json({ error: "Produto não encontrado." }, { status: 404 });
+  }
+
+  // Physical products: delivery address + freight quote + escrow.
+  if (product.type === "physical") {
+    const body = await request.json().catch(() => null);
+    const result = await createPhysicalCheckout({
+      productId: id,
+      buyerId: user.id,
+      buyerEmail: user.email,
+      body,
+    });
+    return Response.json(result.body, { status: result.status });
   }
 
   const priceCents = product.price_cents ?? 0;

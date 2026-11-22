@@ -1,4 +1,4 @@
-import type { Product, ProductType } from "../models/product";
+import type { Product, ProductType, ShippingMode } from "../models/product";
 
 export interface ProductInput {
   type: ProductType;
@@ -6,6 +6,13 @@ export interface ProductInput {
   description?: string;
   priceCents: number;
   slug: string;
+  // Physical products only (see `products_physical_package_valid`).
+  weightGrams?: number;
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
+  stock?: number;
+  shippingMode?: ShippingMode;
 }
 
 export interface ProductFileMetadata {

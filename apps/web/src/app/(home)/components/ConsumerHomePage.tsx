@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Compass, Library, LogOut, MessageCircleQuestion, Pencil, Sparkles } from "lucide-react";
+import { ChevronRight, Compass, Library, LogOut, MessageCircleQuestion, Pencil, ShoppingBag, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -32,6 +32,12 @@ const MENU_OPTIONS = [
     icon: Library,
     title: "Ver meus produtos",
     description: "Acesse o que você comprou ou recebeu.",
+  },
+  {
+    href: "/my-orders",
+    icon: ShoppingBag,
+    title: "Meus pedidos",
+    description: "Produtos físicos comprados, com rastreio.",
   },
   {
     href: "/my-questions",

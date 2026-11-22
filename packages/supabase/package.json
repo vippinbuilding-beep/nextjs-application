@@ -8,7 +8,8 @@
     "./factories/*": "./src/factories/*.ts",
     "./constants/*": "./src/constants/*.ts",
     "./infrastructure/supabase/*": "./src/infrastructure/supabase/*.ts",
-    "./infrastructure/abacatepay/*": "./src/infrastructure/abacatepay/*.ts"
+    "./infrastructure/abacatepay/*": "./src/infrastructure/abacatepay/*.ts",
+    "./infrastructure/melhorenvio/*": "./src/infrastructure/melhorenvio/*.ts"
   },
   "dependencies": {
     "@abacatepay/sdk": "^1.2.0",
