@@ -7,7 +7,7 @@
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=@vippin/web",
     "dev:dashboard": "turbo run dev --filter=@vippin/dashboard",
-    "build": "turbo run build",
+    "build": "next build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck"
   },
