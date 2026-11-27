@@ -24,7 +24,7 @@ const ACTIVE: FulfillmentStatus[] = [
   "refund_pending",
 ];
 
-const LOW_BALANCE_CENTS = Number.parseInt(process.env.MELHOR_ENVIO_LOW_BALANCE_CENTS ?? "20000", 10);
+const LOW_BALANCE_CENTS = Number.parseInt(process.env.MELHOR_ENVIO_LOW_BALANCE_CENTS ?? "15000", 10);
 
 function shortId(id: string) {
   return id.slice(0, 8);

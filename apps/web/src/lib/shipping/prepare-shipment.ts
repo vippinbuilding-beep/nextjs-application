@@ -13,6 +13,7 @@ import {
   recordShippingAdjustment,
   type EscrowActor,
 } from "@/lib/payments/escrow";
+import { alertBlockedLabel } from "@/lib/shipping/balance-alert";
 import { ESCROW_CONFIG, isDceAllowed, siteUrl } from "@/lib/shipping/config";
 import { loadPhysicalProduct } from "@/lib/shipping/quote";
 import { getShipFrom } from "@/lib/shipping/ship-from";
@@ -276,6 +277,8 @@ export async function prepareShipment(
     if (err instanceof PrepareShipmentError) throw err;
     if (err instanceof ShippingGatewayError) {
       console.error("[shipping] prepare failed:", err.code, err.message, err.details);
+      // The creator is told "a equipe Vippin já foi avisada": make it true.
+      await alertBlockedLabel(err, order.id);
     }
     throw new PrepareShipmentError(message, 502);
   }

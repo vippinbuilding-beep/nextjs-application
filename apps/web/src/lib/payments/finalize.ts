@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Order } from "@vippin/core/models/order";
+import { announceSale } from "@/lib/alerts/sale-alert";
 import { sendOrderPaidNotifications } from "@/lib/notifications/order-events";
 import { onPhysicalOrderPaid } from "@/lib/payments/escrow";
 import { getOrderRepository, getPaymentGateway } from "@vippin/supabase/factories/payment-factory";
@@ -41,6 +42,9 @@ export async function finalizeOrder(orderId: string): Promise<Order | null> {
 
   const paidOrder = await orders.transitionToPaid(orderId);
   if (!paidOrder) return orders.getById(orderId);
+
+  // Team's Discord sales channel; runs once per order (atomic transition above).
+  await announceSale(paidOrder);
 
   // Physical product: no content to unlock — enter escrow and wait for the
   // creator to ship (see lib/payments/escrow.ts).
