@@ -4,6 +4,7 @@ import { isCronAuthorized } from "@/lib/cron/auth";
 import { runAskMeExpirations } from "@/lib/payments/ask-me-finalize";
 import { runEscrowJobs } from "@/lib/payments/escrow";
 import { runRetryFailedPayments } from "@/lib/payments/retry-failed-payments";
+import { runShippingBalanceCheck } from "@/lib/shipping/balance-alert";
 import { runShippingSync } from "@/lib/shipping/sync-tracking";
 
 export const runtime = "nodejs";
@@ -13,7 +14,8 @@ export const maxDuration = 120;
 /**
  * Daily cron (Hobby-compatible): expires overdue Me Pergunte questions,
  * retries failed PIX refunds/repasses, syncs shipment tracking and applies the
- * physical-product escrow rules. Schedule via vercel.json in UTC.
+ * physical-product escrow rules, and alerts the team on Discord when the
+ * Melhor Carteira balance is low. Schedule via vercel.json in UTC.
  */
 export async function GET(request: NextRequest) {
   if (!isCronAuthorized(request)) {
@@ -33,7 +35,11 @@ export async function GET(request: NextRequest) {
     error: err instanceof Error ? err.message : String(err),
   }));
 
-  return Response.json({ expirations, retries, tracking, escrow });
+  const shippingBalance = await runShippingBalanceCheck().catch((err) => ({
+    error: err instanceof Error ? err.message : String(err),
+  }));
+
+  return Response.json({ expirations, retries, tracking, escrow, shippingBalance });
 }
 
 export async function POST(request: NextRequest) {

@@ -16,6 +16,7 @@ import {
  * ESCROW_AUTORELEASE_EXTRA_DAYS folga sobre o prazo da transportadora (7)
  * ESCROW_DISPUTE_BUFFER_DAYS   dias após a entrega antes de liberar (0)
  * MIN_CREATOR_NET_CENTS        líquido mínimo do criador com frete grátis (200)
+ * MELHOR_ENVIO_LOW_BALANCE_CENTS saldo da Melhor Carteira que dispara alerta (15000)
  * ALLOW_DCE_FOR_SALES          permite declaração de conteúdo (default true)
  * MELHOR_ENVIO_SERVICE_IDS     allowlist de serviços "1,2,3,4,17" (vazio = todos)
  * PHYSICAL_PRODUCTS_CREATOR_IDS allowlist de criadores (vazio = todos)
@@ -50,6 +51,9 @@ export const ESCROW_CONFIG: EscrowConfig = {
 };
 
 export const MIN_CREATOR_NET_CENTS = intEnv("MIN_CREATOR_NET_CENTS", 200, 0);
+
+/** Below this Melhor Carteira balance the daily cron alerts the team. */
+export const LOW_BALANCE_CENTS = intEnv("MELHOR_ENVIO_LOW_BALANCE_CENTS", 15_000, 0);
 
 export function isDceAllowed(): boolean {
   return process.env.ALLOW_DCE_FOR_SALES !== "false";

@@ -50,11 +50,17 @@ pela transportadora → descontadas no próximo saque do criador.
    rastreio e aplica as regras de escrow. Para atualizar mais rápido, agende
    `/api/cron/shipping-sync` de hora em hora (Vercel Pro ou cron externo com
    `Authorization: Bearer $CRON_SECRET`).
-5. Webhook (opcional): app Melhor Envio → Novo Webhook →
+5. Alertas no Discord: `DISCORD_ALERT_WEBHOOK_URL` (webhook do canal da
+   equipe). O cron diário avisa quando o saldo da Melhor Carteira fica abaixo
+   de `MELHOR_ENVIO_LOW_BALANCE_CENTS` (padrão R$ 150), e o preparo do envio
+   avisa na hora quando um criador trava por saldo, limite de etiquetas, token
+   ou Melhor Envio fora do ar. Vendas pagas (digitais e físicas) vão para
+   outro canal, via `DISCORD_SALES_WEBHOOK_URL`.
+6. Webhook (opcional): app Melhor Envio → Novo Webhook →
    `https://<domínio>/api/webhooks/melhorenvio`, com
    `MELHOR_ENVIO_WEBHOOK_SECRET` = secret do app.
-6. Rollout: `PHYSICAL_PRODUCTS_CREATOR_IDS` (vazio = todos os criadores).
-7. Fiscal: `ALLOW_DCE_FOR_SALES=true` libera a declaração de conteúdo. Confirme
+7. Rollout: `PHYSICAL_PRODUCTS_CREATOR_IDS` (vazio = todos os criadores).
+8. Fiscal: `ALLOW_DCE_FOR_SALES=true` libera a declaração de conteúdo. Confirme
    com o contador se a venda pode sair com DC-e ou se exige NF-e.
 
 ## Testar sem credenciais
