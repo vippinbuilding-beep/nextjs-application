@@ -1,6 +1,7 @@
 import "server-only";
 
 import { FULFILLMENT_LABELS } from "@vippin/core/domain/fulfillment";
+import { carrierTrackingUrl } from "@vippin/core/domain/shipping";
 import {
   canRequestReturn,
   returnWindowEndsAt,
@@ -142,7 +143,11 @@ async function buildViews(orders: Order[], audience: "creator" | "buyer"): Promi
       company: order.shippingQuote?.company ?? null,
       deliveryDays: order.shippingQuote?.deliveryDays ?? null,
       trackingCode: shipment?.trackingCode ?? null,
-      trackingUrl: shipment?.trackingUrl ?? null,
+      trackingUrl: carrierTrackingUrl({
+        company: order.shippingQuote?.company,
+        trackingCode: shipment?.trackingCode,
+        fallbackUrl: shipment?.trackingUrl,
+      }),
       paidAt: order.paidAt?.toISOString() ?? null,
       prepareDeadlineAt: order.prepareDeadlineAt?.toISOString() ?? null,
       postDeadlineAt: order.postDeadlineAt?.toISOString() ?? null,
