@@ -91,6 +91,17 @@ principal de cada tela. Siga estas regras em toda tela nova:
     apps) carrega o núcleo (~5 KB) e baixa as features `domAnimation` depois
     da hidratação, em modo `strict` (~14 KB a mais no total por página). Não
     importe o Motion inteiro (`motion.div`): custa ~38 KB em toda página.
+    **Peso real no Turbopack**: ele não elimina bem o código não usado do
+    Motion. Uma página que importa hooks ou `m` de forma estática leva
+    ~50 KB a mais (a landing foi de 14 KB para 71 KB). Então: efeito simples
+    (revelar ao rolar, brilho/ímã seguindo o mouse, barra que se esconde,
+    linha que se desenha com a rolagem) se faz com CSS e um pouco de JS (ver
+    `components/landing/landing-motion.tsx`: variáveis CSS escritas uma vez
+    por frame, `IntersectionObserver`, `animation-timeline: view()`). O Motion
+    fica para o que só ele faz bem (saída de elementos, layout, arrastar,
+    sequências com mola) e, fora de telas que já são pesadas, entra via
+    `next/dynamic` com o espaço reservado, como a vitrine do hero. Confira o
+    tamanho da rota no `next build` antes de commitar.
     Componente que fica no layout raiz (todas as páginas) não importa Motion
     direto: carregue a parte animada com `next/dynamic` só quando ela for
     aparecer, como o `Toaster` faz com `toast-stack.tsx`. Para um "pulo" de

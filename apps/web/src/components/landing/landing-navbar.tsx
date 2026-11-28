@@ -1,25 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 import { AuthEntryActions } from "@/components/navigation/auth-entry-actions";
 import { SiteLogo } from "@/components/ui/site-logo";
 import { cn } from "@vippin/ui/lib/utils";
 import { ThemeToggle } from "@vippin/ui/theme-toggle";
 
-export function LandingNavbar() {
-  const [scrolled, setScrolled] = useState(false);
+import { useHideOnScroll } from "./landing-motion";
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+/**
+ * Barra da landing: ganha fundo ao rolar, some quando a pessoa desce (mais
+ * espaço para ler) e volta assim que ela sobe. Transição CSS com a mola
+ * suave do kit; estado só muda quando a direção muda.
+ */
+export function LandingNavbar() {
+  const { scrolled, hidden } = useHideOnScroll();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex justify-center p-3 sm:p-4">
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-50 flex justify-center p-3 transition-transform duration-500 ease-spring-soft sm:p-4",
+        hidden && "-translate-y-[120%]"
+      )}
+    >
       <nav
         className={cn(
           "flex w-full max-w-5xl items-center justify-between gap-3 rounded-2xl border border-border px-3 py-2 transition-[color,background-color,border-color,opacity,transform] duration-200 sm:px-5 sm:py-3",
