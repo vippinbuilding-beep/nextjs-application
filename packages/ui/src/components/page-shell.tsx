@@ -56,7 +56,11 @@ interface PageHeaderProps extends Omit<React.ComponentProps<"header">, "title"> 
   glow?: boolean;
 }
 
-/** Título da página (h1). Entra uma vez com `animate-rise`; é a única entrada da tela. */
+/**
+ * Título da página (h1). Sem animação de entrada: o título costuma ser o maior
+ * elemento da tela (LCP) e aparece pronto do servidor; esconder e animar
+ * atrasa a pintura e briga com a hidratação em aparelho fraco.
+ */
 function PageHeader({ title, subtitle, description, actions, leading, glow, className, ...props }: PageHeaderProps) {
   return (
     <header
@@ -65,7 +69,7 @@ function PageHeader({ title, subtitle, description, actions, leading, glow, clas
       {...props}
     >
       {glow && <div aria-hidden className="aurora-glow pointer-events-none absolute -inset-x-10 -inset-y-16 -z-10" />}
-      <div className="flex min-w-0 flex-1 basis-80 animate-rise flex-col gap-5">
+      <div className="flex min-w-0 flex-1 basis-80 flex-col gap-5">
         {leading}
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">

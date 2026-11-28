@@ -26,7 +26,13 @@ import { isCreatorProfileTab } from "@/lib/creator-profile-tabs";
 import { createCreatorMetadata, toAbsoluteUrl } from "@/lib/metadata";
 import { JsonLd } from "@/components/seo/json-ld";
 import { creatorProfileJsonLd } from "@/lib/structured-data";
-import { createSupabaseServerClient } from "@vippin/supabase/client/server";
+import {
+  getActiveCreatorProducts,
+  getPublicProfile,
+  getRequestSupabase,
+  getRequestUser,
+  parseCreatorSlug,
+} from "@/lib/public-page-data";
 import Link from "next/link";
 
 interface CreatorPageProps {
@@ -37,29 +43,19 @@ export async function generateMetadata({
   params,
 }: CreatorPageProps): Promise<Metadata> {
   const { creator } = await params;
-  const creatorSlug = decodeURIComponent(creator).replace(/^@/, "");
-
-  const supabase = await createSupabaseServerClient();
-
-  const { data: profile } = await supabase
-    .from("public_profiles")
-    .select("id, creator_name, slug, avatar_path, avatar_url")
-    .eq("slug", creatorSlug)
-    .maybeSingle();
+  const profile = await getPublicProfile(parseCreatorSlug(creator));
 
   if (!profile) {
     return { title: "Criador não encontrado" };
   }
 
-  const { count } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true })
-    .eq("creator_id", profile.id);
+  // Mesma lista da página (cache por request): conta só produtos ativos.
+  const products = await getActiveCreatorProducts(profile.id);
 
   return createCreatorMetadata({
     handle: profile.creator_name ?? profile.slug,
     slug: profile.slug,
-    productCount: count ?? 0,
+    productCount: products.length,
     userId: profile.id,
     avatarPath: profile.avatar_path,
     avatarUrl: profile.avatar_url,
@@ -86,39 +82,26 @@ const SOCIAL_LABELS: Record<string, string> = {
 
 export default async function CreatorPage({ params }: CreatorPageProps) {
   const { creator } = await params;
-  const creatorSlug = decodeURIComponent(creator).replace(/^@/, "");
 
-  const supabase = await createSupabaseServerClient();
-
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser();
-
-  const { data: profile } = await supabase
-    .from("public_profiles")
-    .select("id, creator_name, name, slug, socials, avatar_path, avatar_url, ask_me_enabled, ask_me_price_cents, bio, profile_default_tab")
-    .eq("slug", creatorSlug)
-    .maybeSingle();
+  // Perfil e usuário em paralelo; o perfil vem do cache do generateMetadata.
+  const [supabase, profile, authUser] = await Promise.all([
+    getRequestSupabase(),
+    getPublicProfile(parseCreatorSlug(creator)),
+    getRequestUser(),
+  ]);
 
   if (!profile) notFound();
 
-  const { data: rows } = await supabase
-    .from("products")
-    .select(
-      "id, type, title, description, price_cents, slug, thumbnail_path, thumbnail_width, thumbnail_height, media_width, media_height"
-    )
-    .eq("creator_id", profile.id)
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
-
-  const products = rows ?? [];
-
-  const { data: linkRows } = await supabase
-    .from("profile_links")
-    .select("id, creator_id, title, url, image_path, image_mime, sort_order, created_at, updated_at")
-    .eq("creator_id", profile.id)
-    .order("sort_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  // Produtos (já carregados pelo generateMetadata) e links em paralelo.
+  const [products, { data: linkRows }] = await Promise.all([
+    getActiveCreatorProducts(profile.id),
+    supabase
+      .from("profile_links")
+      .select("id, creator_id, title, url, image_path, image_mime, sort_order, created_at, updated_at")
+      .eq("creator_id", profile.id)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true }),
+  ]);
 
   const links: ProfileLink[] = (linkRows ?? []).map((row) => ({
     id: row.id,

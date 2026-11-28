@@ -29,7 +29,13 @@ import { formatFileSize } from "@/lib/products";
 import { productAspectRatio } from "@/lib/media-dimensions";
 import { createProductMetadata } from "@/lib/metadata";
 import { signMediaToken } from "@/lib/security/media-token";
-import { createSupabaseServerClient } from "@vippin/supabase/client/server";
+import {
+  getCreatorProduct,
+  getPublicProfile,
+  getRequestSupabase,
+  getRequestUser,
+  parseCreatorSlug,
+} from "@/lib/public-page-data";
 import { loadPhysicalSaleInfo } from "@/lib/shipping/physical-sale-info";
 import {
   getProductDownloadUrl,
@@ -45,27 +51,13 @@ export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const { creator, product } = await params;
-  const creatorSlug = decodeURIComponent(creator).replace(/^@/, "");
-  const productSlug = decodeURIComponent(product);
-
-  const supabase = await createSupabaseServerClient();
-
-  const { data: profile } = await supabase
-    .from("public_profiles")
-    .select("id, creator_name, slug, avatar_path, avatar_url")
-    .eq("slug", creatorSlug)
-    .maybeSingle();
+  const profile = await getPublicProfile(parseCreatorSlug(creator));
 
   if (!profile) {
     return { title: "Produto não encontrado" };
   }
 
-  const { data: row } = await supabase
-    .from("products")
-    .select("id, title, description, price_cents, slug, thumbnail_path, type")
-    .eq("creator_id", profile.id)
-    .eq("slug", productSlug)
-    .maybeSingle();
+  const row = await getCreatorProduct(profile.id, decodeURIComponent(product));
 
   if (!row) {
     return { title: "Produto não encontrado" };
@@ -86,46 +78,44 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { creator, product } = await params;
-  const creatorSlug = decodeURIComponent(creator).replace(/^@/, "");
   const productSlug = decodeURIComponent(product);
 
-  const supabase = await createSupabaseServerClient();
-
-  const { data: profile } = await supabase
-    .from("public_profiles")
-    .select("id, creator_name, slug, avatar_path, avatar_url")
-    .eq("slug", creatorSlug)
-    .maybeSingle();
+  // Perfil e usuário em paralelo; o perfil vem do cache do generateMetadata.
+  const [supabase, profile, user] = await Promise.all([
+    getRequestSupabase(),
+    getPublicProfile(parseCreatorSlug(creator)),
+    getRequestUser(),
+  ]);
 
   if (!profile) notFound();
 
-  const { data: row } = await supabase
-    .from("products")
-    .select("*")
-    .eq("creator_id", profile.id)
-    .eq("slug", productSlug)
-    .maybeSingle();
+  const row = await getCreatorProduct(profile.id, productSlug);
 
   if (!row) notFound();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
   const isOwner = user?.id === profile.id;
 
   const type = row.type as ProductType;
+  const isPhysical = type === "physical";
 
   // Access gate: the creator always sees their own product; everyone else needs
   // an entitlement row in `product_accesses`. RLS scopes the query to the
   // caller's own grants, so this only returns a row when the viewer owns it.
-  let hasEntitlement = false;
-  if (user && !isOwner) {
-    const { count } = await supabase
-      .from("product_accesses")
-      .select("product_id", { count: "exact", head: true })
-      .eq("product_id", row.id);
-    hasEntitlement = (count ?? 0) > 0;
-  }
+  // Physical: seller identification (Decreto 7.962/2013, masked document via
+  // RPC) and whether the creator can receive a new order right now. Both
+  // lookups are independent, so they run in parallel.
+  const [hasEntitlement, { seller, available }] = await Promise.all([
+    user && !isOwner
+      ? supabase
+          .from("product_accesses")
+          .select("product_id", { count: "exact", head: true })
+          .eq("product_id", row.id)
+          .then(({ count }) => (count ?? 0) > 0)
+      : Promise.resolve(false),
+    isPhysical
+      ? loadPhysicalSaleInfo(supabase, row.id, profile.id)
+      : Promise.resolve({ seller: null, available: true }),
+  ]);
   const canAccess = isOwner || hasEntitlement;
 
   const thumbnailUrl = row.thumbnail_path
@@ -138,17 +128,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     mediaHeight: row.media_height,
   });
 
-  const isPhysical = type === "physical";
-
   // Visitors without access only ever see the public sales page — no media
   // tokens are minted for them, so the gated routes stay out of reach.
   // Physical products have no gated content: everyone (owner included) sees
   // the sales page; buyers track their orders in "Meus pedidos".
-  // Physical: seller identification (Decreto 7.962/2013, masked document via
-  // RPC) and whether the creator can receive a new order right now.
-  const { seller, available } = isPhysical
-    ? await loadPhysicalSaleInfo(supabase, row.id, profile.id)
-    : { seller: null, available: true };
 
   if (!canAccess || isPhysical) {
     return (

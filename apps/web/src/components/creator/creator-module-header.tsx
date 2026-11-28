@@ -20,7 +20,7 @@ export function CreatorModuleHeader({
         className
       )}
     >
-      <div className="flex min-w-0 animate-rise flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-2">
         <h1 className="text-3xl font-semibold leading-tight tracking-[-0.025em] sm:text-4xl">{title}</h1>
         {description && (
           <p className="text-muted-foreground max-w-[60ch] text-base sm:text-lg">{description}</p>

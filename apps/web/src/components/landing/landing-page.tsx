@@ -174,10 +174,10 @@ export function LandingPage() {
       <JsonLd data={organizationAndWebsiteJsonLd()} />
       <LandingNavbar />
 
-      {/* HERO: o único momento de movimento é a entrada do título. */}
+      {/* HERO */}
       <section className="relative overflow-hidden px-5 pt-36 pb-24 sm:px-8 sm:pt-44 sm:pb-32">
         <div aria-hidden className="aurora-glow pointer-events-none absolute inset-0 -z-10" />
-        <div className="mx-auto flex w-full max-w-6xl animate-rise flex-col items-start gap-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-8">
           <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.035em] sm:text-6xl md:text-7xl">
             Transforme seu conhecimento em renda
           </h1>

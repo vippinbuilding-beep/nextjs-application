@@ -92,7 +92,7 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
       <PageShell className="pt-6 sm:pt-8">
         <div className="flex flex-wrap items-start gap-12 lg:gap-20">
           <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-10">
-            <div className="flex animate-rise flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
                 Finalizar compra
               </h1>

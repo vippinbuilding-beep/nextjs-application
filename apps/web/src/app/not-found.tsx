@@ -10,7 +10,7 @@ export default function NotFound() {
   return (
     <LayoutBackground element="main" background="primary" className="flex min-h-svh flex-col">
       <PageShell width="narrow" className="flex-1 justify-center">
-        <div className="flex animate-rise flex-col items-start gap-6">
+        <div className="flex flex-col items-start gap-6">
           <SiteLogo size={40} nameClassName="text-xl" className="w-auto" />
           <div className="flex flex-col gap-3">
             <h1 className="text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">Página não encontrada</h1>

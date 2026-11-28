@@ -93,7 +93,7 @@ export function ProductLanding({
           alt={title}
         />
 
-        <div className="flex max-w-[64ch] animate-rise flex-col gap-6">
+        <div className="flex max-w-[64ch] flex-col gap-6">
           <span className="bg-muted text-muted-foreground flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium">
             {isPhysical ? <Package className="size-4" /> : <Lock className="size-4" />}
             {isPhysical ? "Produto físico" : "Conteúdo exclusivo"}

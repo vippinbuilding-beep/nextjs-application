@@ -82,7 +82,10 @@ principal de cada tela. Siga estas regras em toda tela nova:
     `box-shadow` ou `filter` (use `scaleX` para barras; sombra de hover num
     `::after` que aparece por `opacity`, como em `interactive-lift`).
   - Sem animação em loop infinito, a não ser indicador pequeno (ex.: "ao vivo").
-    Entradas rodam uma vez (`animate-rise`, `animate-pop`).
+    **Nada de animação de entrada no carregamento da página** (atrasa o LCP e
+    briga com a hidratação); o conteúdo do servidor aparece pronto e o
+    `loading.tsx` cuida da espera. Anime só respostas a ações (`animate-pop`
+    no Pix, diálogos, toasts, abas).
   - Sem `backdrop-blur`: barras fixas usam fundo quase opaco (`bg-background/95`).
   - Interações: `interactive-lift` (cards clicáveis), `interactive-press`
     (alvos de toque); curvas `ease-spring` (interação) e `ease-out-soft`
@@ -91,9 +94,9 @@ principal de cada tela. Siga estas regras em toda tela nova:
   - Nada de `transition-all` (anima sombra e layout junto): liste as
     propriedades (`transition-[color,background-color,border-color,opacity,transform]`,
     `transition-transform`, `transition-colors`).
-- **Movimento com intenção**: uma entrada por tela (o `PageHeader` já faz),
-  hover só no que é clicável de verdade (itens de produto, botões). Nada de
-  animar cada seção.
+- **Movimento com intenção**: nenhuma entrada no carregamento; hover só no
+  que é clicável de verdade (itens de produto, botões). Rotas dinâmicas têm
+  `loading.tsx` (`PageSkeleton`) para o clique responder na hora.
 - Reuse os primitivos genéricos de `@vippin/ui/*` (`Button`, `Card`, `Input`, `Label`,
   `Textarea`, `Select`...). Componentes compostos específicos do app principal (ex.:
   `UserAvatar`, `Toaster`, `SiteLogo`, que dependem de dados/rotas do `apps/web`)
