@@ -90,7 +90,17 @@ principal de cada tela. Siga estas regras em toda tela nova:
     `MotionProvider` (`@vippin/ui/motion-provider`, já no layout raiz dos dois
     apps) carrega o núcleo (~5 KB) e baixa as features `domAnimation` depois
     da hidratação, em modo `strict` (~14 KB a mais no total por página). Não
-    importe o Motion inteiro (`motion.div`): custa ~38 KB em toda página. Tela que
+    importe o Motion inteiro (`motion.div`): custa ~38 KB em toda página.
+    Componente que fica no layout raiz (todas as páginas) não importa Motion
+    direto: carregue a parte animada com `next/dynamic` só quando ela for
+    aparecer, como o `Toaster` faz com `toast-stack.tsx`. Para um "pulo" de
+    destaque sem Motion, use `popElement` (`@vippin/ui/lib/pop`, Web
+    Animations API).
+  - **Overlays do Radix** (Dialog, Popover, Select) animam em CSS
+    (`tw-animate-css` + springs): o Radix espera a animação de saída acabar.
+    Todo filho direto de um `Portal` precisa ser o próprio conteúdo animado;
+    uma `div` sem animação em volta faz o Radix desmontar na hora e corta a
+    saída. Tela que
     precisa de `layout`/`layoutId`/`drag`/`Reorder` se envolve em
     `MotionMaxFeatures`, que baixa o resto sob demanda. Só em client
     components; server components ficam sem JS de animação.

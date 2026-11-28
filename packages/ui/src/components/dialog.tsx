@@ -32,6 +32,7 @@ function DialogOverlay({
       className={cn(
         "fixed inset-0 z-50 bg-black/50",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=open]:duration-200 data-[state=closed]:duration-150",
         className
       )}
       {...props}
@@ -50,28 +51,31 @@ function DialogContent({
   return (
     <DialogPrimitive.Portal data-slot="dialog-portal">
       <DialogOverlay />
-      <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
-        <DialogPrimitive.Content
-          data-slot="dialog-content"
-          className={cn(
-            "bg-card text-card-foreground pointer-events-auto relative grid w-full max-w-md max-h-[min(90vh,720px)] gap-4 overflow-y-auto rounded-3xl border border-border p-6 shadow-elevated-xl outline-none",
-            "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-            className
-          )}
-          {...props}
-        >
-          {children}
-          {showCloseButton && (
-            <DialogPrimitive.Close
-              data-slot="dialog-close"
-              className="absolute cursor-pointer right-4 top-4 flex size-8 items-center justify-center rounded-full outline-none transition-colors hover:bg-accent focus-visible:ring-ring focus-visible:ring-[3px] disabled:pointer-events-none"
-              aria-label="Fechar"
-            >
-              <X className="size-4" />
-            </DialogPrimitive.Close>
-          )}
-        </DialogPrimitive.Content>
-      </div>
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          // Centralizado no próprio conteúdo (sem div em volta): o Portal do Radix
+          // desmonta na hora filho sem animação, o que cortava a saída.
+          "bg-card text-card-foreground fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 max-h-[min(90vh,720px)] gap-4 overflow-y-auto rounded-3xl border border-border p-6 shadow-elevated-xl outline-none",
+          // Entra com mola suave (no celular sobe de baixo, no desktop cresce
+          // um pouco); sai rápido. CSS puro: o Radix espera a animação acabar.
+          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=open]:ease-spring-soft max-sm:data-[state=open]:slide-in-from-bottom-10 sm:data-[state=open]:zoom-in-94 sm:data-[state=open]:slide-in-from-bottom-3",
+          "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-97 data-[state=closed]:duration-150 data-[state=closed]:ease-in",
+          className
+        )}
+        {...props}
+      >
+        {children}
+        {showCloseButton && (
+          <DialogPrimitive.Close
+            data-slot="dialog-close"
+            className="absolute cursor-pointer right-4 top-4 flex size-8 items-center justify-center rounded-full outline-none transition-colors hover:bg-accent focus-visible:ring-ring focus-visible:ring-[3px] disabled:pointer-events-none"
+            aria-label="Fechar"
+          >
+            <X className="size-4" />
+          </DialogPrimitive.Close>
+        )}
+      </DialogPrimitive.Content>
     </DialogPrimitive.Portal>
   );
 }

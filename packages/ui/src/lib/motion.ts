@@ -12,11 +12,10 @@
  * - Nada de entrada animada no carregamento da página (atrasa o LCP).
  */
 
-/** Elementos animáveis leves (`m.div`, `m.span`...). */
-export * as m from "motion/react-m";
-
 export {
   AnimatePresence,
+  /** Elementos animáveis leves (`m.div`, `m.span`...). */
+  m,
   animate,
   stagger,
   useAnimate,
