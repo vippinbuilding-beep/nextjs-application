@@ -43,7 +43,7 @@ function ToastCard({ item }: { item: ToastItem }) {
     <div
       role="status"
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-lg",
+        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-lg",
         "animate-in fade-in slide-in-from-bottom-4 duration-200"
       )}
     >
@@ -65,7 +65,7 @@ function ToastCard({ item }: { item: ToastItem }) {
 
       <button
         type="button"
-        className="shrink-0 rounded-lg border-2 border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
+        className="shrink-0 rounded-lg border border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
         onClick={() => dismissToast(item.id)}
         aria-label="Fechar aviso"
       >
@@ -89,7 +89,7 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
     <>
       <span
         className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-xl border-2 shadow-cartoon-sm",
+          "flex size-9 shrink-0 items-center justify-center rounded-xl border shadow-elevated-sm",
           styles.icon
         )}
       >
@@ -107,7 +107,7 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
 
       <button
         type="button"
-        className="shrink-0 rounded-lg border-2 border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
+        className="shrink-0 rounded-lg border border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
         onClick={() => dismissToast(item.id)}
         aria-label="Fechar notificação"
       >
@@ -117,7 +117,7 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
   );
 
   const className = cn(
-    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border-2 p-4 shadow-cartoon-lg",
+    "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-4 shadow-elevated-lg",
     "animate-in fade-in slide-in-from-bottom-4 duration-200",
     styles.toast
   );

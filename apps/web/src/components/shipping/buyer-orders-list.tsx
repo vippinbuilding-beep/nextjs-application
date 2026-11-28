@@ -74,7 +74,7 @@ function ReturnRequestBox({
 
   if (item.returnStatus) {
     return (
-      <p className="rounded-xl border-2 border-border bg-muted p-3 text-xs font-medium">
+      <p className="rounded-xl border border-border bg-muted p-3 text-xs font-medium">
         <span className="font-bold">{RETURN_STATUS_LABELS[item.returnStatus]}.</span>{" "}
         {item.returnStatus === "open"
           ? "A equipe Vippin vai te enviar as instruções para devolver o produto. O reembolso sai no PIX usado na compra."
@@ -122,7 +122,7 @@ function ReturnRequestBox({
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border-2 border-border bg-muted p-3">
+    <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted p-3">
       <Label htmlFor={`return-${item.orderId}`}>Por que você quer devolver?</Label>
       <Textarea
         id={`return-${item.orderId}`}
@@ -187,7 +187,7 @@ export function BuyerOrdersList() {
   if (!items.length) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
           <Package className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">Você ainda não comprou produtos físicos.</p>
@@ -203,7 +203,7 @@ export function BuyerOrdersList() {
         return (
           <li
             key={item.orderId}
-            className="flex flex-col gap-3 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm"
+            className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-sm"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -224,7 +224,7 @@ export function BuyerOrdersList() {
               </div>
               <span
                 className={cn(
-                  "shrink-0 rounded-full border-2 border-border px-2 py-0.5 text-xs font-bold",
+                  "shrink-0 rounded-full border border-border px-2 py-0.5 text-xs font-bold",
                   refunded ? "bg-muted" : "bg-primary"
                 )}
               >
@@ -238,7 +238,7 @@ export function BuyerOrdersList() {
                   <li key={step.label} className="flex flex-col gap-1">
                     <span
                       className={cn(
-                        "h-2 rounded-full border-2 border-border",
+                        "h-2 rounded-full border border-border",
                         index <= current ? "bg-primary" : "bg-muted"
                       )}
                     />

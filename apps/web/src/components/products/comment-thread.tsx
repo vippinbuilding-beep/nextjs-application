@@ -183,7 +183,7 @@ function CommentCard({
   }
 
   return (
-    <article className="w-full min-w-0 rounded-xl border-2 border-border bg-background p-2.5 shadow-cartoon-sm">
+    <article className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5 shadow-elevated-sm">
       {parent && parent.id !== node.id && (
         <p className="text-muted-foreground mb-2 text-xs font-medium">
           Em resposta a {authorLabel(parent)}
@@ -236,7 +236,7 @@ function CommentCard({
           {isReplying && (
             <form
               onSubmit={(e) => void handleReplySubmit(e)}
-              className="mt-2.5 flex flex-col gap-2 border-t-2 border-dashed border-border pt-2.5"
+              className="mt-2.5 flex flex-col gap-2 border-t border-dashed border-border pt-2.5"
             >
               <Label htmlFor={`reply-${node.id}`} className="sr-only">
                 Responder comentário

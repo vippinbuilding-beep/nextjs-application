@@ -148,21 +148,20 @@ export function LandingPage() {
   return (
     <LayoutBackground
       element="div"
-      dotsOpacity={0.1}
       className="overflow-x-clip text-foreground">
       <LandingNavbar />
 
       {/* HERO */}
       <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-20">
         {/* Formas decorativas de fundo */}
-        <DecorShape className="lg:block hidden left-[6%] top-[22%] size-24 -rotate-12 rounded-3xl border-2 border-border bg-primary shadow-cartoon sm:size-32" />
-        <DecorShape className="lg:block hidden right-[8%] top-[18%] size-16 rounded-full border-2 border-border bg-[#4dd2ff] shadow-cartoon-sm sm:size-24" />
-        <DecorShape className="lg:block hidden left-[14%] bottom-[16%] size-14 rounded-full border-2 border-border bg-[#9b5de5] shadow-cartoon-sm sm:size-20" />
-        <DecorShape className="lg:block hidden right-[14%] bottom-[20%] size-20 rotate-10 rounded-2xl border-2 border-border bg-[#ff4d4d] shadow-cartoon sm:size-24" />
-        <DecorShape className="lg:block hidden left-[42%] top-[12%] size-12 rotate-45 border-2 border-border bg-primary shadow-cartoon-sm" />
+        <DecorShape className="lg:block hidden left-[6%] top-[22%] size-24 -rotate-12 rounded-3xl border border-border bg-primary shadow-elevated sm:size-32" />
+        <DecorShape className="lg:block hidden right-[8%] top-[18%] size-16 rounded-full border border-border bg-[#4dd2ff] shadow-elevated-sm sm:size-24" />
+        <DecorShape className="lg:block hidden left-[14%] bottom-[16%] size-14 rounded-full border border-border bg-[#9b5de5] shadow-elevated-sm sm:size-20" />
+        <DecorShape className="lg:block hidden right-[14%] bottom-[20%] size-20 rotate-10 rounded-2xl border border-border bg-[#ff4d4d] shadow-elevated sm:size-24" />
+        <DecorShape className="lg:block hidden left-[42%] top-[12%] size-12 rotate-45 border border-border bg-primary shadow-elevated-sm" />
 
         <div className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-cartoon-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-elevated-sm">
             <Sparkles className="size-4" />
             A plataforma de quem cria e de quem aprende
           </span>
@@ -215,7 +214,7 @@ export function LandingPage() {
           aria-hidden
           className="absolute bottom-0 lg:bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-muted-foreground"
         >
-          <div className="flex h-10 w-6 items-start justify-center rounded-full border-2 border-border p-1">
+          <div className="flex h-10 w-6 items-start justify-center rounded-full border border-border p-1">
             <div className="h-2 w-1 rounded-full bg-border" />
           </div>
         </div>
@@ -239,7 +238,7 @@ export function LandingPage() {
         {/* CRIADORES */}
         <div className="mt-14 flex flex-col gap-8">
           <div className="flex flex-col items-start gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-cartoon-sm">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-elevated-sm">
               <Rocket className="size-4" />
               Para criadores
             </span>
@@ -255,7 +254,7 @@ export function LandingPage() {
             {CREATOR_FEATURES.map((feature) => (
               <Card key={feature.title} className="gap-4 transition-transform hover:-translate-y-1">
                 <CardHeader className="gap-3">
-                  <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
+                  <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
                     <feature.icon className="size-6" />
                   </span>
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
@@ -273,7 +272,7 @@ export function LandingPage() {
         {/* CONSUMIDORES */}
         <div className="mt-20 flex flex-col gap-8">
           <div className="flex flex-col items-start gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border-2 border-border bg-[#4dd2ff] px-4 py-1.5 text-sm font-bold shadow-cartoon-sm">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-[#4dd2ff] px-4 py-1.5 text-sm font-bold shadow-elevated-sm">
               <Heart className="size-4" />
               Para quem quer aprender
             </span>
@@ -290,7 +289,7 @@ export function LandingPage() {
             {CONSUMER_FEATURES.map((feature) => (
               <Card key={feature.title} className="gap-4 transition-transform hover:-translate-y-1">
                 <CardHeader className="gap-3">
-                  <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-[#4dd2ff] shadow-cartoon-sm">
+                  <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-[#4dd2ff] shadow-elevated-sm">
                     <feature.icon className="size-6" />
                   </span>
                   <CardTitle className="text-xl">{feature.title}</CardTitle>
@@ -308,8 +307,8 @@ export function LandingPage() {
 
       {/* COMO FUNCIONA */}
       <section className="relative overflow-hidden py-16 sm:py-24">
-        <DecorShape className="lg:block hidden right-[6%] top-[45%] size-28 rounded-full border-2 border-border bg-primary/40 shadow-cartoon-sm" />
-        <DecorShape className="lg:block hidden left-[4%] bottom-[10%] size-20 rounded-2xl border-2 border-border bg-[#9b5de5]/40" />
+        <DecorShape className="lg:block hidden right-[6%] top-[45%] size-28 rounded-full border border-border bg-primary/40 shadow-elevated-sm" />
+        <DecorShape className="lg:block hidden left-[4%] bottom-[10%] size-20 rounded-2xl border border-border bg-[#9b5de5]/40" />
         <div className="relative z-10 mx-auto w-full max-w-5xl px-4">
           <div className="flex flex-col items-center gap-3 text-center">
             <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
@@ -339,13 +338,13 @@ export function LandingPage() {
 
       {/* CTA FINAL */}
       <section className="mx-auto w-full max-w-5xl px-4 pb-20 sm:pb-28">
-        <Card className="relative overflow-hidden bg-primary shadow-cartoon-xl">
+        <Card className="relative overflow-hidden bg-primary shadow-elevated-xl">
           <div
             aria-hidden
             className="absolute inset-0 bg-[radial-gradient(var(--border)_1.5px,transparent_1.5px)] bg-size-[24px_24px] opacity-30"
           />
           <CardContent className="relative z-10 flex flex-col items-center gap-6 px-6 py-14 text-center sm:py-20">
-            <span className="flex size-14 items-center justify-center rounded-2xl border-2 border-border bg-background shadow-cartoon">
+            <span className="flex size-14 items-center justify-center rounded-2xl border border-border bg-background shadow-elevated">
               <Sparkles className="size-7" />
             </span>
             <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
@@ -373,7 +372,7 @@ export function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t-2 border-border bg-background">
+      <footer className="border-t border-border bg-background">
         <div className="mx-auto flex flex-col items-center gap-3 px-4 py-8">
           <SiteLogo size={32} nameClassName="text-lg" />
           <p className="text-sm font-medium text-muted-foreground">

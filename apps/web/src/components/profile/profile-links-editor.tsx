@@ -301,7 +301,7 @@ export function ProfileLinksEditor({
             editingId === link.id ? (
               <li
                 key={link.id}
-                className="rounded-xl border-2 border-border bg-muted/40 p-4"
+                className="rounded-xl border border-border bg-muted/40 p-4"
               >
                 <LinkForm
                   draft={editDraft}
@@ -325,7 +325,7 @@ export function ProfileLinksEditor({
             ) : (
               <li
                 key={link.id}
-                className="flex-col md:flex-row flex md:items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm "
+                className="flex-col md:flex-row flex md:items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-elevated-sm "
               >
                 <ProfileLinkThumbnail
                   url={link.url}
@@ -394,7 +394,7 @@ export function ProfileLinksEditor({
       )}
 
       {showAddForm ? (
-        <div className="rounded-xl border-2 border-dashed border-border bg-muted/30 p-4">
+        <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4">
           <LinkForm
             draft={draft}
             onTitleChange={(value) =>

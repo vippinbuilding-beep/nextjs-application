@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
 import { Sidebar, SidebarLink } from "@vippin/ui/sidebar";
+import { ThemeToggle } from "@vippin/ui/theme-toggle";
 
 interface NavItem {
   href: string;
@@ -46,6 +47,10 @@ export function AdminSidebar() {
       }
       footer={
         <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-muted-foreground">Tema escuro</span>
+            <ThemeToggle />
+          </div>
           {user?.email ? (
             <span className="text-muted-foreground truncate text-xs font-medium">
               {user.email}

@@ -13,7 +13,7 @@ export function CreatorLinkCard({ link }: { link: ProfileLink }) {
   return (
     <Link
       href={link.url}
-      className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background p-3 shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
+      className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-elevated"
     >
       <ProfileLinkThumbnail
         url={link.url}
@@ -39,7 +39,7 @@ export function CreatorLinksList({
   if (links.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
           <Link2 className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">{emptyLabel}</p>

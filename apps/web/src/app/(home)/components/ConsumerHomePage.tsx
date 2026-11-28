@@ -119,7 +119,7 @@ export default function ConsumerHomePage() {
       <PublicNavBar backFallback="/" sticky={false} />
       <div className="flex flex-1 flex-col items-center justify-center p-4 py-6 sm:py-10">
         <Card className="relative w-full max-w-md">
-          <div className="absolute top-4 right-4  items-center gap-2 flex">
+          <div className="absolute top-4 right-4 items-center gap-2 flex">
             <Button
               size="sm"
               variant="outline"
@@ -149,9 +149,9 @@ export default function ConsumerHomePage() {
                 <Link
                   key={option.href}
                   href={option.href}
-                  className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background px-4 py-4 text-left shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon"
+                  className="group flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-4 text-left shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
                 >
-                  <span className="flex size-10 md:size-11 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
+                  <span className="flex size-10 md:size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
                     <Icon className="size-5" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -165,9 +165,9 @@ export default function ConsumerHomePage() {
               );
             })}
 
-            <div className="mt-1 rounded-xl border-2 border-border bg-primary/20 p-4 shadow-cartoon-sm">
+            <div className="mt-1 rounded-xl border border-border bg-primary/20 p-4 shadow-elevated-sm">
               <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
                   <Sparkles className="size-5" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">

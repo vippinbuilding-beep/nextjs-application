@@ -169,7 +169,7 @@ export function ProductCommentsPanel({
   return (
     <div className="flex flex-col gap-4 overflow-x-hidden px-1 py-0.5 h-full">
       {showLoginPrompt ? (
-        <div className="flex flex-col gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-4 py-5">
+        <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-5">
           <p className="text-muted-foreground text-sm">
             Escolha como quer entrar para comentar neste conteúdo.
           </p>
@@ -235,7 +235,7 @@ export function ProductCommentsPanel({
 }
 
 const skeletonBase =
-  "relative overflow-hidden rounded-xl border-2 border-border bg-muted shadow-cartoon-sm";
+  "relative overflow-hidden rounded-xl border border-border bg-muted shadow-elevated-sm";
 
 const shimmer =
   "after:absolute after:inset-0 after:-translate-x-full after:animate-[nav-shimmer_1.4s_ease-in-out_infinite] after:bg-linear-to-r after:from-transparent after:via-background/70 after:to-transparent";

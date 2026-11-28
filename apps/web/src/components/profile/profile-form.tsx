@@ -204,7 +204,7 @@ export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
             Se você alterar o nome de criador, o link será atualizado automaticamente.
           </p>
 
-          <div className="border-t-2 border-dashed border-border" />
+          <div className="border-t border-dashed border-border" />
 
           <AvatarPicker
             userId={user!.id}
@@ -216,7 +216,7 @@ export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
 
           <ProfileStepFields data={form} onChange={updateField} />
 
-          <div className="border-t-2 border-dashed border-border" />
+          <div className="border-t border-dashed border-border" />
 
           <p className="text-sm font-semibold">Redes sociais</p>
           <SocialsStepFields socials={form.socials} onSocialChange={updateSocial} />

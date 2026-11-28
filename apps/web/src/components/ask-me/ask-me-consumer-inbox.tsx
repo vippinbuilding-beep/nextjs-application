@@ -66,7 +66,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
       {questions.map((q) => (
         <li
           key={q.id}
-          className="rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm"
+          className="rounded-xl border border-border bg-background p-4 shadow-elevated-sm"
         >
           <div className="mb-3 flex items-start gap-3">
             <UserAvatar
@@ -100,7 +100,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
           )}
 
           {q.status === "answered" && (
-            <div className="rounded-lg border-2 border-dashed border-border bg-primary/20 p-3">
+            <div className="rounded-lg border border-dashed border-border bg-primary/20 p-3">
               <p className="mb-1 text-xs font-bold">Resposta</p>
               {q.answerText && (
                 <p className="whitespace-pre-wrap text-sm">{q.answerText}</p>
@@ -109,7 +109,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
                 <video
                   src={getAskMeAnswerVideoUrl(q.id)}
                   controls
-                  className="mt-2 w-full rounded-xl border-2 border-border"
+                  className="mt-2 w-full rounded-xl border border-border"
                 />
               )}
             </div>

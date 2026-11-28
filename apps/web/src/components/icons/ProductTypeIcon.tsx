@@ -12,7 +12,7 @@ export default function ProductTypeIcon(
         type === "single_lesson" ? PlayCircle : type === "physical" ? Package : FileText;
 
     return (
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-secondary text-secondary-foreground">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-border bg-secondary text-secondary-foreground">
             <Icon className="size-6" />
         </span>
 

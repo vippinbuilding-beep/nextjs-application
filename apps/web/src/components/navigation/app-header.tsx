@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { getConsumerDisplayName } from "@/components/profile/consumer-nav-profile";
 import { isConsumer, isCreator } from "@/lib/user-role";
 import { cn } from "@vippin/ui/lib/utils";
+import { ThemeToggle } from "@vippin/ui/theme-toggle";
 
 interface AppHeaderProps {
   className?: string;
@@ -31,7 +32,7 @@ export function AppHeader({ className, loading = false }: AppHeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b-2 border-border bg-background/95 backdrop-blur-md",
+        "sticky top-0 z-40 border-b border-border bg-background/95",
         className
       )}
     >
@@ -69,6 +70,8 @@ export function AppHeader({ className, loading = false }: AppHeaderProps) {
             </Link>
           </Button>
 
+          <ThemeToggle />
+
           {loading || !user ? (
             <NavUserActionsSkeleton variant="full" />
           ) : (
@@ -77,7 +80,7 @@ export function AppHeader({ className, loading = false }: AppHeaderProps) {
 
               <Link
                 href="/profile/edit"
-                className="flex max-w-[9rem] items-center gap-2 rounded-xl border-2 border-border bg-background px-2 py-1 shadow-cartoon-sm transition-all hover:-translate-y-0.5 sm:max-w-[11rem]"
+                className="flex max-w-[9rem] items-center gap-2 rounded-xl border border-border bg-background px-2 py-1 shadow-elevated-sm transition-all hover:-translate-y-0.5 sm:max-w-[11rem]"
                 aria-label={`Editar perfil de ${displayName}`}
               >
                 <UserAvatar

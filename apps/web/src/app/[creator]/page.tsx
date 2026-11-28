@@ -197,7 +197,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
                           <Link
                             href={url}
                             aria-label={SOCIAL_LABELS[key] ?? key}
-                            className="flex size-10 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-cartoon"
+                            className="flex size-10 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-elevated"
                           >
                             <Icon className="size-5" />
                           </Link>

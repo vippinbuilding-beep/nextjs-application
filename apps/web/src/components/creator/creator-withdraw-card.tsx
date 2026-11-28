@@ -127,7 +127,7 @@ export function CreatorWithdrawCard() {
               </p>
             )}
             {(balance.heldCents ?? 0) > 0 && (
-              <div className="rounded-xl border-2 border-dashed border-border bg-muted/40 px-3 py-2 text-sm">
+              <div className="rounded-xl border border-dashed border-border bg-muted/40 px-3 py-2 text-sm">
                 <p className="font-bold">
                   {formatBRL(balance.heldCents!)} em retenção
                 </p>

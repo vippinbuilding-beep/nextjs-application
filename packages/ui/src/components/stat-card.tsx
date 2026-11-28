@@ -13,14 +13,14 @@ export interface StatCardProps {
 }
 
 /**
- * Card de KPI no estilo "cartoon" do projeto. Puramente apresentacional
+ * Card de KPI no estilo da Vippin. Puramente apresentacional
  * (server-safe): recebe valores já formatados na borda da UI.
  */
 export function StatCard({ label, value, hint, icon, className }: StatCardProps) {
   return (
     <div
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-1 rounded-2xl border-2 border-border p-4 shadow-cartoon",
+        "bg-card text-card-foreground flex flex-col gap-1 rounded-3xl border border-border p-4 shadow-elevated-sm",
         className
       )}
     >

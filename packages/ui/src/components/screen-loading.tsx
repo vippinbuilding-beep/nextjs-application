@@ -15,7 +15,7 @@ interface ScreenLoadingProps {
 }
 
 /**
- * Loading em tela cheia, no estilo "cartoon" do app.
+ * Loading em tela cheia, no estilo da Vippin.
  *
  * Use para estados de carregamento de página inteira (ex.: enquanto a sessão
  * carrega ou uma rota é resolvida). Para um spinner inline pequeno, use o
@@ -34,8 +34,8 @@ export function ScreenLoading({
       className={cn("flex items-center justify-center p-4", className)}
     >
       <div className="flex flex-col items-center gap-6 text-center">
-        <div className="relative flex size-20 items-center justify-center rounded-2xl border-2 border-border bg-background shadow-cartoon-lg">
-          <span className="absolute inset-0 animate-ping rounded-2xl border-2 border-border opacity-20" />
+        <div className="relative flex size-20 items-center justify-center rounded-3xl border border-border bg-card shadow-elevated-lg">
+          <span className="absolute inset-0 animate-ping rounded-3xl border-2 border-primary opacity-40" />
           <Loader2 className="size-9 animate-spin" strokeWidth={2.5} />
         </div>
 

@@ -46,7 +46,7 @@ export function CreatorLinkCard({ slug }: CreatorLinkCardProps) {
       <CardContent className="flex flex-col gap-3">
         <Link
           href={path}
-          className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-primary px-3.5 py-3 font-bold text-primary-foreground shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon sm:px-4 sm:py-3.5"
+          className="flex items-center justify-between gap-2 rounded-xl border border-border bg-primary px-3.5 py-3 font-bold text-primary-foreground shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated sm:px-4 sm:py-3.5"
         >
           <span className="min-w-0 truncate text-sm sm:text-base">
             <span className="opacity-70">{stripUrlProtocol(origin)}</span>

@@ -165,7 +165,7 @@ export function AskMeDialog({
       <DialogContent className="max-w-md">
         {phase === "paid" ? (
           <div className="flex flex-col items-center gap-3 py-4 text-center">
-            <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
+            <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
               <Check className="size-6" />
             </span>
             <p className="font-bold">Pergunta enviada!</p>
@@ -262,14 +262,14 @@ function AskMeQrPanel({
       <img
         src={imgSrc}
         alt="QR Code PIX"
-        className="mx-auto w-full max-w-56 rounded-xl border-2 border-border bg-white p-2"
+        className="mx-auto w-full max-w-56 rounded-xl border border-border bg-white p-2"
       />
       <div className="flex w-full min-w-0 flex-col gap-2">
         <p className="text-muted-foreground text-xs font-medium">
           Ou copie o código PIX:
         </p>
         <div className="flex w-full min-w-0 items-start gap-2">
-          <code className="min-w-0 flex-1 break-all rounded-xl border-2 border-border bg-muted px-3 py-2 text-left text-[10px] leading-snug sm:text-xs">
+          <code className="min-w-0 flex-1 break-all rounded-xl border border-border bg-muted px-3 py-2 text-left text-[10px] leading-snug sm:text-xs">
             {checkout.brCode}
           </code>
           <Button type="button" variant="outline" size="icon" onClick={onCopy}>

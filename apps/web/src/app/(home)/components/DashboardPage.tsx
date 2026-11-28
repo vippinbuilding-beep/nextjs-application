@@ -285,7 +285,7 @@ function StatPill({
     return (
         <span
             className={cn(
-                "inline-flex items-center rounded-full border-2 border-border px-3 py-1 text-xs font-bold shadow-cartoon-sm",
+                "inline-flex items-center rounded-full border border-border px-3 py-1 text-xs font-bold shadow-elevated-sm",
                 highlight ? "bg-primary text-primary-foreground" : "bg-background"
             )}
         >
@@ -312,9 +312,9 @@ function ModuleCard({
     return (
         <Link
             href={href}
-            className="group flex items-center gap-3 rounded-xl border-2 border-border bg-background p-4 text-left shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon"
+            className="group flex items-center gap-3 rounded-xl border border-border bg-background p-4 text-left shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
         >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-primary shadow-cartoon-sm">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
                 <Icon className="size-5" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">

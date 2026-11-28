@@ -11,6 +11,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
 import { cn } from "@vippin/ui/lib/utils";
 import { UserAvatar } from "../ui/user-avatar";
+import { ThemeToggle } from "@vippin/ui/theme-toggle";
 
 interface PublicNavBarProps {
   /** Where the back button goes when there is no in-app history. */
@@ -35,7 +36,7 @@ export function PublicNavBar({
   return (
     <header
       className={cn(
-        "z-30 border-b-2 border-border bg-background/95 backdrop-blur-md",
+        "z-30 border-b border-border bg-background/95",
         sticky && "sticky top-0",
         className
       )}
@@ -58,6 +59,7 @@ export function PublicNavBar({
               <span className="hidden sm:inline">Explorar</span>
             </Link>
           </Button>
+          <ThemeToggle />
           {loading ? (
             <NavUserActionsSkeleton variant="compact" />
           ) : user ? (

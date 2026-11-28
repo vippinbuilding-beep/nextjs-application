@@ -12,7 +12,7 @@ export interface SidebarProps {
 }
 
 /**
- * Shell de barra lateral no estilo "cartoon". Framework-agnóstico e
+ * Shell de barra lateral no estilo da Vippin. Framework-agnóstico e
  * apresentacional: não conhece rotas nem router. O app compõe os itens (ver
  * {@link SidebarLink}) e resolve o estado ativo.
  */
@@ -20,7 +20,7 @@ export function Sidebar({ header, footer, children, className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "bg-card flex h-svh w-60 shrink-0 flex-col gap-4 border-r-2 border-border p-4",
+        "bg-card flex h-svh w-60 shrink-0 flex-col gap-4 border-r border-sidebar-border bg-sidebar p-4",
         className
       )}
     >
@@ -55,10 +55,10 @@ export function SidebarLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-semibold transition-colors",
+        "flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors [&_svg]:transition-transform [&_svg]:duration-200 [&_svg]:ease-spring hover:[&_svg]:scale-110",
         active
-          ? "border-border bg-primary text-primary-foreground shadow-cartoon-sm"
-          : "border-transparent text-muted-foreground hover:border-border hover:bg-muted",
+          ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-elevated-sm"
+          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
         className
       )}
     >

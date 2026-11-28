@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+
+import { ThemeScript } from "@vippin/ui/theme-script";
 
 import { InstallAppPrompt } from "@/components/pwa/install-app-prompt";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
@@ -11,10 +13,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { createRootMetadata } from "@/lib/metadata";
 import "./globals.css";
 
-const fredoka = Fredoka({
+const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -25,7 +26,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = createRootMetadata();
 
 export const viewport: Viewport = {
-  themeColor: "#ffe502",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#070708" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -37,9 +41,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
-        className={`${fredoka.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
           <NotificationToastListener />

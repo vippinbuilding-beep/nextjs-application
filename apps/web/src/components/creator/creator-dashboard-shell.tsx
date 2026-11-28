@@ -25,7 +25,6 @@ export function CreatorDashboardShell({ children }: CreatorDashboardShellProps) 
   return (
     <LayoutBackground
       element="main"
-      dotsOpacity={0.18}
       className="flex min-h-svh flex-col"
     >
       <CreatorMobileTopBar
@@ -38,8 +37,8 @@ export function CreatorDashboardShell({ children }: CreatorDashboardShellProps) 
       />
 
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-64 shrink-0 flex-col border-r-2 border-border bg-background/80 lg:flex xl:w-72">
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b-2 border-border px-5 py-4">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background/80 lg:flex xl:w-72">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-4">
             <SiteLogo size={32} nameClassName="text-lg" />
             <NotificationBell />
           </div>

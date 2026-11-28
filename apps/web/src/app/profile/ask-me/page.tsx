@@ -125,7 +125,7 @@ export default function AskMeProfilePage() {
               >
                 Não respondidas
                 {pendingCount > 0 && (
-                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full border-2 border-border bg-background px-1 text-[10px] font-bold leading-5">
+                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full border border-border bg-background px-1 text-[10px] font-bold leading-5">
                     {pendingCount > 9 ? "9+" : pendingCount}
                   </span>
                 )}
@@ -137,7 +137,7 @@ export default function AskMeProfilePage() {
 
             <TabsContent value="settings">
               <form onSubmit={handleSaveSettings} className="flex flex-col gap-4">
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-sm">
                   <input
                     type="checkbox"
                     checked={enabled}

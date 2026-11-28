@@ -23,7 +23,7 @@ interface SellerTermsCardProps {
 /** Prohibited items list (always visible on physical products). */
 export function ProhibitedItemsList() {
   return (
-    <div className="rounded-xl border-2 border-border bg-muted p-3 text-sm">
+    <div className="rounded-xl border border-border bg-muted p-3 text-sm">
       <p className="font-bold">Itens proibidos (Correios e Vippin)</p>
       <ul className="text-muted-foreground mt-1 list-disc pl-5 text-xs">
         {PROHIBITED_ITEMS.map((item) => (
@@ -97,7 +97,7 @@ export function SellerTermsCard({ onAcceptedChange, disabled }: SellerTermsCardP
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border-2 border-border bg-background p-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3">
       <p className="flex items-center gap-2 font-bold">
         <ShieldCheck className="size-5" /> {SELLER_TERMS_TITLE}
       </p>

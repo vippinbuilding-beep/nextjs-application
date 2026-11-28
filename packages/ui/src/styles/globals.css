@@ -14,74 +14,90 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Identidade "Espectro": interface neutra (branco/preto), superfícies limpas,
+ * bordas finas e o espectro de cores só como destaque (borda, gradiente).
+ * Amarelo #FFE502 continua sendo a ação principal.
+ */
 :root {
-  /* Paleta cartoon: amarelo #FFE502, off-white #FAFFFA, preto #000000 */
+  color-scheme: light;
   --radius: 1rem;
-  --background: #fafffa;
-  --foreground: #000000;
-  --card: #fafffa;
-  --card-foreground: #000000;
-  --popover: #fafffa;
-  --popover-foreground: #000000;
+  --background: #f7f7f8;
+  --foreground: #0a0a0b;
+  --card: #ffffff;
+  --card-foreground: #0a0a0b;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0b;
   --primary: #ffe502;
-  --primary-foreground: #000000;
-  --secondary: #000000;
-  --secondary-foreground: #fafffa;
-  --muted: #f0f1ec;
-  --muted-foreground: #4b4b4b;
-  --accent: #ffe502;
-  --accent-foreground: #000000;
-  --destructive: #ff4d4d;
-  --border: #000000;
-  --input: #000000;
-  --ring: #ffe502;
-  --chart-1: #ffe502;
-  --chart-2: #000000;
-  --chart-3: #ff4d4d;
-  --chart-4: #4dd2ff;
-  --chart-5: #9b5de5;
-  --sidebar: #fafffa;
-  --sidebar-foreground: #000000;
-  --sidebar-primary: #ffe502;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #ffe502;
-  --sidebar-accent-foreground: #000000;
-  --sidebar-border: #000000;
-  --sidebar-ring: #ffe502;
+  --primary-foreground: #0a0a0b;
+  --secondary: #0a0a0b;
+  --secondary-foreground: #ffffff;
+  --muted: #f2f2f4;
+  --muted-foreground: #52525b;
+  --accent: #f2f2f4;
+  --accent-foreground: #0a0a0b;
+  --destructive: #e5372d;
+  --destructive-foreground: #ffffff;
+  --success: #15803d;
+  --border: rgb(10 10 11 / 0.09);
+  --input: rgb(10 10 11 / 0.14);
+  --ring: #7c3aed;
+  --grid: rgb(10 10 11 / 0.035);
+  --shadow-color: 10 10 11;
+  --chart-1: #ffc800;
+  --chart-2: #3d8bff;
+  --chart-3: #ff4fa3;
+  --chart-4: #1fd1c1;
+  --chart-5: #9b5cff;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0a0a0b;
+  --sidebar-primary: #0a0a0b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f2f2f4;
+  --sidebar-accent-foreground: #0a0a0b;
+  --sidebar-border: rgb(10 10 11 / 0.08);
+  --sidebar-ring: #7c3aed;
+  --spectrum: linear-gradient(120deg, #84cc16, #ffd60a, #ff7a1a, #ff4fa3, #9b5cff);
+  --spectrum-warm: linear-gradient(135deg, #ff7a1a, #ff4fa3, #9b5cff);
 }
 
 .dark {
-  --background: #000000;
-  --foreground: #fafffa;
-  --card: #1a1a1a;
-  --card-foreground: #fafffa;
-  --popover: #1a1a1a;
-  --popover-foreground: #fafffa;
+  color-scheme: dark;
+  --background: #070708;
+  --foreground: #f5f5f7;
+  --card: #121214;
+  --card-foreground: #f5f5f7;
+  --popover: #18181b;
+  --popover-foreground: #f5f5f7;
   --primary: #ffe502;
-  --primary-foreground: #000000;
-  --secondary: #fafffa;
-  --secondary-foreground: #000000;
-  --muted: #2a2a2a;
-  --muted-foreground: #b5b5b5;
-  --accent: #ffe502;
-  --accent-foreground: #000000;
-  --destructive: #ff4d4d;
-  --border: #fafffa;
-  --input: #fafffa;
-  --ring: #ffe502;
+  --primary-foreground: #0a0a0b;
+  --secondary: #f5f5f7;
+  --secondary-foreground: #0a0a0b;
+  --muted: #1c1c1f;
+  --muted-foreground: #a1a1a6;
+  --accent: #232327;
+  --accent-foreground: #f5f5f7;
+  --destructive: #ff6961;
+  --destructive-foreground: #0a0a0b;
+  --success: #4cd964;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.14);
+  --ring: #a78bfa;
+  --grid: rgb(255 255 255 / 0.03);
+  --shadow-color: 0 0 0;
   --chart-1: #ffe502;
-  --chart-2: #fafffa;
-  --chart-3: #ff4d4d;
-  --chart-4: #4dd2ff;
-  --chart-5: #9b5de5;
-  --sidebar: #1a1a1a;
-  --sidebar-foreground: #fafffa;
-  --sidebar-primary: #ffe502;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #ffe502;
-  --sidebar-accent-foreground: #000000;
-  --sidebar-border: #fafffa;
-  --sidebar-ring: #ffe502;
+  --chart-2: #5c9dff;
+  --chart-3: #ff4fa3;
+  --chart-4: #1fd1c1;
+  --chart-5: #b48cff;
+  --sidebar: #0e0e10;
+  --sidebar-foreground: #f5f5f7;
+  --sidebar-primary: #f5f5f7;
+  --sidebar-primary-foreground: #0a0a0b;
+  --sidebar-accent: #1c1c1f;
+  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-border: rgb(255 255 255 / 0.06);
+  --sidebar-ring: #a78bfa;
 }
 
 @theme inline {
@@ -102,6 +118,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -123,12 +141,19 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Sombras cartoon "hard shadow" (sem blur) */
-  --shadow-cartoon-sm: 2px 2px 0 0 var(--border);
-  --shadow-cartoon-avatar: 1px 1px 0 0 var(--border);
-  --shadow-cartoon: 4px 4px 0 0 var(--border);
-  --shadow-cartoon-lg: 6px 6px 0 0 var(--border);
-  --shadow-cartoon-xl: 8px 8px 0 0 var(--border);
+  /* Elevação suave (substitui as sombras duras do cartoon). */
+  --shadow-elevated-avatar: 0 0 0 1px var(--border);
+  --shadow-elevated-sm: 0 1px 2px rgb(var(--shadow-color) / 0.05), 0 4px 12px -6px rgb(var(--shadow-color) / 0.14);
+  --shadow-elevated: 0 1px 2px rgb(var(--shadow-color) / 0.05), 0 12px 28px -16px rgb(var(--shadow-color) / 0.24);
+  --shadow-elevated-lg: 0 2px 4px rgb(var(--shadow-color) / 0.04), 0 24px 48px -24px rgb(var(--shadow-color) / 0.3);
+  --shadow-elevated-xl: 0 2px 6px rgb(var(--shadow-color) / 0.05), 0 36px 64px -28px rgb(var(--shadow-color) / 0.38);
+  --shadow-glow-primary: 0 10px 24px -10px rgb(201 154 0 / 0.65);
+
+  /* Movimento: mola curta para interações, saída suave para entradas. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: rise 520ms var(--ease-out-soft) both;
+  --animate-pop: pop 260ms var(--ease-spring) both;
 }
 
 @layer base {
@@ -142,8 +167,113 @@
   }
 }
 
+/*
+ * Interações. Desempenho: só transform/opacity animam (camada de GPU, sem
+ * layout nem repaint). Sombras de hover ficam prontas num ::after e aparecem
+ * por opacidade, nunca animando box-shadow.
+ */
+@utility interactive-lift {
+  position: relative;
+  transition: transform 240ms var(--ease-spring);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: var(--shadow-elevated-lg);
+    opacity: 0;
+    transition: opacity 240ms ease;
+    pointer-events: none;
+  }
+  &:hover {
+    transform: translateY(-4px);
+  }
+  &:hover::after {
+    opacity: 1;
+  }
+  &:active {
+    transform: translateY(-1px) scale(0.99);
+  }
+}
+
+@utility interactive-press {
+  transition: transform 140ms var(--ease-spring);
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+/* Borda multicor num só elemento (sem wrapper): o fundo do card fica no
+   padding-box e o espectro aparece só na borda. */
+@utility border-spectrum {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    var(--spectrum) border-box;
+}
+
+@utility border-spectrum-warm {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    var(--spectrum-warm) border-box;
+}
+
+@utility bg-spectrum {
+  background-image: var(--spectrum);
+}
+
+@utility bg-spectrum-warm {
+  background-image: var(--spectrum-warm);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes nav-shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+/*
+ * Troca de tema (ver @vippin/ui/lib/theme): View Transitions. O navegador
+ * congela a tela antiga numa imagem e o JS anima só um clip-path circular
+ * no ::view-transition-new(root). Aqui desligamos o cross-fade padrão.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Quem pede menos movimento não vê animação nenhuma. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

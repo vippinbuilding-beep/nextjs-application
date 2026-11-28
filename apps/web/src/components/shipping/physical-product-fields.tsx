@@ -160,7 +160,7 @@ export function PhysicalProductFields({
       <SellerTermsCard onAcceptedChange={onTermsAcceptedChange} disabled={disabled} />
       <ProhibitedItemsList />
       {hasShipFrom === false && (
-        <div className="rounded-xl border-2 border-dashed border-destructive/50 bg-destructive/5 p-3 text-sm">
+        <div className="rounded-xl border border-dashed border-destructive/50 bg-destructive/5 p-3 text-sm">
           <p className="font-bold">Cadastre seu endereço de remetente</p>
           <p className="text-muted-foreground text-xs">
             Ele é obrigatório para vender produtos físicos e aparece nas etiquetas.{" "}
@@ -251,10 +251,10 @@ export function PhysicalProductFields({
                 onClick={() => set("shippingMode", option.mode)}
                 aria-pressed={selected}
                 className={cn(
-                  "flex items-start gap-3 rounded-xl border-2 border-border p-3 text-left transition-all cursor-pointer",
+                  "flex items-start gap-3 rounded-xl border border-border p-3 text-left transition-all cursor-pointer",
                   selected
-                    ? "bg-primary shadow-cartoon-sm"
-                    : "bg-background hover:-translate-y-0.5 hover:shadow-cartoon-sm"
+                    ? "bg-primary shadow-elevated-sm"
+                    : "bg-background hover:-translate-y-0.5 hover:shadow-elevated-sm"
                 )}
               >
                 <Icon className="mt-0.5 size-5 shrink-0" />
@@ -270,7 +270,7 @@ export function PhysicalProductFields({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border-2 border-border bg-muted/40 p-3">
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/40 p-3">
         <div className="flex items-center justify-between gap-2">
           <p className="text-sm font-bold">Simular frete</p>
           <Button

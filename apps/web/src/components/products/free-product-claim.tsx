@@ -50,8 +50,8 @@ export function FreeProductClaim({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-4 py-6 text-center sm:px-6 sm:py-8">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm">
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-4 py-6 text-center sm:px-6 sm:py-8">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm">
           <Gift className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">
@@ -64,8 +64,8 @@ export function FreeProductClaim({
 
   if (phase === "claimed") {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-primary px-6 py-8 text-center shadow-cartoon-sm">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm">
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-primary px-6 py-8 text-center shadow-elevated-sm">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm">
           <Check className="size-6" />
         </span>
         <p className="font-bold">Acesso liberado!</p>
@@ -75,8 +75,8 @@ export function FreeProductClaim({
   }
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted px-6 py-8 text-center">
-      <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-background shadow-cartoon-sm">
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-6 py-8 text-center">
+      <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm">
         <Gift className="size-6" />
       </span>
 

@@ -113,7 +113,7 @@ export default async function EnviosPage() {
               {openReturns.map((request) => {
                 const days = Math.floor((now - request.requestedAt.getTime()) / (24 * 60 * 60 * 1000));
                 return (
-                  <li key={request.id} className="rounded-xl border-2 border-border p-3">
+                  <li key={request.id} className="rounded-xl border border-border p-3">
                     <p className="text-xs">
                       <span className="font-mono">{shortId(request.orderId)}</span> · pedida em{" "}
                       {formatDate(request.requestedAt)} ·{" "}
@@ -131,7 +131,7 @@ export default async function EnviosPage() {
       )}
 
       {balanceCents !== null && balanceCents < LOW_BALANCE_CENTS && (
-        <p className="rounded-xl border-2 border-destructive bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive">
+        <p className="rounded-xl border border-destructive bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive">
           Saldo baixo na Melhor Carteira: novas etiquetas podem falhar. Reponha o saldo.
         </p>
       )}
@@ -146,7 +146,7 @@ export default async function EnviosPage() {
           ) : (
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b-2 border-border text-xs uppercase">
+                <tr className="border-b border-border text-xs uppercase">
                   <th className="py-2 pr-3">Pedido</th>
                   <th className="py-2 pr-3">Status</th>
                   <th className="py-2 pr-3">Envio</th>
@@ -165,7 +165,7 @@ export default async function EnviosPage() {
                         <p className="font-mono text-xs">{shortId(order.id)}</p>
                         <p className="text-muted-foreground text-xs">criador {shortId(order.creatorId)}</p>
                         {attention && (
-                          <span className="mt-1 inline-block rounded-full border-2 border-destructive px-2 text-[10px] font-bold text-destructive">
+                          <span className="mt-1 inline-block rounded-full border border-destructive px-2 text-[10px] font-bold text-destructive">
                             atenção
                           </span>
                         )}

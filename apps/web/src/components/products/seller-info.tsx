@@ -35,7 +35,7 @@ export function SellerInfo({
     : null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border-2 border-border bg-muted/40 p-3 text-xs">
+    <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/40 p-3 text-xs">
       <p className="flex items-center gap-2 text-sm font-bold">
         <Store className="size-4" /> Vendido por
       </p>

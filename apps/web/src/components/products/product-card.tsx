@@ -60,7 +60,7 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
         return (
             <Link
                 href={href}
-                className="group flex items-center gap-4 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon"
+                className="group flex items-center gap-4 rounded-xl border border-border bg-background p-4 shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
             >
                 <ProductThumbnail
                     type={type}
@@ -73,7 +73,7 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
                     <span className="flex items-center gap-2">
                         <span className="font-bold">{product.title}</span>
                         {showCancelledBadge && (
-                            <span className="shrink-0 rounded-full border-2 border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                            <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
                                 Cancelado
                             </span>
                         )}
@@ -99,12 +99,12 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
     return (
         <Link
             href={href}
-            className="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-border bg-background shadow-cartoon-sm transition-all hover:-translate-y-1 hover:shadow-cartoon"
+            className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-elevated-sm transition-all hover:-translate-y-1 hover:shadow-elevated"
         >
             <ProductThumbnail
                 type={type}
                 thumbnailUrl={thumbnailUrl}
-                className="w-full rounded-none border-0 border-b-2"
+                className="w-full rounded-none border-0 border-b"
                 iconClassName="size-10"
                 sizes="(min-width: 640px) 45vw, 100vw"
                 aspectRatio={bannerAspectRatio}
@@ -116,7 +116,7 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
                         {product.title}
                     </span>
                     {showCancelledBadge && (
-                        <span className="shrink-0 rounded-full border-2 border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                        <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
                             Cancelado
                         </span>
                     )}

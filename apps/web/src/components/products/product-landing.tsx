@@ -1,10 +1,8 @@
-import { Lock, Package, Pencil } from "lucide-react";
+import { ArrowRight, Lock, Package, PackageX, Pencil, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 import { ExpandableText } from "@/components/ui/expandable-text";
 import { FreeProductClaim } from "@/components/products/free-product-claim";
-import { PixCheckout } from "@/components/products/pix-checkout";
-import { PhysicalCheckout } from "@/components/shipping/physical-checkout";
 import { Button } from "@vippin/ui/button";
 import { PriceTransparency } from "@/components/products/price-transparency";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
@@ -23,6 +21,7 @@ import { cn } from "@vippin/ui/lib/utils";
 
 interface ProductLandingProps {
   productId: string;
+  productSlug: string;
   type: ProductType;
   title: string;
   description?: string | null;
@@ -54,6 +53,7 @@ interface ProductLandingProps {
  */
 export function ProductLanding({
   productId,
+  productSlug,
   type,
   title,
   description,
@@ -71,6 +71,9 @@ export function ProductLanding({
 }: ProductLandingProps) {
   const isFree = priceCents <= 0;
   const isPhysical = type === "physical";
+  const checkoutHref = `/@${creatorSlug}/${productSlug}/checkout`;
+  const inStock = physical?.inStock ?? false;
+  const available = physical?.available ?? true;
 
   return (
     <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start lg:grid-cols-[minmax(0,1fr)_23rem]">
@@ -80,12 +83,12 @@ export function ProductLanding({
             type={type}
             thumbnailUrl={thumbnailUrl}
             rounded="rounded-t-2xl rounded-b-none"
-            className="-mt-6 w-full border-0 border-b-2"
+            className="-mt-6 w-full border-0 border-b"
             iconClassName="size-16"
             sizes="(min-width: 1024px) 640px, 100vw"
             aspectRatio={bannerAspectRatio ?? 16 / 9}
           />
-          <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border-2 border-border bg-muted px-2 py-1 text-xs font-bold shadow-cartoon-sm sm:px-2.5">
+          <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border border-border bg-muted px-2 py-1 text-xs font-bold shadow-elevated-sm sm:px-2.5">
             {isPhysical ? (
               <Package className="size-3.5 shrink-0" />
             ) : (
@@ -120,7 +123,7 @@ export function ProductLanding({
             avatarUrl={creatorAvatarUrl}
           />
 
-          <div className="flex items-center justify-between gap-2 rounded-xl border-2 border-border bg-muted/40 px-3 py-3 sm:gap-3 sm:px-4">
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3 py-3 sm:gap-3 sm:px-4">
             <span className="text-muted-foreground min-w-0 truncate text-sm font-medium">
               {isPhysical
                 ? physical?.shippingMode === "free"
@@ -132,7 +135,7 @@ export function ProductLanding({
             </span>
             <span className={cn(
               "shrink-0 text-xl font-bold sm:text-2xl",
-              isFree && "text-green-500",
+              isFree && "text-success",
             )}>
               {isFree ? "Grátis" : formatBRL(priceCents)}
             </span>
@@ -144,14 +147,12 @@ export function ProductLanding({
                 <Pencil className="size-4" /> Editar produto
               </Link>
             </Button>
-          ) : isPhysical ? (
-            <PhysicalCheckout
-              productId={productId}
-              priceCents={priceCents}
-              shippingMode={physical?.shippingMode ?? "buyer_pays"}
-              inStock={physical?.inStock ?? false}
-              available={physical?.available ?? true}
-              isAuthenticated={isAuthenticated}
+          ) : isPhysical && !inStock ? (
+            <UnavailableNotice title="Esgotado" text="Este produto está sem estoque no momento." />
+          ) : isPhysical && !available ? (
+            <UnavailableNotice
+              title="Indisponível no momento"
+              text="Este produto não está aceitando novos pedidos agora. Tente novamente mais tarde."
             />
           ) : isFree ? (
             <FreeProductClaim
@@ -159,11 +160,18 @@ export function ProductLanding({
               isAuthenticated={isAuthenticated}
             />
           ) : (
-            <PixCheckout
-              productId={productId}
-              priceCents={priceCents}
-              isAuthenticated={isAuthenticated}
-            />
+            <div className="flex flex-col gap-2">
+              <Button asChild size="lg" className="group">
+                <Link href={checkoutHref}>
+                  {isPhysical ? "Comprar" : `Comprar por ${formatBRL(priceCents)}`}
+                  <ArrowRight className="size-5 transition-transform duration-200 ease-spring group-hover:translate-x-1" />
+                </Link>
+              </Button>
+              <p className="text-muted-foreground flex items-center justify-center gap-1.5 text-xs">
+                <ShieldCheck className="size-3.5" />
+                {isPhysical ? "Pagamento com PIX e compra protegida" : "Pagamento com PIX e acesso imediato"}
+              </p>
+            </div>
           )}
 
           {isPhysical && (
@@ -171,6 +179,16 @@ export function ProductLanding({
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function UnavailableNotice({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="bg-muted flex flex-col items-center gap-2 rounded-2xl px-4 py-6 text-center">
+      <PackageX className="text-muted-foreground size-6" />
+      <p className="font-bold">{title}</p>
+      <p className="text-muted-foreground text-sm">{text}</p>
     </div>
   );
 }

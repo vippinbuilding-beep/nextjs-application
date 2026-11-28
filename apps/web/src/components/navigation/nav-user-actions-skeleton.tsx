@@ -1,7 +1,7 @@
 import { cn } from "@vippin/ui/lib/utils";
 
 const skeletonBase =
-  "relative overflow-hidden rounded-xl border-2 border-border bg-muted shadow-cartoon-sm";
+  "relative overflow-hidden rounded-xl border border-border bg-muted shadow-elevated-sm";
 
 const shimmer =
   "after:absolute after:inset-0 after:-translate-x-full after:animate-[nav-shimmer_1.4s_ease-in-out_infinite] after:bg-linear-to-r after:from-transparent after:via-background/70 after:to-transparent";
@@ -44,7 +44,7 @@ export function NavAvatarSkeleton({
         )}
         aria-hidden
       >
-        <div className="size-8 shrink-0 rounded-full border-2 border-border bg-background/80" />
+        <div className="size-8 shrink-0 rounded-full border border-border bg-background/80" />
         <div className="hidden h-3.5 min-w-16 flex-1 rounded-md bg-background/80 sm:block" />
       </div>
     );
