@@ -2,6 +2,8 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 
+import { prefersReducedMotion, springEasing } from "@vippin/ui/lib/css-springs";
+
 interface ExpandableTextProps {
   text: string;
   /** Characters shown before truncating and offering "Mostrar mais". */
@@ -13,10 +15,6 @@ interface ExpandableTextProps {
 function collapsedLineCount(previewLength: number): number {
   return Math.max(2, Math.round(previewLength / 55));
 }
-
-/** Mesma curva do `--spring-soft` (sem passar do ponto: é texto). */
-const SOFT_SPRING =
-  "linear(0, 0.049, 0.157, 0.285, 0.411, 0.525, 0.624, 0.706, 0.772, 0.825, 0.866, 0.899, 0.924, 0.943, 0.957, 0.968, 0.976, 0.983, 0.987, 0.991, 0.993, 0.995, 0.996, 0.997, 1)";
 
 /**
  * Prévia de texto longo com "Mostrar mais"/"Mostrar menos".
@@ -48,10 +46,10 @@ export function ExpandableText({
     const from = fromHeight.current;
     fromHeight.current = null;
     if (!box || from === null) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (prefersReducedMotion()) return;
     const to = box.getBoundingClientRect().height;
     if (Math.abs(to - from) < 1 || typeof box.animate !== "function") return;
-    const easing = CSS.supports("transition-timing-function", SOFT_SPRING) ? SOFT_SPRING : "ease-out";
+    const easing = springEasing("soft");
     box.animate(
       [
         { height: `${from}px`, overflow: "hidden" },

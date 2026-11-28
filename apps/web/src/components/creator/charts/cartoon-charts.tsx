@@ -31,19 +31,20 @@ export function CartoonBarChart({
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const widthPercent = Math.max(8, Math.round((item.value / maxValue) * 100));
 
         return (
           <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-center gap-3">
             <span className="truncate text-sm font-semibold">{item.label}</span>
             <div className="h-4 rounded-full border border-border bg-muted">
+              {/* Cresce da esquerda ao aparecer, em cascata curta. */}
               <div
                 className={cn(
-                  "h-full rounded-full border border-border",
+                  "h-full origin-left rounded-full border border-border [animation:grow-x_760ms_var(--spring-soft)_both]",
                   item.colorClassName ?? "bg-chart-1"
                 )}
-                style={{ width: `${widthPercent}%` }}
+                style={{ width: `${widthPercent}%`, animationDelay: `${Math.min(index, 10) * 50}ms` }}
               />
             </div>
             <span className="text-muted-foreground text-xs font-semibold tabular-nums">
@@ -110,8 +111,11 @@ export function CartoonTimelineChart({
                 <div className="flex h-40 w-full items-end">
                   {total > 0 ? (
                     <div
-                      className="flex w-full flex-col justify-end overflow-hidden rounded-t-xl border border-border"
-                      style={{ height: `${heightPercent}%` }}
+                      className="flex w-full origin-bottom flex-col justify-end overflow-hidden rounded-t-xl border border-border [animation:grow-y_760ms_var(--spring-snappy)_both]"
+                      style={{
+                        height: `${heightPercent}%`,
+                        animationDelay: `${Math.min(index, 30) * 18}ms`,
+                      }}
                     >
                       {point.askMeCents > 0 && (
                         <div

@@ -19,6 +19,7 @@ import { OnboardingStep } from "./onboarding-step";
 import { ProfileStepFields } from "./profile-step-fields";
 import { SocialsStepFields } from "./socials-step-fields";
 import { ProfileLinksEditor } from "@/components/profile/profile-links-editor";
+import { cn } from "@vippin/ui/lib/utils";
 import {
   clearOnboardingDraft,
   INITIAL_ONBOARDING_FORM,
@@ -62,6 +63,10 @@ export function OnboardingForm({ returnTo = "/" }: { returnTo?: string }) {
   const userId = user?.id;
 
   const [step, setStep] = useState(1);
+  const [stepMotion, setStepMotion] = useState<{
+    step: number | null;
+    direction: "forward" | "back" | null;
+  }>({ step: null, direction: null });
   const [form, setForm] = useState<OnboardingFormData>(INITIAL_ONBOARDING_FORM);
   const [slug, setSlug] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -242,13 +247,29 @@ export function OnboardingForm({ returnTo = "/" }: { returnTo?: string }) {
     router.replace("/login");
   }
 
+  // Direção da troca de passo: o passo novo entra pelo lado certo (avançar
+  // vem da direita, voltar da esquerda). O primeiro passo mostrado não anima.
+  if (hydrated && stepMotion.step !== step) {
+    setStepMotion({
+      step,
+      direction: stepMotion.step === null ? null : step > stepMotion.step ? "forward" : "back",
+    });
+  }
+
   if (!hydrated) {
     return null;
   }
 
   return (
     <div className="w-full max-w-md">
-      <div key={step} className="animate-in fade-in slide-in-from-right-2 duration-200">
+      <div
+        key={step}
+        className={cn(
+          stepMotion.direction && "animate-in fade-in-0 duration-[420ms] ease-spring-soft",
+          stepMotion.direction === "forward" && "slide-in-from-right-6",
+          stepMotion.direction === "back" && "slide-in-from-left-6"
+        )}
+      >
         {step === 3 ? (
           <OnboardingStep
             step={3}

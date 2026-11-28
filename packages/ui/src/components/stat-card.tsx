@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "../lib/utils";
+import { RollingNumber } from "./rolling-number";
 
 export interface StatCardProps {
   label: string;
@@ -13,8 +14,9 @@ export interface StatCardProps {
 }
 
 /**
- * Card de KPI no estilo da Vippin. Puramente apresentacional
- * (server-safe): recebe valores já formatados na borda da UI.
+ * Card de KPI no estilo da Vippin. Apresentacional (server-safe): recebe
+ * valores já formatados na borda da UI. Valor em texto rola como odômetro
+ * quando muda (RollingNumber, client).
  */
 export function StatCard({ label, value, hint, icon, className }: StatCardProps) {
   return (
@@ -30,7 +32,10 @@ export function StatCard({ label, value, hint, icon, className }: StatCardProps)
         </span>
         {icon ? <span className="text-muted-foreground">{icon}</span> : null}
       </div>
-      <span className="text-2xl font-semibold tracking-tight">{value}</span>
+      <span className="text-2xl font-semibold tracking-tight">
+        {/* Texto (já formatado) rola como odômetro quando o valor muda. */}
+        {typeof value === "string" ? <RollingNumber value={value} /> : value}
+      </span>
       {hint ? (
         <span className="text-muted-foreground text-xs font-medium">{hint}</span>
       ) : null}
