@@ -78,7 +78,9 @@ function TabsContent({
     <TabsPrimitive.Content
       data-slot="tabs-content"
       className={cn(
-        "outline-none data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-bottom-1 data-[state=active]:duration-300",
+        // Sem animação de entrada aqui: a aba padrão aparece no carregamento da
+        // página (atrasaria o LCP).
+        "outline-none",
         className
       )}
       {...props}
