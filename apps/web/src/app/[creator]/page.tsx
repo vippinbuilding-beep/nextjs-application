@@ -23,7 +23,9 @@ import type { ProductType } from "@vippin/core/models/product";
 import type { ProfileLink } from "@vippin/core/models/profile-link";
 import { resolveAskMePriceCents } from "@vippin/core/domain/ask-me";
 import { isCreatorProfileTab } from "@/lib/creator-profile-tabs";
-import { createCreatorMetadata } from "@/lib/metadata";
+import { createCreatorMetadata, toAbsoluteUrl } from "@/lib/metadata";
+import { JsonLd } from "@/components/seo/json-ld";
+import { creatorProfileJsonLd } from "@/lib/structured-data";
 import { createSupabaseServerClient } from "@vippin/supabase/client/server";
 import Link from "next/link";
 
@@ -155,6 +157,18 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
     >
       <PublicNavBar backFallback="/explore" sticky={false} />
       <VisitTracker scope="creator" targetId={profile.id} disabled={isOwner} />
+      <JsonLd
+        data={creatorProfileJsonLd({
+          name: profile.creator_name ?? profile.name ?? profile.slug,
+          slug: profile.slug,
+          bio,
+          imageUrl:
+            profile.avatar_path || profile.avatar_url
+              ? toAbsoluteUrl(`/api/profiles/${profile.id}/avatar`)
+              : null,
+          sameAs: socials.map(([, url]) => url).filter((url) => /^https?:\/\//.test(url)),
+        })}
+      />
       <div className="flex flex-1 flex-col items-center p-4 py-6 sm:py-8">
         <div className="w-full max-w-md sm:max-w-3xl">
           {isOwner && <CreatorOwnerToolbar />}

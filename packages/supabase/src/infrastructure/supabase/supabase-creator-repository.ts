@@ -3,6 +3,8 @@ import type {
   ExploreCreatorsParams,
   PublicCreator,
 } from "@vippin/core/repositories/creator-repository";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { supabase } from "../../client/client";
 
 type ProfileRow = {
@@ -38,6 +40,9 @@ function toPublicCreator(row: ProfileRow): PublicCreator {
 }
 
 export class SupabaseCreatorRepository implements CreatorRepository {
+  /** Browser client by default; the server passes its own (e.g. SSR of /explore). */
+  constructor(private readonly client: SupabaseClient = supabase) {}
+
   async searchExplore(params: ExploreCreatorsParams = {}): Promise<PublicCreator[]> {
     const limit = Math.min(24, Math.max(1, params.limit ?? 12));
     const query = params.query?.trim() ?? "";
@@ -45,7 +50,7 @@ export class SupabaseCreatorRepository implements CreatorRepository {
     // Recomendação: criadores mais visitados primeiro (contagem exata por
     // navegador), com desempate alfabético. Vale tanto para a lista padrão
     // quanto para os resultados de busca.
-    let builder = supabase
+    let builder = this.client
       .from("public_profiles")
       .select(SELECT)
       .not("creator_name", "is", null)

@@ -87,6 +87,8 @@ export function ProductLanding({
             iconClassName="size-16"
             sizes="(min-width: 1024px) 640px, 100vw"
             aspectRatio={bannerAspectRatio ?? 16 / 9}
+            priority
+            alt={title}
           />
           <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border border-border bg-muted px-2 py-1 text-xs font-bold shadow-elevated-sm sm:px-2.5">
             {isPhysical ? (
@@ -101,7 +103,9 @@ export function ProductLanding({
         </div>
 
         <CardHeader>
-          <CardTitle className="text-2xl lg:text-3xl">{title}</CardTitle>
+          <CardTitle asChild className="text-2xl lg:text-3xl">
+            <h1>{title}</h1>
+          </CardTitle>
         </CardHeader>
 
         {description && (
