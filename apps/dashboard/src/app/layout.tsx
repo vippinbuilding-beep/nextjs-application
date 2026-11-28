@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { MotionProvider } from "@vippin/ui/motion-provider";
 import { ThemeScript } from "@vippin/ui/theme-script";
 
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -43,9 +42,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <MotionProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </MotionProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

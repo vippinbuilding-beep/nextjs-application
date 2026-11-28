@@ -87,10 +87,13 @@ principal de cada tela. Siga estas regras em toda tela nova:
     `whileInView`.
   - **Motion**: importe sempre de `@vippin/ui/lib/motion` (nunca
     `motion/react` direto) e use `m.div`, `m.span`... (não `motion.div`). O
-    `MotionProvider` (`@vippin/ui/motion-provider`, já no layout raiz dos dois
-    apps) carrega o núcleo (~5 KB) e baixa as features `domAnimation` depois
-    da hidratação, em modo `strict` (~14 KB a mais no total por página). Não
-    importe o Motion inteiro (`motion.div`): custa ~38 KB em toda página.
+    `MotionProvider` (`@vippin/ui/motion-provider`) envolve cada peça que usa
+    Motion e baixa as features à parte, em modo `strict`; para layout ou
+    arrastar, `MotionMaxFeatures`. **Ele não vai no layout raiz**: só o
+    núcleo do Motion já gerou uma tarefa longa de ~240 ms no celular antes do
+    LCP (Lighthouse). Peça com Motion carrega sob demanda (`next/dynamic`) e
+    se envolve no provider, como a vitrine do hero e a pilha de avisos. Não
+    importe o Motion inteiro (`motion.div`).
     **Peso real no Turbopack**: ele não elimina bem o código não usado do
     Motion. Uma página que importa hooks ou `m` de forma estática leva
     ~50 KB a mais (a landing foi de 14 KB para 71 KB). Então: efeito simples
@@ -100,8 +103,22 @@ principal de cada tela. Siga estas regras em toda tela nova:
     por frame, `IntersectionObserver`, `animation-timeline: view()`). O Motion
     fica para o que só ele faz bem (saída de elementos, layout, arrastar,
     sequências com mola) e, fora de telas que já são pesadas, entra via
-    `next/dynamic` com o espaço reservado, como a vitrine do hero. Confira o
-    tamanho da rota no `next build` antes de commitar.
+    `next/dynamic` com o espaço reservado. Confira o tamanho da rota no
+    `next build` antes de commitar.
+  - **Lições da auditoria (Lighthouse no celular)**:
+    - Animar a entrada de elementos grandes no carregamento (cartões com
+      sombra, camadas 3D) custou ~800 ms de trabalho na thread principal. No
+      carregamento, anime só peças pequenas; o grande já aparece pronto (ver
+      `hero-showcase.tsx`, que é CSS puro). Efeito 3D só com a variante
+      `mouse:` (`hover: hover` e `pointer: fine`).
+    - O CSS global tem orçamento: o Next divide o CSS em arquivos de até
+      100 KB. Passou disso, as fontes saem num segundo arquivo bloqueante
+      (~+300 ms na primeira pintura). Prefira utilitários existentes a
+      classes arbitrárias longas (`[transform:...]`), que pesam em todas as
+      páginas.
+    - Espaço de elemento que só aparece depois da hidratação precisa ser
+      reservado (ex.: o botão de instalar o app na landing), senão empurra o
+      resto (CLS).
     Componente que fica no layout raiz (todas as páginas) não importa Motion
     direto: carregue a parte animada com `next/dynamic` só quando ela for
     aparecer, como o `Toaster` faz com `toast-stack.tsx`. Para um "pulo" de
@@ -159,7 +176,9 @@ principal de cada tela. Siga estas regras em toda tela nova:
     propriedades (`transition-[color,background-color,border-color,opacity,transform]`,
     `transition-transform`, `transition-colors`).
   - Hover só no que é clicável de verdade (itens de produto, botões). Rotas
-    dinâmicas têm `loading.tsx` (`PageSkeleton`) para o clique responder na hora.
+    dinâmicas têm `loading.tsx` (`PageSkeleton`) para o clique responder na hora,
+    **menos a home**: ela nunca mostra loading (sem `app/(home)/loading.tsx`;
+    a página atual fica na tela até a home chegar pronta).
   - **Motion AI Kit (skills de animação, já no repo)**: a skill `/motion`
     (`.claude/skills/motion/`: boas práticas para React/Radix, busca na
     documentação, gerador de spring em CSS, auditoria de performance), o

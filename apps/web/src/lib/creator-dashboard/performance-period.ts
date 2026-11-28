@@ -11,7 +11,8 @@ import {
 import { ptBR } from "date-fns/locale";
 
 export const CREATOR_PERFORMANCE_DATE_FORMAT = "yyyy-MM-dd";
-export const CREATOR_PERFORMANCE_DEFAULT_PERIOD_DAYS = 30;
+/** Período que o painel de desempenho abre (sem `?days` na URL). */
+export const CREATOR_PERFORMANCE_DEFAULT_PERIOD_DAYS = 7;
 export const CREATOR_PERFORMANCE_MAX_RANGE_DAYS = 366;
 
 export const CREATOR_PERFORMANCE_PERIOD_OPTIONS = [

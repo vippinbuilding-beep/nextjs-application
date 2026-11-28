@@ -1,18 +1,7 @@
-"use client";
-
 import { Banknote, Check, FileText, MessageCircle, Package, PlayCircle, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
-import {
-  m,
-  springs,
-  useMotionValue,
-  useScroll,
-  useSpring,
-  useTransform,
-  type MotionValue,
-} from "@vippin/ui/lib/motion";
 import { cn } from "@vippin/ui/lib/utils";
 import { formatBRL } from "@vippin/core/domain/money";
 import type { ProductType } from "@vippin/core/models/product";
@@ -28,55 +17,21 @@ import type { FeaturedCreator } from "@/lib/featured-creator";
  * principal e aparece pronto (LCP). Sequência única, sem loop. Sem criador
  * em destaque, mostra um exemplo genérico.
  *
- * Profundidade: no desktop as camadas inclinam e se deslocam com o mouse
- * (quanto mais na frente, mais se move); ao rolar, elas se separam.
- *
- * É a única peça da landing com Motion e carrega sob demanda (next/dynamic),
- * depois da página pronta: o espaço já fica reservado, sem pular layout.
+ * Tudo em CSS, sem JS de animação (vem pronta do servidor):
+ * - os cartões grandes já aparecem prontos; só o que é pequeno anima (o
+ *   "Pago" e a notificação), com atraso. Animar os cartões grandes na
+ *   entrada custava ~800 ms de trabalho no celular (Lighthouse);
+ * - no desktop as camadas inclinam e se deslocam com o mouse, lendo
+ *   `--px`/`--py` que a seção do hero escreve (usePointerVars); quanto mais
+ *   na frente, mais a camada se move;
+ * - ao rolar, as camadas se separam (animação ligada à rolagem do CSS).
+ * Era feita com Motion, mas mesmo carregada depois ela gerava tarefas longas
+ * de 100 a 160 ms no celular (Lighthouse).
  */
 
-function useMotionPrefs(): { pointer: boolean; scroll: boolean } {
-  const [prefs, setPrefs] = useState({ pointer: false, scroll: false });
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    setPrefs({ pointer: fine && !reduce, scroll: !reduce });
-  }, []);
-  return prefs;
-}
-
-/** Mouse dentro da seção do hero, de -0.5 a 0.5, suavizado por mola. */
-function useSectionPointer(sectionRef: RefObject<HTMLElement | null>, enabled: boolean) {
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const x = useSpring(rawX, { stiffness: 140, damping: 20, mass: 0.6 });
-  const y = useSpring(rawY, { stiffness: 140, damping: 20, mass: 0.6 });
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section || !enabled) return;
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      const rect = section.getBoundingClientRect();
-      rawX.set((event.clientX - rect.left) / rect.width - 0.5);
-      rawY.set((event.clientY - rect.top) / rect.height - 0.5);
-    };
-    const onLeave = () => {
-      rawX.set(0);
-      rawY.set(0);
-    };
-    section.addEventListener("pointermove", onMove, { passive: true });
-    section.addEventListener("pointerleave", onLeave);
-    return () => {
-      section.removeEventListener("pointermove", onMove);
-      section.removeEventListener("pointerleave", onLeave);
-    };
-  }, [sectionRef, enabled, rawX, rawY]);
-
-  return { x, y };
-}
-
-const PAID_DELAY_MS = 1700;
+/** Quando o Pix "é pago" e a venda chega (ms desde a primeira pintura). */
+const PAID_AT_MS = 1700;
+const SALE_AT_MS = PAID_AT_MS + 450;
 
 interface ShowcaseTile {
   key: string;
@@ -216,163 +171,113 @@ function QrPattern({ className }: { className?: string }) {
 /** Uma camada: rolagem (fora), mouse (meio) e entrada (dentro). */
 function Layer({
   depth,
-  pointerX,
-  pointerY,
-  scrollProgress,
-  enabled,
-  delay,
+  enterAtMs,
   className,
   children,
 }: {
   depth: number;
-  pointerX: MotionValue<number>;
-  pointerY: MotionValue<number>;
-  scrollProgress: MotionValue<number>;
-  enabled: { pointer: boolean; scroll: boolean };
-  delay: number;
+  /** Entra animada nesse instante; sem isso, já aparece pronta. */
+  enterAtMs?: number;
   className?: string;
   children: ReactNode;
 }) {
-  const scrollY = useTransform(scrollProgress, [0, 1], [0, -70 * depth]);
-  const moveX = useTransform(pointerX, [-0.5, 0.5], [-12 * depth, 12 * depth]);
-  const moveY = useTransform(pointerY, [-0.5, 0.5], [-10 * depth, 10 * depth]);
-
   return (
-    <m.div
-      className={cn("absolute", className)}
-      // translateZ: profundidade real na perspectiva (e quem está na frente
-      // fica na frente, mesmo inclinado).
-      style={enabled.scroll ? { y: scrollY, z: depth * 40 } : { z: depth * 40 }}
+    <div
+      className={cn(
+        "scroll-drift absolute mouse:[transform:translateZ(calc(var(--depth)*40px))]",
+        className
+      )}
+      // --depth alimenta o parallax, o mouse e a profundidade (translateZ só
+      // com mouse: no celular a vitrine é plana, sem custo de camadas 3D).
+      style={{ "--depth": depth } as CSSProperties}
     >
-      <m.div style={enabled.pointer ? { x: moveX, y: moveY } : undefined}>
-        <m.div
-          initial={{ opacity: 0, y: 28, scale: 0.94 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ ...springs.soft, delay }}
-        >
-          {children}
-        </m.div>
-      </m.div>
-    </m.div>
+      <div className="mouse:transition-[translate] mouse:duration-[700ms] mouse:ease-spring-soft mouse:[translate:calc(var(--px,0)*24px*var(--depth))_calc(var(--py,0)*20px*var(--depth))]">
+        {enterAtMs === undefined ? (
+          children
+        ) : (
+          <div
+            className="animate-in fade-in-0 zoom-in-94 slide-in-from-bottom-7 fill-mode-both duration-[700ms] ease-spring-soft"
+            style={{ animationDelay: `${enterAtMs}ms` }}
+          >
+            {children}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
 const surface = "bg-card text-card-foreground rounded-3xl border border-border";
 
-export default function HeroShowcase({
-  sectionRef,
-  creator,
-}: {
-  sectionRef: RefObject<HTMLElement | null>;
-  creator: FeaturedCreator | null;
-}) {
+export function HeroShowcase({ creator }: { creator: FeaturedCreator | null }) {
   const story = buildStory(creator);
-  const ref = useRef<HTMLDivElement>(null);
-  const enabled = useMotionPrefs();
-  const { x: pointerX, y: pointerY } = useSectionPointer(sectionRef, enabled.pointer);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const rotateX = useTransform(pointerY, [-0.5, 0.5], [7, -7]);
-  const rotateY = useTransform(pointerX, [-0.5, 0.5], [-9, 9]);
-
-  const [paid, setPaid] = useState(false);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setPaid(true), enabled.scroll ? PAID_DELAY_MS : 0);
-    return () => window.clearTimeout(timer);
-  }, [enabled.scroll]);
 
   return (
-    <div ref={ref} className="relative h-[440px] w-full max-w-[520px] [perspective:1200px] sm:h-[500px]">
-      <m.div
-        className="absolute inset-0 [transform-style:preserve-3d]"
-        style={enabled.pointer ? { rotateX, rotateY } : undefined}
-      >
+    <div className="relative h-[440px] w-full max-w-[520px] mouse:[perspective:1200px] sm:h-[500px]">
+      <div className="absolute inset-0 mouse:transition-transform mouse:duration-[800ms] mouse:ease-spring-soft mouse:[transform-style:preserve-3d] mouse:[transform:rotateX(calc(var(--py,0)*-14deg))_rotateY(calc(var(--px,0)*18deg))]">
         {/* Vitrine do criador */}
-        <Layer
-          depth={1}
-          delay={0.1}
-          pointerX={pointerX}
-          pointerY={pointerY}
-          scrollProgress={scrollYProgress}
-          enabled={enabled}
-          className="top-0 left-0 w-[80%]"
-        >
+        <Layer depth={1} className="top-0 left-0 w-[80%]">
           <StorefrontCard story={story} />
         </Layer>
 
         {/* Pagamento Pix */}
-        <Layer
-          depth={2}
-          delay={0.55}
-          pointerX={pointerX}
-          pointerY={pointerY}
-          scrollProgress={scrollYProgress}
-          enabled={enabled}
-          className="top-[34%] right-0 w-[50%]"
-        >
+        <Layer depth={2} className="top-[34%] right-0 w-[50%]">
           <div aria-hidden className={cn(surface, "flex flex-col items-center gap-3 p-4 shadow-elevated-xl")}>
             <span className="text-sm font-semibold">Pagar com Pix</span>
             <div className="relative w-full">
               <QrPattern className="w-full" />
-              {paid && (
-                  <m.span
-                    key="paid"
-                    className="bg-card/85 absolute inset-0 flex items-center justify-center rounded-xl"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    <m.span
-                      className="bg-primary text-primary-foreground flex size-14 items-center justify-center rounded-full"
-                      initial={{ scale: 0.4 }}
-                      animate={{ scale: 1 }}
-                      transition={springs.bouncy}
-                    >
-                      <svg viewBox="0 0 24 24" className="size-7" fill="none">
-                        <m.path
-                          d="M5 12.5l4.5 4.5L19 7.5"
-                          stroke="currentColor"
-                          strokeWidth={3}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          initial={{ pathLength: 0 }}
-                          animate={{ pathLength: 1 }}
-                          transition={{ duration: 0.35, delay: 0.15, ease: "easeOut" }}
-                        />
-                      </svg>
-                    </m.span>
-                  </m.span>
-              )}
+              {/* "Pago": aparece no tempo certo, só com CSS */}
+              <span
+                className="bg-card/85 animate-in fade-in-0 fill-mode-both absolute inset-0 flex items-center justify-center rounded-xl duration-300"
+                style={{ animationDelay: `${PAID_AT_MS}ms` }}
+              >
+                <span
+                  className="bg-primary text-primary-foreground animate-in zoom-in-40 fill-mode-both ease-spring-bouncy flex size-14 items-center justify-center rounded-full duration-[600ms]"
+                  style={{ animationDelay: `${PAID_AT_MS}ms` }}
+                >
+                  <svg viewBox="0 0 24 24" className="size-7" fill="none">
+                    <path
+                      d="M5 12.5l4.5 4.5L19 7.5"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pathLength={1}
+                      strokeDasharray={1}
+                      strokeDashoffset={1}
+                      style={{ animation: `draw-stroke 350ms ease-out ${PAID_AT_MS + 150}ms forwards` }}
+                    />
+                  </svg>
+                </span>
+              </span>
             </div>
-            <span className="text-muted-foreground flex h-5 items-center gap-1.5 text-xs font-medium">
-              {paid ? (
-                <>
-                  <Check className="size-3.5" /> Pago
-                </>
-              ) : (
-                <>
-                  <span className="bg-ring size-1.5 animate-pulse rounded-full" /> Aguardando pagamento
-                </>
-              )}
+            <span className="text-muted-foreground relative flex h-5 w-full items-center justify-center text-xs font-medium">
+              <span
+                className="animate-out fade-out-0 fill-mode-forwards absolute inset-0 flex items-center justify-center gap-1.5 duration-200"
+                style={{ animationDelay: `${PAID_AT_MS}ms` }}
+              >
+                <span className="bg-ring size-1.5 rounded-full" /> Aguardando pagamento
+              </span>
+              <span
+                className="animate-in fade-in-0 fill-mode-both absolute inset-0 flex items-center justify-center gap-1.5 duration-300"
+                style={{ animationDelay: `${PAID_AT_MS + 150}ms` }}
+              >
+                <Check className="size-3.5" /> Pago
+              </span>
             </span>
           </div>
         </Layer>
 
         {/* A venda chega */}
-        <Layer
-          depth={3}
-          delay={(PAID_DELAY_MS + 450) / 1000}
-          pointerX={pointerX}
-          pointerY={pointerY}
-          scrollProgress={scrollYProgress}
-          enabled={enabled}
-          className="bottom-[2%] left-[4%] w-[66%]"
-        >
-          <m.div
+        <Layer depth={3} enterAtMs={SALE_AT_MS} className="bottom-[2%] left-[4%] w-[66%]">
+          <div
             aria-hidden
-            className={cn(surface, "flex items-center gap-3 p-3.5 pr-5 shadow-elevated-xl")}
-            initial={{ rotate: -4 }}
-            animate={{ rotate: 0 }}
-            transition={{ ...springs.bouncy, delay: (PAID_DELAY_MS + 450) / 1000 }}
+            className={cn(
+              surface,
+              "animate-in fill-mode-both ease-spring-bouncy flex items-center gap-3 p-3.5 pr-5 shadow-elevated-xl duration-[700ms]"
+            )}
+            // Entra girando de leve (tw-animate: --tw-enter-rotate).
+            style={{ animationDelay: `${SALE_AT_MS}ms`, "--tw-enter-rotate": "-4deg" } as CSSProperties}
           >
             <span className="bg-primary text-primary-foreground flex size-10 shrink-0 items-center justify-center rounded-xl">
               <Banknote className="size-5" />
@@ -381,9 +286,9 @@ export default function HeroShowcase({
               <span className="text-sm font-semibold">{story.saleTitle}</span>
               <span className="text-muted-foreground truncate text-xs">{story.saleText}</span>
             </span>
-          </m.div>
+          </div>
         </Layer>
-      </m.div>
+      </div>
     </div>
   );
 }
@@ -449,9 +354,9 @@ function StorefrontCard({ story }: { story: ShowcaseStory }) {
   return (
     <Link
       href={story.href}
-      aria-label={`Ver a vitrine de ${story.name}`}
       className={cn(className, "outline-none transition-colors hover:border-ring/40 focus-visible:ring-4 focus-visible:ring-ring/30")}
     >
+      <span className="sr-only">Ver a vitrine de </span>
       {content}
     </Link>
   );

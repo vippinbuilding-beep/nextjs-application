@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { Fragment, useEffect, useRef } from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
@@ -38,16 +37,9 @@ import type { FeaturedCreator } from "@/lib/featured-creator";
 import { usePointerVars } from "@vippin/ui/lib/pointer-vars";
 import { RevealGroup } from "@vippin/ui/reveal-group";
 
-import { Magnetic, PointerGlow, scrollDrawStyle, scrollLightStyle } from "./landing-motion";
+import { HeroShowcase } from "./hero-showcase";
+import { Magnetic, PointerGlow, scrollDrawStyle } from "./landing-motion";
 
-/**
- * Vitrine animada do hero (única peça com Motion): baixa depois da página
- * pronta. O espaço fica reservado com o mesmo tamanho, sem pular layout.
- */
-const HeroShowcase = dynamic(() => import("./hero-showcase"), {
-  ssr: false,
-  loading: () => <div aria-hidden className="h-[440px] w-full max-w-[520px] sm:h-[500px]" />,
-});
 
 const CREATOR_FEATURES = [
   {
@@ -168,8 +160,8 @@ function FeatureColumn({
 const STEPS_TIMELINE = "--landing-steps";
 
 /**
- * "Como funciona": a linha de cada passo se desenha conforme a rolagem e o
- * rótulo acende quando a linha chega ao fim. CSS puro (scroll-driven).
+ * "Como funciona": a linha de cada passo se desenha conforme a rolagem.
+ * CSS puro (scroll-driven). O rótulo fica sempre com contraste total.
  */
 function StepsTimeline() {
   return (
@@ -185,15 +177,10 @@ function StepsTimeline() {
             <span aria-hidden className="bg-border absolute inset-x-0 top-0 h-px" />
             <span
               aria-hidden
-              className="bg-aurora absolute inset-x-0 -top-px h-0.5 origin-left rounded-full motion-reduce:[animation:none]"
+              className="scroll-draw bg-aurora absolute inset-x-0 -top-px h-0.5 origin-left rounded-full"
               style={scrollDrawStyle(STEPS_TIMELINE, start, end)}
             />
-            <span
-              className="text-ring text-sm font-semibold motion-reduce:[animation:none]"
-              style={scrollLightStyle(STEPS_TIMELINE, end)}
-            >
-              Passo {index + 1}
-            </span>
+            <span className="text-ring text-sm font-semibold">Passo {index + 1}</span>
             <h3 className="text-xl font-semibold">{step.title}</h3>
             <p className="text-muted-foreground leading-relaxed">{step.description}</p>
           </li>
@@ -263,7 +250,11 @@ export function LandingPage({ featuredCreator }: { featuredCreator: FeaturedCrea
                 </Link>
               </Button>
             </div>
-            <InstallAppButton className="max-w-xs" />
+            {/* O botão só aparece depois da hidratação (e só no celular):
+                o espaço fica reservado para não empurrar a vitrine (CLS). */}
+            <div className="min-h-10 w-full max-w-xs md:hidden">
+              <InstallAppButton className="max-w-xs" />
+            </div>
             <ul className="text-muted-foreground flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
               {TRUST_BADGES.map((badge) => (
                 <li key={badge.label} className="inline-flex items-center gap-2">
@@ -274,7 +265,7 @@ export function LandingPage({ featuredCreator }: { featuredCreator: FeaturedCrea
             </ul>
           </div>
           <div className="flex justify-center lg:justify-end">
-            <HeroShowcase sectionRef={heroRef} creator={featuredCreator} />
+            <HeroShowcase creator={featuredCreator} />
           </div>
         </div>
       </section>

@@ -13,6 +13,9 @@
 @source "../components/**/*.{ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
+/* Só com mouse de verdade (desktop): efeitos 3D e de ponteiro. No toque, o
+   custo de compor camadas 3D não compensa. */
+@custom-variant mouse (@media (hover: hover) and (pointer: fine));
 
 /*
  * Identidade "Espectro 2": interface neutra e espaçosa, um acento só (a
@@ -349,12 +352,39 @@
   }
 }
 
-@keyframes scroll-light {
-  from {
-    opacity: 0.4;
-  }
+/* A vitrine do hero sobe e se separa ao rolar (cada camada pelo --depth). */
+@keyframes showcase-drift {
   to {
-    opacity: 1;
+    translate: 0 calc(var(--depth, 1) * -70px);
+  }
+}
+
+/*
+ * Utilitários das animações ligadas à rolagem. Só ligam quando o navegador
+ * suporta e a pessoa não pediu menos movimento (por isso ficam em CSS, não
+ * em style inline: o inline venceria a media query).
+ * - `scroll-draw`: barra que se desenha; o ancestral define a linha do tempo
+ *   (`--scroll-timeline`, ex.: um `view-timeline-name`) e o trecho
+ *   (`--scroll-range`).
+ * - `scroll-drift`: camada que sobe ao sair da tela (usa `--depth`).
+ */
+@utility scroll-draw {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: scroll-draw-x linear both;
+      animation-timeline: var(--scroll-timeline, view());
+      animation-range: var(--scroll-range, cover 0% cover 50%);
+    }
+  }
+}
+
+@utility scroll-drift {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      animation: showcase-drift linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
   }
 }
 
@@ -381,8 +411,10 @@
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

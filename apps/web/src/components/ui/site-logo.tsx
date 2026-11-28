@@ -24,7 +24,8 @@ export function SiteLogo({
     <span className={cn("inline-flex justify-center items-center gap-2 w-full", className)}>
       <Image
         src={SITE_LOGO_PATH}
-        alt={SITE_NAME}
+        // Com o nome escrito ao lado, a imagem é decorativa (evita ler "Vippin" duas vezes).
+        alt={showName ? "" : SITE_NAME}
         width={size}
         height={size}
         priority={priority}

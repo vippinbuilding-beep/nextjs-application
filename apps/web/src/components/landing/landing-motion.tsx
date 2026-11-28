@@ -61,25 +61,17 @@ export function Magnetic({ children }: { children: ReactNode }) {
 }
 
 /**
- * Barra que se desenha com a rolagem: animação ligada à rolagem do próprio
- * CSS (roda no compositor, sem JS por frame). O ancestral define o
- * `view-timeline-name`; sem suporte, a barra já aparece cheia.
+ * Barra que se desenha com a rolagem (classe `scroll-draw` do kit): diz qual
+ * linha do tempo seguir e em que trecho. Sem suporte ou com movimento
+ * reduzido, a barra já aparece cheia.
  */
 export function scrollDrawStyle(timeline: string, start: number, end: number): CSSProperties {
   return {
-    animation: "scroll-draw-x linear both",
-    animationTimeline: timeline,
-    animationRange: `cover ${start}% cover ${end}%`,
+    "--scroll-timeline": timeline,
+    "--scroll-range": `cover ${start}% cover ${end}%`,
   } as CSSProperties;
 }
 
-export function scrollLightStyle(timeline: string, at: number): CSSProperties {
-  return {
-    animation: "scroll-light linear both",
-    animationTimeline: timeline,
-    animationRange: `cover ${at - 4}% cover ${at}%`,
-  } as CSSProperties;
-}
 
 /** Navbar que some ao descer e volta ao subir. Estado só muda na troca de direção. */
 export function useHideOnScroll(threshold = 160): { scrolled: boolean; hidden: boolean } {

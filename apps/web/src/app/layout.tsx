@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { MotionProvider } from "@vippin/ui/motion-provider";
 import { ThemeScript } from "@vippin/ui/theme-script";
 
 import { InstallAppPrompt } from "@/components/pwa/install-app-prompt";
@@ -49,16 +48,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <MotionProvider>
-          <AuthProvider>
-            <NotificationToastListener />
-            <AppNavigation />
-            <CreatorDashboardGate>{children}</CreatorDashboardGate>
-          </AuthProvider>
-          <Toaster />
-          <ServiceWorkerRegister />
-          <InstallAppPrompt />
-        </MotionProvider>
+        <AuthProvider>
+          <NotificationToastListener />
+          <AppNavigation />
+          <CreatorDashboardGate>{children}</CreatorDashboardGate>
+        </AuthProvider>
+        <Toaster />
+        <ServiceWorkerRegister />
+        <InstallAppPrompt />
       </body>
     </html>
   );
