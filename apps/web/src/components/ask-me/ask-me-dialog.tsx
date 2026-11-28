@@ -6,6 +6,7 @@ import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LoginRolePicker } from "@/components/auth/login-role-picker";
+import { DevSimulatePaymentButton } from "@/components/payments/dev-simulate-payment-button";
 import { Button } from "@vippin/ui/button";
 import {
   Dialog,
@@ -280,6 +281,7 @@ function AskMeQrPanel({
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
         <Loading /> Aguardando confirmação do pagamento...
       </p>
+      <DevSimulatePaymentButton kind="ask_me" id={checkout.questionId} />
     </div>
   );
 }

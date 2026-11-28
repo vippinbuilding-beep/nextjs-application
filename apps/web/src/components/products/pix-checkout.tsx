@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LoginRolePicker } from "@/components/auth/login-role-picker";
+import { DevSimulatePaymentButton } from "@/components/payments/dev-simulate-payment-button";
 import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
 import { Button } from "@vippin/ui/button";
 import {
@@ -78,6 +79,7 @@ export function PixQrPanel({
       <p className="text-muted-foreground flex items-center gap-2 text-sm">
         <Loading /> Aguardando confirmação do pagamento...
       </p>
+      <DevSimulatePaymentButton kind="order" id={order.orderId} />
     </div>
   );
 }
