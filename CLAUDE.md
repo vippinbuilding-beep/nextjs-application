@@ -140,6 +140,13 @@ principal de cada tela. Siga estas regras em toda tela nova:
     opaco (`bg-background/95`).
   - Interações em CSS: `interactive-lift` (cards clicáveis, hover só com
     mouse) e `interactive-press` (alvos de toque).
+  - Peças prontas do kit, sem biblioteca: `RevealGroup`
+    (`@vippin/ui/reveal-group`, revela em cascata ao rolar e só esconde o que
+    está abaixo da dobra), `TiltSurface` (`@vippin/ui/tilt-surface`, capa que
+    inclina com o mouse e tem reflexo, como no `ProductCard`) e
+    `usePointerVars` (`@vippin/ui/lib/pointer-vars`, posição do mouse em
+    `--px`/`--py` para efeitos em CSS). Lista que ganha item por ação do
+    usuário anima só os itens novos (ver `comment-thread.tsx`).
   - Movimento reduzido: o `globals.css` desliga as animações CSS e o
     `MotionConfig reducedMotion="user"` desliga transform e layout no Motion
     (mantém opacidade). Não reative.

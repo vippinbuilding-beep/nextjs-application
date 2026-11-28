@@ -5,6 +5,8 @@ import { formatBRL } from "@vippin/core/domain/money";
 import { PRODUCT_TYPES } from "@/lib/products";
 import { getProductThumbnailUrl } from "@/lib/supabase/storage";
 
+import { TiltSurface } from "@vippin/ui/tilt-surface";
+
 import { ProductThumbnail } from "./product-thumbnail";
 
 interface ProductCardProps {
@@ -41,7 +43,8 @@ const COVER_RATIO = 4 / 3;
 
 /**
  * Product in a storefront grid (Espectro 2): big rounded cover with the type,
- * title and price below, no box around it. Only the cover lifts on hover.
+ * title and price below, no box around it. Only the cover moves on hover: it
+ * lifts and, with a mouse, tilts toward the cursor with a light reflection.
  */
 const ProductCard = ({ product, profile, type, mode = "public", status }: ProductCardProps) => {
     const thumbnailUrl = product.thumbnailPath
@@ -64,7 +67,7 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
             href={href}
             className="group flex flex-col gap-4 rounded-3xl outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
         >
-            <span className="relative block transition-transform duration-[260ms] ease-spring group-hover:-translate-y-1.5">
+            <TiltSurface className="group-hover:-translate-y-1.5">
                 <span
                     aria-hidden
                     className="shadow-elevated-lg absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-[260ms] group-hover:opacity-100"
@@ -81,7 +84,7 @@ const ProductCard = ({ product, profile, type, mode = "public", status }: Produc
                 <span className="bg-card/90 text-card-foreground absolute bottom-3 left-3 rounded-full px-3 py-1 text-xs font-medium">
                     {PRODUCT_TYPES[type].shortLabel}
                 </span>
-            </span>
+            </TiltSurface>
 
             <span className="flex min-w-0 flex-col gap-1 px-1">
                 <span className="flex items-start gap-2">

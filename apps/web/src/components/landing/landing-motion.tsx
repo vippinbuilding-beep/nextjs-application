@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  Children,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-  type RefObject,
-} from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
+import { usePointerVars } from "@vippin/ui/lib/pointer-vars";
 import { cn } from "@vippin/ui/lib/utils";
 
 /**
@@ -22,55 +14,6 @@ import { cn } from "@vippin/ui/lib/utils";
  * - quem pede menos movimento vê tudo parado.
  * A única peça com Motion é a vitrine do hero, carregada sob demanda.
  */
-
-function prefersReducedMotion(): boolean {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function hasFinePointer(): boolean {
-  return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-}
-
-/**
- * Escreve a posição do mouse dentro do elemento em `--px`/`--py` (de -0.5 a
- * 0.5), no máximo uma vez por frame. Volta a 0 quando o mouse sai. Os filhos
- * usam as variáveis em `transform` com transição (o "amortecimento").
- */
-export function usePointerVars(ref: RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const element = ref.current;
-    if (!element || !hasFinePointer() || prefersReducedMotion()) return;
-
-    let frame = 0;
-    let x = 0;
-    let y = 0;
-    const write = () => {
-      frame = 0;
-      element.style.setProperty("--px", x.toFixed(3));
-      element.style.setProperty("--py", y.toFixed(3));
-    };
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      const rect = element.getBoundingClientRect();
-      x = (event.clientX - rect.left) / rect.width - 0.5;
-      y = (event.clientY - rect.top) / rect.height - 0.5;
-      if (!frame) frame = requestAnimationFrame(write);
-    };
-    const onLeave = () => {
-      x = 0;
-      y = 0;
-      if (!frame) frame = requestAnimationFrame(write);
-    };
-
-    element.addEventListener("pointermove", onMove, { passive: true });
-    element.addEventListener("pointerleave", onLeave);
-    return () => {
-      cancelAnimationFrame(frame);
-      element.removeEventListener("pointermove", onMove);
-      element.removeEventListener("pointerleave", onLeave);
-    };
-  }, [ref]);
-}
 
 /**
  * Gradientes `closest-side`: cada mancha chega a transparente antes da borda
@@ -114,63 +57,6 @@ export function Magnetic({ children }: { children: ReactNode }) {
     >
       {children}
     </div>
-  );
-}
-
-/**
- * Revela os filhos em cascata quando entram na tela, uma vez só. Só "arma"
- * (esconde) o que está abaixo da dobra no carregamento: o que já está na
- * tela, ou sem JS, aparece pronto.
- */
-export function RevealGroup({
-  children,
-  className,
-  as: Component = "div",
-  itemClassName,
-}: {
-  children: ReactNode;
-  className?: string;
-  as?: "div" | "ul" | "ol";
-  itemClassName?: string;
-}) {
-  const ref = useRef<HTMLElement>(null);
-  const [state, setState] = useState<"idle" | "armed" | "revealed">("idle");
-
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element || prefersReducedMotion()) return;
-    if (element.getBoundingClientRect().top < window.innerHeight) return;
-    setState("armed");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setState("revealed");
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -12% 0px" }
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  const Item = Component === "div" ? "div" : "li";
-
-  return (
-    <Component ref={ref as never} data-reveal={state} className={cn("group/reveal", className)}>
-      {Children.map(children, (child, index) => (
-        <Item
-          style={{ transitionDelay: state === "revealed" ? `${index * 80}ms` : undefined }}
-          className={cn(
-            "transition-[opacity,transform] duration-[700ms] ease-spring-soft",
-            "group-data-[reveal=armed]/reveal:translate-y-6 group-data-[reveal=armed]/reveal:opacity-0",
-            itemClassName
-          )}
-        >
-          {child}
-        </Item>
-      ))}
-    </Component>
   );
 }
 

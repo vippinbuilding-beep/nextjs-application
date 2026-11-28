@@ -35,14 +35,10 @@ import { ContactEmailLink } from "@/components/ui/contact-email-link";
 import { JsonLd } from "@/components/seo/json-ld";
 import { organizationAndWebsiteJsonLd } from "@/lib/structured-data";
 import type { FeaturedCreator } from "@/lib/featured-creator";
-import {
-  Magnetic,
-  PointerGlow,
-  RevealGroup,
-  scrollDrawStyle,
-  scrollLightStyle,
-  usePointerVars,
-} from "./landing-motion";
+import { usePointerVars } from "@vippin/ui/lib/pointer-vars";
+import { RevealGroup } from "@vippin/ui/reveal-group";
+
+import { Magnetic, PointerGlow, scrollDrawStyle, scrollLightStyle } from "./landing-motion";
 
 /**
  * Vitrine animada do hero (única peça com Motion): baixa depois da página

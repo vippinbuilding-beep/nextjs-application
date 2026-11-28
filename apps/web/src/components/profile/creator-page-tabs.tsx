@@ -3,6 +3,7 @@
 import { FileText, Link2, PlayCircle } from "lucide-react";
 
 import ProductCard from "@/components/products/product-card";
+import { RevealGroup } from "@vippin/ui/reveal-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vippin/ui/tabs";
 import type { ProfileLink } from "@vippin/core/models/profile-link";
 import type { ProductType } from "@vippin/core/models/product";
@@ -190,18 +191,19 @@ function CreatorFeed({
       )}
 
       {products.length > 0 && (
-        <ul className={productListClassName}>
+        // Cards abaixo da dobra entram em cascata ao rolar; os da primeira
+        // tela aparecem prontos (LCP).
+        <RevealGroup as="ul" className={productListClassName}>
           {products.map((product) => (
-            <li key={product.id}>
-              <ProductCard
-                product={product}
-                profile={profile}
-                type={product.type}
-                mode={mode}
-              />
-            </li>
+            <ProductCard
+              key={product.id}
+              product={product}
+              profile={profile}
+              type={product.type}
+              mode={mode}
+            />
           ))}
-        </ul>
+        </RevealGroup>
       )}
     </div>
   );
