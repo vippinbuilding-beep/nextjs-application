@@ -154,3 +154,25 @@ export function decimalReaisToCents(value: string | number | null | undefined): 
   if (!Number.isFinite(parsed)) return 0;
   return Math.round(parsed * 100);
 }
+
+/** Correios object code: 2 letters + 9 digits + 2 letters (e.g. AA123456789BR). */
+const CORREIOS_CODE = /^[A-Z]{2}\d{9}[A-Z]{2}$/;
+
+/**
+ * Public tracking link for the buyer/creator. Correios codes open the Correios
+ * tracking page with the code pre-filled (`?objetos=`, the same link Correios
+ * uses in its own share buttons; the person still clicks "Consultar" because of
+ * the site's captcha). Other carriers keep the provider's link.
+ */
+export function carrierTrackingUrl(input: {
+  company: string | null | undefined;
+  trackingCode: string | null | undefined;
+  fallbackUrl: string | null | undefined;
+}): string | null {
+  const code = input.trackingCode?.trim().toUpperCase() ?? "";
+  const isCorreios = !input.company || /correios/i.test(input.company);
+  if (code && isCorreios && CORREIOS_CODE.test(code)) {
+    return `https://rastreamento.correios.com.br/app/index.php?objetos=${code}`;
+  }
+  return input.fallbackUrl ?? null;
+}

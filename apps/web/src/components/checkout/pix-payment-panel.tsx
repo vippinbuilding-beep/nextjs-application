@@ -2,6 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 
+import { DevSimulatePaymentButton } from "@/components/payments/dev-simulate-payment-button";
 import { Button } from "@vippin/ui/button";
 import { Loading } from "@vippin/ui/loading";
 import { formatBRL } from "@vippin/core/domain/money";
@@ -85,6 +86,9 @@ export function PixPaymentPanel({ order, copied, onCopy }: PixPaymentPanelProps)
       <p className="bg-muted flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium">
         <Loading /> Aguardando a confirmação do banco...
       </p>
+
+      {/* Só aparece no modo dev da AbacatePay. */}
+      <DevSimulatePaymentButton kind="order" id={order.orderId} />
     </div>
   );
 }
