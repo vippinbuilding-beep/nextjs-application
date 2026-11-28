@@ -8,14 +8,9 @@ import { BackButton } from "@/components/navigation/back-button";
 import { useAuth } from "@/components/providers/auth-provider";
 import { BuyerOrdersList } from "@/components/shipping/buyer-orders-list";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
+import { Card, CardContent } from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageHeader, PageShell } from "@vippin/ui/page-shell";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import { isCreator } from "@/lib/user-role";
 
@@ -57,24 +52,15 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <LayoutBackground
-      element="main"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      <div className="flex w-full max-w-md flex-col gap-6 sm:max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Meus pedidos</CardTitle>
-            <CardDescription>
-              Produtos físicos que você comprou, com status e rastreio.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5">
-            <BuyerOrdersList />
-            <BackButton fallback="/" className="w-full" />
-          </CardContent>
-        </Card>
-      </div>
+    <LayoutBackground element="main" className="flex min-h-svh flex-col">
+      <PageShell width="narrow">
+        <PageHeader
+          title="Meus pedidos"
+          description="Produtos físicos que você comprou, com status e rastreio."
+          actions={<BackButton fallback="/" />}
+        />
+        <BuyerOrdersList />
+      </PageShell>
     </LayoutBackground>
   );
 }

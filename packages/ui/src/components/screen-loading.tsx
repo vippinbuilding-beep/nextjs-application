@@ -40,7 +40,7 @@ export function ScreenLoading({
         </div>
 
         <div className="flex flex-col gap-1">
-          <p className="text-xl font-bold tracking-tight">{title}</p>
+          <p className="text-xl font-semibold tracking-tight">{title}</p>
           {description && (
             <p className="text-muted-foreground max-w-64 text-sm font-medium">
               {description}

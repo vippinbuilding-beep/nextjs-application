@@ -31,7 +31,7 @@ export function ConsumerNavProfile({ user, className }: ConsumerNavProfileProps)
         avatarUrl={user.avatarUrl}
         size="sm"
       />
-      <span className="min-w-0 truncate text-sm font-bold">{displayName}</span>
+      <span className="min-w-0 truncate text-sm font-semibold">{displayName}</span>
     </Link>
   );
 }

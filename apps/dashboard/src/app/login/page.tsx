@@ -46,7 +46,7 @@ function LoginCard() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="items-center text-center">
-        <CardTitle className="text-3xl font-bold tracking-tight">
+        <CardTitle className="text-3xl font-semibold tracking-tight">
           Vippin Admin
         </CardTitle>
         <CardDescription className="font-medium">

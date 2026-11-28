@@ -1,10 +1,11 @@
-import { ProductType } from "@vippin/core/models/product";
-import { ProductThumbnail } from "./product-thumbnail";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-import { getProductThumbnailUrl } from "@/lib/supabase/storage";
-import { productAspectRatio } from "@/lib/media-dimensions";
+
+import { ProductType } from "@vippin/core/models/product";
+import { formatBRL } from "@vippin/core/domain/money";
 import { PRODUCT_TYPES } from "@/lib/products";
+import { getProductThumbnailUrl } from "@/lib/supabase/storage";
+
+import { ProductThumbnail } from "./product-thumbnail";
 
 interface ProductCardProps {
     product: {
@@ -17,6 +18,8 @@ interface ProductCardProps {
         mediaWidth?: number | null;
         mediaHeight?: number | null;
         slug: string;
+        /** Shown under the title when given (0 = "Grátis"). */
+        priceCents?: number | null;
     };
     profile: {
         slug: string;
@@ -33,104 +36,66 @@ interface ProductCardProps {
     status?: "active" | "cancelled";
 }
 
+/** Fixed ratio so the storefront grid stays even, whatever the cover size. */
+const COVER_RATIO = 4 / 3;
+
 /**
- * Renders a product link. Layout changes depending on the product type:
- * - `single_lesson`: a vertical card with a big banner thumbnail on top,
- *   meant to be shown in a grid.
- * - `document`: a compact row with a small thumbnail, meant to be shown in
- *   a list.
+ * Product in a storefront grid (Espectro 2): big rounded cover with the type,
+ * title and price below, no box around it. Only the cover lifts on hover.
  */
 const ProductCard = ({ product, profile, type, mode = "public", status }: ProductCardProps) => {
     const thumbnailUrl = product.thumbnailPath
         ? getProductThumbnailUrl(product.id, product.thumbnailPath)
         : null;
-    const bannerAspectRatio = productAspectRatio({
-        thumbnailWidth: product.thumbnailWidth,
-        thumbnailHeight: product.thumbnailHeight,
-        mediaWidth: product.mediaWidth,
-        mediaHeight: product.mediaHeight,
-    });
     const href =
         mode === "manage"
             ? `/products/${product.id}/edit`
             : `/@${profile.slug}/${product.slug}`;
     const showCancelledBadge = mode === "manage" && status === "cancelled";
-
-    if (type === "document") {
-        return (
-            <Link
-                href={href}
-                className="group flex items-center gap-4 rounded-xl border border-border bg-background p-4 shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
-            >
-                <ProductThumbnail
-                    type={type}
-                    thumbnailUrl={thumbnailUrl}
-                    className="size-12"
-                    sizes="48px"
-                />
-
-                <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="flex items-center gap-2">
-                        <span className="font-bold">{product.title}</span>
-                        {showCancelledBadge && (
-                            <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
-                                Cancelado
-                            </span>
-                        )}
-                    </span>
-                    {product.description ? (
-                        <span className="text-muted-foreground line-clamp-1 text-xs font-mediu truncate">
-                            {product.description}
-                        </span>
-                    ) : (
-                        <span className="text-muted-foreground text-xs font-medium truncate">
-                            {PRODUCT_TYPES[type].shortLabel}
-                        </span>
-                    )}
-                </span>
-
-                <span className="flex shrink-0 items-center gap-2">
-                    <ChevronRight className="text-muted-foreground size-5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-            </Link>
-        );
-    }
+    const price =
+        product.priceCents == null
+            ? null
+            : product.priceCents <= 0
+              ? "Grátis"
+              : formatBRL(product.priceCents);
 
     return (
         <Link
             href={href}
-            className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-elevated-sm transition-all hover:-translate-y-1 hover:shadow-elevated"
+            className="group flex flex-col gap-4 rounded-3xl outline-none focus-visible:ring-4 focus-visible:ring-ring/30"
         >
-            <ProductThumbnail
-                type={type}
-                thumbnailUrl={thumbnailUrl}
-                className="w-full rounded-none border-0 border-b"
-                iconClassName="size-10"
-                sizes="(min-width: 640px) 45vw, 100vw"
-                aspectRatio={bannerAspectRatio}
-            />
+            <span className="relative block transition-transform duration-[260ms] ease-spring group-hover:-translate-y-1.5">
+                <span
+                    aria-hidden
+                    className="shadow-elevated-lg absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-[260ms] group-hover:opacity-100"
+                />
+                <ProductThumbnail
+                    type={type}
+                    thumbnailUrl={thumbnailUrl}
+                    rounded="rounded-3xl"
+                    className="relative w-full border-0"
+                    iconClassName="size-10"
+                    sizes="(min-width: 1024px) 360px, (min-width: 640px) 45vw, 100vw"
+                    aspectRatio={COVER_RATIO}
+                />
+                <span className="bg-card/90 text-card-foreground absolute bottom-3 left-3 rounded-full px-3 py-1 text-xs font-medium">
+                    {PRODUCT_TYPES[type].shortLabel}
+                </span>
+            </span>
 
-            <span className="flex min-w-0 flex-1 flex-col gap-1.5 p-4">
-                <span className="flex items-center gap-2">
-                    <span className="line-clamp-2 text-base leading-snug font-bold">
-                        {product.title}
-                    </span>
+            <span className="flex min-w-0 flex-col gap-1 px-1">
+                <span className="flex items-start gap-2">
+                    <span className="line-clamp-2 text-lg font-semibold leading-snug">{product.title}</span>
                     {showCancelledBadge && (
-                        <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">
+                        <span className="bg-muted text-muted-foreground shrink-0 rounded-full px-2 py-0.5 text-xs font-medium">
                             Cancelado
                         </span>
                     )}
                 </span>
-
-                {product.description && (
-                    <span className="text-muted-foreground line-clamp-2 text-xs font-medium truncate">
-                        {product.description}
-                    </span>
-                )}
+                {price && <span className="text-muted-foreground">{price}</span>}
             </span>
         </Link>
-    )
-}
-
+    );
+};
 
 export default ProductCard;

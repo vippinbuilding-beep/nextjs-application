@@ -3,7 +3,6 @@
 import { FileText, Link2, PlayCircle } from "lucide-react";
 
 import ProductCard from "@/components/products/product-card";
-import { AnimatedHeight } from "@vippin/ui/animated-height";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vippin/ui/tabs";
 import type { ProfileLink } from "@vippin/core/models/profile-link";
 import type { ProductType } from "@vippin/core/models/product";
@@ -26,6 +25,7 @@ interface ProductListItem {
   mediaHeight?: number | null;
   slug: string;
   type: ProductType;
+  priceCents?: number | null;
 }
 
 interface CreatorPageTabsProps {
@@ -62,13 +62,9 @@ export function CreatorPageTabs({
 
   if (!hasAnyContent) {
     return (
-      <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
-          <FileText className="size-6" />
-        </span>
-        <p className="text-muted-foreground text-sm">
-          Nenhum conteúdo publicado ainda.
-        </p>
+      <div className="flex flex-col items-start gap-3 py-10">
+        <FileText className="text-muted-foreground size-6" />
+        <p className="text-muted-foreground">Nenhum conteúdo publicado ainda.</p>
       </div>
     );
   }
@@ -80,7 +76,6 @@ export function CreatorPageTabs({
         products={products}
         profile={profile}
         mode={mode}
-        layout="unified"
       />
     );
   }
@@ -98,8 +93,8 @@ export function CreatorPageTabs({
   }
 
   return (
-    <Tabs defaultValue={defaultValue}>
-      <TabsList className="max-w-none">
+    <Tabs defaultValue={defaultValue} className="gap-10">
+      <TabsList variant="underline">
         {tabs.includes("lessons") && (
           <TabsTrigger value="lessons">
             <PlayCircle className="size-4" />
@@ -120,7 +115,6 @@ export function CreatorPageTabs({
         )}
       </TabsList>
 
-      <AnimatedHeight>
         {hasLessons && (
           <TabsContent value="lessons">
             <CreatorFeed
@@ -128,7 +122,6 @@ export function CreatorPageTabs({
               products={lessons}
               profile={profile}
               mode={mode}
-              layout="lessons-grid"
               emptyLabel="Nenhuma aula publicada ainda."
             />
           </TabsContent>
@@ -140,7 +133,6 @@ export function CreatorPageTabs({
               products={[]}
               profile={profile}
               mode={mode}
-              layout="unified"
               emptyLabel="Nenhum link publicado ainda."
             />
           </TabsContent>
@@ -152,12 +144,10 @@ export function CreatorPageTabs({
               products={documents}
               profile={profile}
               mode={mode}
-              layout="unified"
               emptyLabel="Nenhum vip publicado ainda."
             />
           </TabsContent>
         )}
-      </AnimatedHeight>
     </Tabs>
   );
 }
@@ -167,36 +157,30 @@ function CreatorFeed({
   products,
   profile,
   mode,
-  layout,
   emptyLabel = "Nenhum conteúdo nesta categoria.",
 }: {
   links: ProfileLink[];
   products: ProductListItem[];
   profile: CreatorPageTabsProps["profile"];
   mode: "public" | "manage";
-  layout: "unified" | "lessons-grid";
   emptyLabel?: string;
 }) {
   if (links.length === 0 && products.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
-          <FileText className="size-6" />
-        </span>
-        <p className="text-muted-foreground text-sm">{emptyLabel}</p>
+      <div className="flex flex-col items-start gap-3 py-10">
+        <FileText className="text-muted-foreground size-6" />
+        <p className="text-muted-foreground">{emptyLabel}</p>
       </div>
     );
   }
 
-  const productListClassName =
-    layout === "lessons-grid"
-      ? "grid grid-cols-1 gap-4 sm:grid-cols-2"
-      : "flex flex-col gap-3";
+  // Mesma grade para aulas e materiais: capa grande, título e preço embaixo.
+  const productListClassName = "grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-12">
       {links.length > 0 && (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {links.map((link) => (
             <li key={`link-${link.id}`}>
               <CreatorLinkCard link={link} />

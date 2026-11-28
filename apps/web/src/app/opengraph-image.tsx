@@ -20,11 +20,11 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#f7f7f8",
+          background: "#f6f6f9",
           padding: 72,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 34, fontWeight: 700, color: "#0a0a0b" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 18, fontSize: 34, fontWeight: 700, color: "#16161d" }}>
           <div
             style={{
               display: "flex",
@@ -44,10 +44,10 @@ export default function OpenGraphImage() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          <div style={{ fontSize: 76, fontWeight: 700, color: "#0a0a0b", lineHeight: 1.05, maxWidth: 1000 }}>
+          <div style={{ fontSize: 76, fontWeight: 700, color: "#16161d", lineHeight: 1.05, maxWidth: 1000 }}>
             Venda aulas e materiais digitais com Pix
           </div>
-          <div style={{ fontSize: 34, color: "#52525b", maxWidth: 960 }}>{DEFAULT_DESCRIPTION.split(". ").slice(1).join(". ")}</div>
+          <div style={{ fontSize: 34, color: "#5b5b66", maxWidth: 960 }}>{DEFAULT_DESCRIPTION.split(". ").slice(1).join(". ")}</div>
         </div>
 
         <div
@@ -55,7 +55,7 @@ export default function OpenGraphImage() {
             display: "flex",
             height: 10,
             borderRadius: 10,
-            background: "linear-gradient(90deg, #84cc16, #ffd60a, #ff7a1a, #ff4fa3, #9b5cff)",
+            background: "linear-gradient(90deg, #8b5cf6, #ec4899, #fb923c)",
           }}
         />
       </div>

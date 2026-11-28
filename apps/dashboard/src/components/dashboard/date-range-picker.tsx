@@ -104,7 +104,7 @@ export function DateRangePicker({ from, to }: DateRangePickerProps) {
         <PopoverContent className="w-auto p-0" align="end">
           <div className="flex flex-col gap-3 p-3">
             <div>
-              <p className="text-sm font-bold">Intervalo personalizado</p>
+              <p className="text-sm font-semibold">Intervalo personalizado</p>
               <p className="text-muted-foreground text-xs">
                 Escolha a data inicial e a final.
               </p>

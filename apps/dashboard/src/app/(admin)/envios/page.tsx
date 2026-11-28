@@ -80,7 +80,7 @@ export default async function EnviosPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Envios</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Envios</h1>
         <p className="text-muted-foreground text-sm font-medium">
           Produtos físicos, carteira Melhor Envio e overrides do escrow.
         </p>
@@ -117,7 +117,7 @@ export default async function EnviosPage() {
                     <p className="text-xs">
                       <span className="font-mono">{shortId(request.orderId)}</span> · pedida em{" "}
                       {formatDate(request.requestedAt)} ·{" "}
-                      <span className={days >= 3 ? "text-destructive font-bold" : "font-bold"}>
+                      <span className={days >= 3 ? "text-destructive font-semibold" : "font-semibold"}>
                         {days} dia{days === 1 ? "" : "s"} em aberto
                       </span>
                     </p>
@@ -131,7 +131,7 @@ export default async function EnviosPage() {
       )}
 
       {balanceCents !== null && balanceCents < LOW_BALANCE_CENTS && (
-        <p className="rounded-xl border border-destructive bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive">
+        <p className="rounded-xl border border-destructive bg-destructive/5 px-4 py-3 text-sm font-semibold text-destructive">
           Saldo baixo na Melhor Carteira: novas etiquetas podem falhar. Reponha o saldo.
         </p>
       )}
@@ -146,7 +146,7 @@ export default async function EnviosPage() {
           ) : (
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs uppercase">
+                <tr className="border-b border-border text-xs">
                   <th className="py-2 pr-3">Pedido</th>
                   <th className="py-2 pr-3">Status</th>
                   <th className="py-2 pr-3">Envio</th>
@@ -165,19 +165,19 @@ export default async function EnviosPage() {
                         <p className="font-mono text-xs">{shortId(order.id)}</p>
                         <p className="text-muted-foreground text-xs">criador {shortId(order.creatorId)}</p>
                         {attention && (
-                          <span className="mt-1 inline-block rounded-full border border-destructive px-2 text-[10px] font-bold text-destructive">
+                          <span className="mt-1 inline-block rounded-full border border-destructive px-2 text-[10px] font-semibold text-destructive">
                             atenção
                           </span>
                         )}
                       </td>
                       <td className="py-3 pr-3">
-                        <p className="font-bold">{FULFILLMENT_LABELS[order.fulfillmentStatus]}</p>
+                        <p className="font-semibold">{FULFILLMENT_LABELS[order.fulfillmentStatus]}</p>
                         <p className="text-muted-foreground text-xs">repasse: {order.transferStatus}</p>
                         {openReturnByOrder.has(order.id) ? (
-                          <p className="text-destructive text-xs font-bold">devolução solicitada</p>
+                          <p className="text-destructive text-xs font-semibold">devolução solicitada</p>
                         ) : (
                           order.adminHoldAt && (
-                            <p className="text-destructive text-xs font-bold">retido pelo admin</p>
+                            <p className="text-destructive text-xs font-semibold">retido pelo admin</p>
                           )
                         )}
                       </td>
@@ -196,7 +196,7 @@ export default async function EnviosPage() {
                         )}
                       </td>
                       <td className="py-3 pr-3 text-right text-xs">
-                        <p className="font-bold">{formatBRL(order.amountCents)}</p>
+                        <p className="font-semibold">{formatBRL(order.amountCents)}</p>
                         <p className="text-muted-foreground">criador {formatBRL(order.creatorAmountCents)}</p>
                         <p className="text-muted-foreground">
                           frete cot. {formatBRL(order.shippingQuote?.priceCents ?? 0)}

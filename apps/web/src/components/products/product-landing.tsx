@@ -2,19 +2,14 @@ import { ArrowRight, Lock, Package, PackageX, Pencil, ShieldCheck } from "lucide
 import Link from "next/link";
 
 import { ExpandableText } from "@/components/ui/expandable-text";
+import { DigitalPixDialog } from "@/components/checkout/digital-pix-dialog";
 import { FreeProductClaim } from "@/components/products/free-product-claim";
 import { Button } from "@vippin/ui/button";
 import { PriceTransparency } from "@/components/products/price-transparency";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
 import { SellerInfo, type PublicSellerInfo } from "@/components/products/seller-info";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
+import { Card } from "@vippin/ui/card";
 import type { ProductType, ShippingMode } from "@vippin/core/models/product";
 import { formatBRL } from "@vippin/core/domain/money";
 import { cn } from "@vippin/ui/lib/utils";
@@ -75,50 +70,37 @@ export function ProductLanding({
   const inStock = physical?.inStock ?? false;
   const available = physical?.available ?? true;
 
+  const priceLabel = isPhysical
+    ? physical?.shippingMode === "free"
+      ? "Frete grátis"
+      : "Mais o frete, calculado pelo seu CEP"
+    : isFree
+      ? "Acesso livre com a sua conta"
+      : "Pagamento único com Pix";
+
   return (
-    <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_20rem] md:items-start lg:grid-cols-[minmax(0,1fr)_23rem]">
-      <Card className="overflow-hidden">
-        <div className="relative">
-          <ProductThumbnail
-            type={type}
-            thumbnailUrl={thumbnailUrl}
-            rounded="rounded-t-2xl rounded-b-none"
-            className="-mt-6 w-full border-0 border-b"
-            iconClassName="size-16"
-            sizes="(min-width: 1024px) 640px, 100vw"
-            aspectRatio={bannerAspectRatio ?? 16 / 9}
-            priority
-            alt={title}
-          />
-          <span className="absolute left-3 top-0 flex items-center gap-1.5 rounded-xl border border-border bg-muted px-2 py-1 text-xs font-bold shadow-elevated-sm sm:px-2.5">
-            {isPhysical ? (
-              <Package className="size-3.5 shrink-0" />
-            ) : (
-              <Lock className="size-3.5 shrink-0" />
-            )}
-            <span className="whitespace-nowrap">
-              {isPhysical ? "Produto físico" : "Conteúdo exclusivo"}
-            </span>
+    <div className="flex flex-wrap items-start gap-12 lg:gap-16">
+      <article className="flex min-w-0 flex-[999_1_560px] flex-col gap-8">
+        <ProductThumbnail
+          type={type}
+          thumbnailUrl={thumbnailUrl}
+          rounded="rounded-[28px]"
+          className="w-full border-0"
+          iconClassName="size-16"
+          sizes="(min-width: 1024px) 720px, 100vw"
+          aspectRatio={bannerAspectRatio ?? 16 / 9}
+          priority
+          alt={title}
+        />
+
+        <div className="flex max-w-[64ch] animate-rise flex-col gap-6">
+          <span className="bg-muted text-muted-foreground flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium">
+            {isPhysical ? <Package className="size-4" /> : <Lock className="size-4" />}
+            {isPhysical ? "Produto físico" : "Conteúdo exclusivo"}
           </span>
-        </div>
-
-        <CardHeader>
-          <CardTitle asChild className="text-2xl lg:text-3xl">
-            <h1>{title}</h1>
-          </CardTitle>
-        </CardHeader>
-
-        {description && (
-          <CardContent>
-            <CardDescription className="text-base text-muted-foreground">
-              <ExpandableText text={description} previewLength={360} />
-            </CardDescription>
-          </CardContent>
-        )}
-      </Card>
-
-      <Card className="md:sticky md:top-6">
-        <CardContent className="flex flex-col gap-5">
+          <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-balance sm:text-5xl">
+            {title}
+          </h1>
           <CreatorProfileLink
             userId={creatorId}
             slug={creatorSlug}
@@ -126,23 +108,21 @@ export function ProductLanding({
             avatarPath={creatorAvatarPath}
             avatarUrl={creatorAvatarUrl}
           />
+          {description && (
+            <div className="text-muted-foreground text-lg leading-relaxed">
+              <ExpandableText text={description} previewLength={360} />
+            </div>
+          )}
+        </div>
+      </article>
 
-          <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3 py-3 sm:gap-3 sm:px-4">
-            <span className="text-muted-foreground min-w-0 truncate text-sm font-medium">
-              {isPhysical
-                ? physical?.shippingMode === "free"
-                  ? "Preço (frete grátis)"
-                  : "Preço + frete"
-                : isFree
-                  ? "Preço"
-                  : "Você paga"}
-            </span>
-            <span className={cn(
-              "shrink-0 text-xl font-bold sm:text-2xl",
-              isFree && "text-success",
-            )}>
+      <aside aria-label="Comprar" className="w-full flex-[1_1_320px] lg:sticky lg:top-6 lg:max-w-[400px]">
+        <Card className="gap-6 px-7 py-7 sm:px-8 sm:py-8">
+          <div className="flex flex-col gap-1.5">
+            <span className={cn("text-4xl font-semibold leading-none tracking-tight", isFree && "text-success")}>
               {isFree ? "Grátis" : formatBRL(priceCents)}
             </span>
+            <span className="text-muted-foreground">{priceLabel}</span>
           </div>
 
           {isPhysical && isOwner ? (
@@ -163,17 +143,29 @@ export function ProductLanding({
               productId={productId}
               isAuthenticated={isAuthenticated}
             />
+          ) : !isPhysical ? (
+            <div className="flex flex-col gap-2">
+              <DigitalPixDialog
+                productId={productId}
+                priceCents={priceCents}
+                isAuthenticated={isAuthenticated}
+              />
+              <p className="text-muted-foreground flex items-center justify-center gap-1.5 text-xs">
+                <ShieldCheck className="size-3.5" />
+                Pagamento com Pix e acesso imediato
+              </p>
+            </div>
           ) : (
             <div className="flex flex-col gap-2">
               <Button asChild size="lg" className="group">
                 <Link href={checkoutHref}>
-                  {isPhysical ? "Comprar" : `Comprar por ${formatBRL(priceCents)}`}
+                  Comprar
                   <ArrowRight className="size-5 transition-transform duration-200 ease-spring group-hover:translate-x-1" />
                 </Link>
               </Button>
               <p className="text-muted-foreground flex items-center justify-center gap-1.5 text-xs">
                 <ShieldCheck className="size-3.5" />
-                {isPhysical ? "Pagamento com PIX e compra protegida" : "Pagamento com PIX e acesso imediato"}
+                Pagamento com Pix e compra protegida
               </p>
             </div>
           )}
@@ -181,8 +173,8 @@ export function ProductLanding({
           {isPhysical && (
             <SellerInfo seller={physical?.seller ?? null} creatorSlug={creatorSlug} />
           )}
-        </CardContent>
-      </Card>
+        </Card>
+      </aside>
     </div>
   );
 }
@@ -191,7 +183,7 @@ function UnavailableNotice({ title, text }: { title: string; text: string }) {
   return (
     <div className="bg-muted flex flex-col items-center gap-2 rounded-2xl px-4 py-6 text-center">
       <PackageX className="text-muted-foreground size-6" />
-      <p className="font-bold">{title}</p>
+      <p className="font-semibold">{title}</p>
       <p className="text-muted-foreground text-sm">{text}</p>
     </div>
   );

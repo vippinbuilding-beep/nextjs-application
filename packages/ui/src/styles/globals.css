@@ -15,89 +15,95 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Identidade "Espectro": interface neutra (branco/preto), superfícies limpas,
- * bordas finas e o espectro de cores só como destaque (borda, gradiente).
- * Amarelo #FFE502 continua sendo a ação principal.
+ * Identidade "Espectro 2": interface neutra e espaçosa, um acento só (a
+ * aurora: lilás → rosa → pêssego) e o amarelo #FFE502 só na ação principal.
  */
 :root {
   color-scheme: light;
   --radius: 1rem;
-  --background: #f7f7f8;
-  --foreground: #0a0a0b;
+  --background: #f6f6f9;
+  --foreground: #16161d;
   --card: #ffffff;
-  --card-foreground: #0a0a0b;
+  --card-foreground: #16161d;
   --popover: #ffffff;
-  --popover-foreground: #0a0a0b;
+  --popover-foreground: #16161d;
   --primary: #ffe502;
-  --primary-foreground: #0a0a0b;
-  --secondary: #0a0a0b;
+  --primary-foreground: #16161d;
+  --secondary: #16161d;
   --secondary-foreground: #ffffff;
-  --muted: #f2f2f4;
-  --muted-foreground: #52525b;
-  --accent: #f2f2f4;
-  --accent-foreground: #0a0a0b;
-  --destructive: #e5372d;
+  --muted: #efeff4;
+  --muted-foreground: #5b5b66;
+  --accent: #efeff4;
+  --accent-foreground: #16161d;
+  --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --success: #15803d;
-  --border: rgb(10 10 11 / 0.09);
-  --input: rgb(10 10 11 / 0.14);
+  --link: #6d28d9;
+  --border: #e8e8ef;
+  --input: #d9d9e3;
   --ring: #7c3aed;
-  --grid: rgb(10 10 11 / 0.035);
-  --shadow-color: 10 10 11;
-  --chart-1: #ffc800;
-  --chart-2: #3d8bff;
-  --chart-3: #ff4fa3;
-  --chart-4: #1fd1c1;
-  --chart-5: #9b5cff;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0a0a0b;
-  --sidebar-primary: #0a0a0b;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f2f2f4;
-  --sidebar-accent-foreground: #0a0a0b;
-  --sidebar-border: rgb(10 10 11 / 0.08);
+  --grid: rgb(22 22 29 / 0.035);
+  --shadow-color: 22 22 29;
+  --chart-1: #8b5cf6;
+  --chart-2: #ec4899;
+  --chart-3: #fb923c;
+  --chart-4: #c4b5fd;
+  --chart-5: #f9a8d4;
+  --sidebar: #f6f6f9;
+  --sidebar-foreground: #16161d;
+  --sidebar-primary: #efeff4;
+  --sidebar-primary-foreground: #16161d;
+  --sidebar-accent: #efeff4;
+  --sidebar-accent-foreground: #16161d;
+  --sidebar-border: #e8e8ef;
   --sidebar-ring: #7c3aed;
-  --spectrum: linear-gradient(120deg, #84cc16, #ffd60a, #ff7a1a, #ff4fa3, #9b5cff);
-  --spectrum-warm: linear-gradient(135deg, #ff7a1a, #ff4fa3, #9b5cff);
+  --aurora: linear-gradient(120deg, #8b5cf6, #ec4899, #fb923c);
+  --glow-1: rgb(139 92 246 / 0.2);
+  --glow-2: rgb(236 72 153 / 0.14);
+  --glow-3: rgb(251 146 60 / 0.12);
 }
 
 .dark {
   color-scheme: dark;
-  --background: #070708;
-  --foreground: #f5f5f7;
-  --card: #121214;
-  --card-foreground: #f5f5f7;
-  --popover: #18181b;
-  --popover-foreground: #f5f5f7;
+  --background: #0b0b10;
+  --foreground: #f2f2f7;
+  --card: #15151c;
+  --card-foreground: #f2f2f7;
+  --popover: #1a1a22;
+  --popover-foreground: #f2f2f7;
   --primary: #ffe502;
-  --primary-foreground: #0a0a0b;
-  --secondary: #f5f5f7;
-  --secondary-foreground: #0a0a0b;
-  --muted: #1c1c1f;
-  --muted-foreground: #a1a1a6;
-  --accent: #232327;
-  --accent-foreground: #f5f5f7;
-  --destructive: #ff6961;
-  --destructive-foreground: #0a0a0b;
+  --primary-foreground: #16161d;
+  --secondary: #f2f2f7;
+  --secondary-foreground: #16161d;
+  --muted: #1e1e27;
+  --muted-foreground: #a3a3af;
+  --accent: #23232d;
+  --accent-foreground: #f2f2f7;
+  --destructive: #f87171;
+  --destructive-foreground: #16161d;
   --success: #4cd964;
-  --border: rgb(255 255 255 / 0.08);
-  --input: rgb(255 255 255 / 0.14);
+  --link: #b49cff;
+  --border: #24242e;
+  --input: #34343f;
   --ring: #a78bfa;
   --grid: rgb(255 255 255 / 0.03);
   --shadow-color: 0 0 0;
-  --chart-1: #ffe502;
-  --chart-2: #5c9dff;
-  --chart-3: #ff4fa3;
-  --chart-4: #1fd1c1;
-  --chart-5: #b48cff;
-  --sidebar: #0e0e10;
-  --sidebar-foreground: #f5f5f7;
-  --sidebar-primary: #f5f5f7;
-  --sidebar-primary-foreground: #0a0a0b;
-  --sidebar-accent: #1c1c1f;
-  --sidebar-accent-foreground: #f5f5f7;
-  --sidebar-border: rgb(255 255 255 / 0.06);
+  --chart-1: #a78bfa;
+  --chart-2: #f472b6;
+  --chart-3: #fdba74;
+  --chart-4: #7c6bb0;
+  --chart-5: #b45b8a;
+  --sidebar: #0b0b10;
+  --sidebar-foreground: #f2f2f7;
+  --sidebar-primary: #1e1e27;
+  --sidebar-primary-foreground: #f2f2f7;
+  --sidebar-accent: #1e1e27;
+  --sidebar-accent-foreground: #f2f2f7;
+  --sidebar-border: #24242e;
   --sidebar-ring: #a78bfa;
+  --glow-1: rgb(139 92 246 / 0.3);
+  --glow-2: rgb(236 72 153 / 0.2);
+  --glow-3: rgb(251 146 60 / 0.12);
 }
 
 @theme inline {
@@ -120,6 +126,7 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
+  --color-link: var(--link);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -148,6 +155,8 @@
   --shadow-elevated-lg: 0 2px 4px rgb(var(--shadow-color) / 0.04), 0 24px 48px -24px rgb(var(--shadow-color) / 0.3);
   --shadow-elevated-xl: 0 2px 6px rgb(var(--shadow-color) / 0.05), 0 36px 64px -28px rgb(var(--shadow-color) / 0.38);
   --shadow-glow-primary: 0 10px 24px -10px rgb(201 154 0 / 0.65);
+  /* Superfície grande (painéis, cards de conteúdo): só sombra, sem borda. */
+  --shadow-surface: 0 30px 60px -40px rgb(var(--shadow-color) / 0.35);
 
   /* Movimento: mola curta para interações, saída suave para entradas. */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -163,7 +172,7 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-    font-weight: 500;
+    line-height: 1.55;
   }
 }
 
@@ -203,28 +212,25 @@
   }
 }
 
-/* Borda multicor num só elemento (sem wrapper): o fundo do card fica no
-   padding-box e o espectro aparece só na borda. */
-@utility border-spectrum {
+/* Borda aurora num só elemento (sem wrapper): o fundo do card fica no
+   padding-box e o gradiente aparece só na borda. */
+@utility border-aurora {
   border: 1.5px solid transparent;
   background:
     linear-gradient(var(--card), var(--card)) padding-box,
-    var(--spectrum) border-box;
+    var(--aurora) border-box;
 }
 
-@utility border-spectrum-warm {
-  border: 1.5px solid transparent;
+@utility bg-aurora {
+  background-image: var(--aurora);
+}
+
+/* Brilho suave do cabeçalho (vitrine, página do produto). Estático. */
+@utility aurora-glow {
   background:
-    linear-gradient(var(--card), var(--card)) padding-box,
-    var(--spectrum-warm) border-box;
-}
-
-@utility bg-spectrum {
-  background-image: var(--spectrum);
-}
-
-@utility bg-spectrum-warm {
-  background-image: var(--spectrum-warm);
+    radial-gradient(38% 60% at 18% 40%, var(--glow-1), transparent 70%),
+    radial-gradient(30% 50% at 40% 70%, var(--glow-2), transparent 70%),
+    radial-gradient(26% 44% at 8% 80%, var(--glow-3), transparent 70%);
 }
 
 @keyframes rise {

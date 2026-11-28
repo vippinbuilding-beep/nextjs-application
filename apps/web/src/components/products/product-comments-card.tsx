@@ -49,7 +49,7 @@ export function ProductCommentsCard({
 
           <MessageSquare className="size-4 shrink-0" />
 
-          <span className="text-sm font-bold">Comentários</span>
+          <span className="text-sm font-semibold">Comentários</span>
 
         </div>
 

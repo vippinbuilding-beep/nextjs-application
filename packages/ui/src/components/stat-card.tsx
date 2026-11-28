@@ -25,12 +25,12 @@ export function StatCard({ label, value, hint, icon, className }: StatCardProps)
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        <span className="text-muted-foreground text-xs font-semibold">
           {label}
         </span>
         {icon ? <span className="text-muted-foreground">{icon}</span> : null}
       </div>
-      <span className="text-2xl font-bold tracking-tight">{value}</span>
+      <span className="text-2xl font-semibold tracking-tight">{value}</span>
       {hint ? (
         <span className="text-muted-foreground text-xs font-medium">{hint}</span>
       ) : null}

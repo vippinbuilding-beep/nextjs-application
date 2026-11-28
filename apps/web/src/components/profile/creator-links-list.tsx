@@ -13,7 +13,7 @@ export function CreatorLinkCard({ link }: { link: ProfileLink }) {
   return (
     <Link
       href={link.url}
-      className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-elevated"
+      className="interactive-lift group flex items-center gap-3 rounded-2xl bg-card p-4 shadow-surface"
     >
       <ProfileLinkThumbnail
         url={link.url}

@@ -609,7 +609,7 @@ export function VideoPlayer({
         )}
 
         {watermark && (
-          <span className="pointer-events-none absolute right-3 top-3 select-none rounded-md bg-black/40 px-2 py-0.5 text-xs font-bold text-white/60">
+          <span className="pointer-events-none absolute right-3 top-3 select-none rounded-md bg-black/40 px-2 py-0.5 text-xs font-semibold text-white/60">
             {watermark}
           </span>
         )}
@@ -701,7 +701,7 @@ export function VideoPlayer({
             className="hidden h-1.5 w-20 cursor-pointer appearance-none rounded-full bg-white/30 accent-primary sm:block"
           />
 
-          <span className="text-xs font-bold tabular-nums">
+          <span className="text-xs font-semibold tabular-nums">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
 
@@ -725,7 +725,7 @@ export function VideoPlayer({
               type="button"
               onClick={cycleRate}
               aria-label="Velocidade de reprodução"
-              className="flex cursor-pointer h-8 items-center justify-center rounded-lg px-2 text-xs font-bold tabular-nums transition-colors hover:bg-white/20"
+              className="flex cursor-pointer h-8 items-center justify-center rounded-lg px-2 text-xs font-semibold tabular-nums transition-colors hover:bg-white/20"
             >
               {rate}x
             </button>
@@ -777,7 +777,7 @@ export function VideoPlayer({
             )}
           >
             <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-              <span className="flex items-center gap-2 text-sm font-bold">
+              <span className="flex items-center gap-2 text-sm font-semibold">
                 <MessageSquare className="size-4" />
                 Comentários
               </span>

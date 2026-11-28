@@ -41,7 +41,7 @@ export function LoginRolePicker({ next, className }: LoginRolePickerProps) {
                 <Icon className="size-4 sm:size-5" />
               </span>
               <span className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
-                <span className="font-bold">{copy.badge}</span>
+                <span className="font-semibold">{copy.badge}</span>
                 <span className="text-muted-foreground text-xs font-medium leading-snug sm:text-sm">
                   {copy.description}
                 </span>

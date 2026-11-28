@@ -200,7 +200,7 @@ export function FileUploadField({
                 <Icon className="size-6 text-muted-foreground" />
               </span>
               <span className="flex flex-col gap-0.5">
-                <span className="text-sm font-bold">{title}</span>
+                <span className="text-sm font-semibold">{title}</span>
                 <span className="text-muted-foreground text-xs">{description}</span>
               </span>
             </button>

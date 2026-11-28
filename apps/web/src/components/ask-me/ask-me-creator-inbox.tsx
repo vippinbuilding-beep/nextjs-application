@@ -207,7 +207,7 @@ export function AskMeCreatorInbox({
               size="sm"
             />
             <div className="min-w-0 flex-1">
-              <p className="font-bold">{q.asker.name}</p>
+              <p className="font-semibold">{q.asker.name}</p>
               <p className="text-muted-foreground text-xs">
                 {formatBRL(q.amountCents)} ·{" "}
                 {getAskMeCreatorStatusLabel(q.status, q.responseDeadlineAt)}
@@ -233,7 +233,7 @@ export function AskMeCreatorInbox({
 
           {q.answerText && (
             <div className="mb-3 rounded-lg border border-dashed border-border bg-muted/40 p-3 text-sm">
-              <p className="mb-1 text-xs font-bold">Sua resposta</p>
+              <p className="mb-1 text-xs font-semibold">Sua resposta</p>
               <p className="whitespace-pre-wrap">{q.answerText}</p>
             </div>
           )}

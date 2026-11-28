@@ -70,7 +70,7 @@ function Calendar({
           defaultClassNames.month_caption
         ),
         dropdowns: cn(
-          "flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-bold",
+          "flex h-(--cell-size) w-full items-center justify-center gap-1.5 text-sm font-semibold",
           defaultClassNames.dropdowns
         ),
         dropdown_root: cn(
@@ -82,7 +82,7 @@ function Calendar({
           defaultClassNames.dropdown
         ),
         caption_label: cn(
-          "font-bold select-none",
+          "font-semibold select-none",
           captionLayout === "label"
             ? "text-sm"
             : "flex h-8 items-center gap-1 rounded-lg pr-1 pl-2 text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
@@ -91,7 +91,7 @@ function Calendar({
         month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
         weekdays: cn("flex", defaultClassNames.weekdays),
         weekday: cn(
-          "flex-1 rounded-lg text-[0.8rem] font-bold text-muted-foreground select-none",
+          "flex-1 rounded-lg text-[0.8rem] font-semibold text-muted-foreground select-none",
           defaultClassNames.weekday
         ),
         week: cn("mt-2 flex w-full", defaultClassNames.week),
@@ -117,7 +117,7 @@ function Calendar({
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn("rounded-r-lg bg-accent", defaultClassNames.range_end),
         today: cn(
-          "rounded-lg border border-border bg-background font-bold text-foreground data-[selected=true]:rounded-none",
+          "rounded-lg border border-border bg-background font-semibold text-foreground data-[selected=true]:rounded-none",
           defaultClassNames.today
         ),
         outside: cn(
@@ -208,7 +208,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-lg leading-none font-bold group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-lg data-[range-end=true]:rounded-r-lg data-[range-end=true]:border-2 data-[range-end=true]:border-border data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:rounded-lg data-[range-start=true]:rounded-l-lg data-[range-start=true]:border-2 data-[range-start=true]:border-border data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:border-2 data-[selected-single=true]:border-border data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[selected-single=true]:shadow-elevated-sm hover:border-2 hover:border-border hover:bg-accent dark:hover:text-accent-foreground [&>span]:text-xs [&>span]:opacity-70",
+        "flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-lg leading-none font-semibold group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50 data-[range-end=true]:rounded-lg data-[range-end=true]:rounded-r-lg data-[range-end=true]:border-2 data-[range-end=true]:border-border data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground data-[range-middle=true]:rounded-none data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:rounded-lg data-[range-start=true]:rounded-l-lg data-[range-start=true]:border-2 data-[range-start=true]:border-border data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[selected-single=true]:border-2 data-[selected-single=true]:border-border data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[selected-single=true]:shadow-elevated-sm hover:border-2 hover:border-border hover:bg-accent dark:hover:text-accent-foreground [&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
         className
       )}

@@ -92,7 +92,7 @@ export default async function UsuarioDetalhePage({
       </Card>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+        <h2 className="text-sm font-semibold text-muted-foreground">
           Como criador
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -105,7 +105,7 @@ export default async function UsuarioDetalhePage({
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+        <h2 className="text-sm font-semibold text-muted-foreground">
           Como consumidor
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

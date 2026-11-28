@@ -70,7 +70,7 @@ export function UserAvatar({
       />
       <span
         className={cn(
-          "relative flex size-full items-center justify-center overflow-hidden rounded-full border border-border bg-chart-4 font-bold text-background",
+          "relative flex size-full items-center justify-center overflow-hidden rounded-full border border-border bg-chart-4 font-semibold text-foreground",
           preset.text
         )}
       >

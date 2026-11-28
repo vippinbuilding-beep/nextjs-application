@@ -205,12 +205,12 @@ function CommentCard({
               {node.authorSlug ? (
                 <Link
                   href={`/@${node.authorSlug}`}
-                  className="block truncate text-sm font-bold hover:underline"
+                  className="block truncate text-sm font-semibold hover:underline"
                 >
                   {authorLabel(node)}
                 </Link>
               ) : (
-                <p className="truncate text-sm font-bold">{authorLabel(node)}</p>
+                <p className="truncate text-sm font-semibold">{authorLabel(node)}</p>
               )}
               <p className="text-muted-foreground text-xs font-medium whitespace-nowrap">
                 {formatDistanceToNow(node.createdAt, {

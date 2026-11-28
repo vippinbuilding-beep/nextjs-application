@@ -139,7 +139,7 @@ export function CreatorFeed({
                 avatarUrl={creator.avatarUrl}
                 size="lg"
               />
-              <span className="line-clamp-2 w-full text-center text-xs leading-snug font-bold">
+              <span className="line-clamp-2 w-full text-center text-xs leading-snug font-semibold">
                 {creator.handle}
               </span>
             </Link>
@@ -153,7 +153,7 @@ export function CreatorFeed({
 function CreatorFeedHeader({ searching }: { searching: boolean }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <h2 className="text-sm font-bold uppercase tracking-wide">Criadores</h2>
+      <h2 className="text-sm font-semibold">Criadores</h2>
       <p className="text-muted-foreground text-xs font-medium">
         {searching
           ? "Perfis que batem com a sua busca. Toque para ver a vitrine."

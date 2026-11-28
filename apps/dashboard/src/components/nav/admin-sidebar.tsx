@@ -43,7 +43,7 @@ export function AdminSidebar() {
   return (
     <Sidebar
       header={
-        <span className="text-lg font-bold tracking-tight">Vippin Admin</span>
+        <span className="text-lg font-semibold tracking-tight">Vippin Admin</span>
       }
       footer={
         <div className="flex flex-col gap-2">

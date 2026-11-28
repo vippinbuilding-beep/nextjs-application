@@ -17,8 +17,8 @@ import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { CreatorOwnerToolbar } from "@/components/profile/creator-owner-toolbar";
 import { CreatorPageTabs } from "@/components/profile/creator-page-tabs";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { Card, CardContent } from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageHeader, PageShell } from "@vippin/ui/page-shell";
 import type { ProductType } from "@vippin/core/models/product";
 import type { ProfileLink } from "@vippin/core/models/profile-link";
 import { resolveAskMePriceCents } from "@vippin/core/domain/ask-me";
@@ -169,13 +169,14 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
           sameAs: socials.map(([, url]) => url).filter((url) => /^https?:\/\//.test(url)),
         })}
       />
-      <div className="flex flex-1 flex-col items-center p-4 py-6 sm:py-8">
-        <div className="w-full max-w-md sm:max-w-3xl">
-          {isOwner && <CreatorOwnerToolbar />}
+      <PageShell>
+        {isOwner && <CreatorOwnerToolbar />}
 
-          <Card className="w-full">
-            <CardContent className="flex flex-col gap-6">
-              <header className="flex flex-col items-center gap-3 text-center">
+        <PageHeader
+          glow
+          leading={
+            <span className="bg-aurora w-fit rounded-full p-[3px]">
+              <span className="border-background block rounded-full border-4">
                 <UserAvatar
                   userId={profile.id}
                   name={handle}
@@ -183,27 +184,26 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
                   avatarUrl={profile.avatar_url}
                   size="xl"
                 />
-
-                <div className="flex flex-col items-center gap-2">
-                  <h1 className="text-3xl font-bold tracking-tight">{handle}</h1>
-                  {bio && (
-                    <p className="text-muted-foreground max-w-prose text-sm leading-relaxed break-all">
-                      {bio}
-                    </p>
-                  )}
-                  {askMeEnabled && (
-                    <AskMeProfileButton
-                      creatorId={profile.id}
-                      creatorName={handle}
-                      priceCents={askMePriceCents}
-                      isAuthenticated={Boolean(authUser)}
-                      isOwner={isOwner}
-                    />
-                  )}
-                </div>
-
+              </span>
+            </span>
+          }
+          title={handle}
+          subtitle={`@${profile.slug}`}
+          description={bio ? <p className="break-words">{bio}</p> : undefined}
+          actions={
+            askMeEnabled || socials.length > 0 ? (
+              <div className="flex w-full flex-col gap-4 sm:w-auto sm:items-end">
+                {askMeEnabled && (
+                  <AskMeProfileButton
+                    creatorId={profile.id}
+                    creatorName={handle}
+                    priceCents={askMePriceCents}
+                    isAuthenticated={Boolean(authUser)}
+                    isOwner={isOwner}
+                  />
+                )}
                 {socials.length > 0 && (
-                  <ul className="flex flex-wrap items-center justify-center gap-2">
+                  <ul className="flex flex-wrap items-center gap-1">
                     {socials.map(([key, url]) => {
                       const Icon = SOCIAL_ICONS[key] ?? Globe;
                       return (
@@ -211,7 +211,7 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
                           <Link
                             href={url}
                             aria-label={SOCIAL_LABELS[key] ?? key}
-                            className="flex size-10 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:bg-primary hover:shadow-elevated"
+                            className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-11 items-center justify-center rounded-full transition-colors"
                           >
                             <Icon className="size-5" />
                           </Link>
@@ -220,30 +220,31 @@ export default async function CreatorPage({ params }: CreatorPageProps) {
                     })}
                   </ul>
                 )}
-              </header>
+              </div>
+            ) : undefined
+          }
+        />
 
-              <CreatorPageTabs
-                products={products.map((product) => ({
-                  id: product.id,
-                  title: product.title,
-                  description: product.description,
-                  thumbnailPath: product.thumbnail_path,
-                  thumbnailWidth: product.thumbnail_width,
-                  thumbnailHeight: product.thumbnail_height,
-                  mediaWidth: product.media_width,
-                  mediaHeight: product.media_height,
-                  slug: product.slug,
-                  type: product.type as ProductType,
-                }))}
-                links={links}
-                mode="public"
-                profile={profile}
-                defaultTab={preferredDefaultTab}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        <CreatorPageTabs
+          products={products.map((product) => ({
+            id: product.id,
+            title: product.title,
+            description: product.description,
+            thumbnailPath: product.thumbnail_path,
+            thumbnailWidth: product.thumbnail_width,
+            thumbnailHeight: product.thumbnail_height,
+            mediaWidth: product.media_width,
+            mediaHeight: product.media_height,
+            slug: product.slug,
+            type: product.type as ProductType,
+            priceCents: product.price_cents,
+          }))}
+          links={links}
+          mode="public"
+          profile={profile}
+          defaultTab={preferredDefaultTab}
+        />
+      </PageShell>
     </LayoutBackground>
   );
 }

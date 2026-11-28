@@ -208,8 +208,8 @@ export function CreatorShipmentsPanel() {
                 setSelected(new Set());
               }}
               className={cn(
-                "rounded-full border border-border px-3 py-1 text-xs font-bold cursor-pointer",
-                filter === f.id ? "bg-primary shadow-elevated-sm" : "bg-background"
+                "rounded-full border border-border px-3 py-1 text-xs font-semibold cursor-pointer",
+                filter === f.id ? "bg-secondary text-secondary-foreground" : "bg-background"
               )}
             >
               {f.label}
@@ -261,7 +261,7 @@ export function CreatorShipmentsPanel() {
                       />
                     )}
                     <div className="min-w-0">
-                      <p className="font-bold">{item.productTitle}</p>
+                      <p className="font-semibold">{item.productTitle}</p>
                       {item.shipTo && (
                         <p className="text-muted-foreground text-xs font-medium">
                           Para {item.shipTo.name} · {item.shipTo.city}/{item.shipTo.state}
@@ -273,7 +273,7 @@ export function CreatorShipmentsPanel() {
                       </p>
                     </div>
                   </div>
-                  <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold">
+                  <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-semibold">
                     {item.statusLabel}
                   </span>
                 </div>

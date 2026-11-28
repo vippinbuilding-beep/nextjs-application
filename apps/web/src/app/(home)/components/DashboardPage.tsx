@@ -24,6 +24,7 @@ import {
     CardContent,
 } from "@vippin/ui/card";
 import { CountBadge } from "@vippin/ui/count-badge";
+import { Section } from "@vippin/ui/page-shell";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import type { Product } from "@vippin/core/models/product";
 import { getAvailableCreatorTabs } from "@/lib/creator-profile-tabs";
@@ -163,7 +164,7 @@ export default function DashboardPage() {
         availableTabs.length > 1 && !productsLoading && !linksLoading;
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-14">
             <CreatorModuleHeader
                 title={`Olá, ${displayName}`}
                 description="Resumo do seu painel e atalhos para cada área."
@@ -202,7 +203,8 @@ export default function DashboardPage() {
 
             {user.slug && <CreatorLinkCard slug={user.slug} />}
 
-            <section className="grid gap-3 sm:grid-cols-2">
+            <Section title="Seu negócio">
+            <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
                 <ModuleCard
                     href="/painel/desempenho"
                     icon={BarChart3}
@@ -236,15 +238,13 @@ export default function DashboardPage() {
                     href="/painel/financeiro"
                     icon={Banknote}
                     title="Financeiro"
-                    description="Saldo e saques via PIX"
+                    description="Saldo e saques via Pix"
                 />
-            </section>
+            </div>
+            </Section>
 
-            <section className="flex flex-col gap-3">
-                <h2 className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
-                    Como comprador
-                </h2>
-                <div className="grid gap-3 sm:grid-cols-2">
+            <Section title="Como comprador">
+                <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2">
                     <ModuleCard
                         href="/painel/biblioteca"
                         icon={Library}
@@ -270,7 +270,7 @@ export default function DashboardPage() {
                         description="Descubra aulas e materiais de outros criadores"
                     />
                 </div>
-            </section>
+            </Section>
         </div>
     );
 }
@@ -285,10 +285,11 @@ function StatPill({
     return (
         <span
             className={cn(
-                "inline-flex items-center rounded-full border border-border px-3 py-1 text-xs font-bold shadow-elevated-sm",
-                highlight ? "bg-primary text-primary-foreground" : "bg-background"
+                "bg-muted inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium",
+                highlight ? "text-foreground" : "text-muted-foreground"
             )}
         >
+            {highlight && <span aria-hidden className="bg-aurora size-2 rounded-full" />}
             {label}
         </span>
     );
@@ -312,14 +313,14 @@ function ModuleCard({
     return (
         <Link
             href={href}
-            className="group flex items-center gap-3 rounded-xl border border-border bg-background p-4 text-left shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+            className="group -mx-3 flex items-center gap-4 rounded-2xl px-3 py-3.5 text-left transition-colors hover:bg-accent"
         >
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
+            <span className="bg-muted text-foreground flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 ease-spring group-hover:scale-105">
                 <Icon className="size-5" />
             </span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="font-bold leading-tight">{title}</span>
-                <span className="text-muted-foreground text-xs font-medium leading-snug">
+                <span className="font-semibold leading-tight">{title}</span>
+                <span className="text-muted-foreground text-sm leading-snug">
                     {description}
                 </span>
             </span>

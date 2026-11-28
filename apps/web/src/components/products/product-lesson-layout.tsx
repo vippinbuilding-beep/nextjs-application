@@ -83,7 +83,7 @@ export function ProductLessonLayout({
               <div className="flex flex-wrap items-start justify-between flex-col gap-3 w-full">
                 <div className="min-w-0 flex-1 space-y-2 w-full">
                   <div className="flex items-center justify-between w-full">
-                    <h1 className="text-xl font-bold leading-tight lg:text-2xl">
+                    <h1 className="text-xl font-semibold leading-tight lg:text-2xl">
                       {title}
                     </h1>
                     {isOwner && (

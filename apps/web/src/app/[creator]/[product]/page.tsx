@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageShell } from "@vippin/ui/page-shell";
 import type { ProductType } from "@vippin/core/models/product";
 import { formatFileSize } from "@/lib/products";
 import { productAspectRatio } from "@/lib/media-dimensions";
@@ -169,8 +170,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             inStock: isPhysical ? (row.stock ?? 0) > 0 && available : true,
           })}
         />
-        <div className="flex flex-1 flex-col items-center justify-center p-4 py-10">
-          <div className="flex w-full max-w-4xl flex-col gap-6">
+        <PageShell className="pt-6 sm:pt-8">
             <ProductLanding
               productId={row.id}
               type={type}
@@ -198,8 +198,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   : undefined
               }
             />
-          </div>
-        </div>
+        </PageShell>
       </LayoutBackground>
     );
   }
@@ -350,7 +349,7 @@ function DocumentBlock({
   return (
     <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-background px-6 py-10 text-center">
       <div className="flex flex-col gap-1">
-        <p className="font-bold break-all">{name}</p>
+        <p className="font-semibold break-all">{name}</p>
         {fileSize != null && (
           <p className="text-muted-foreground text-sm font-medium">
             {formatFileSize(fileSize)}

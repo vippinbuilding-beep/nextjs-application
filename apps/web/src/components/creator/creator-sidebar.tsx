@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChevronRight,
   ExternalLink,
   LogOut,
   Menu,
@@ -47,7 +46,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
-      <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-4">
+      <div className="flex shrink-0 items-center gap-3 px-4 py-4">
         <UserAvatar
           userId={user!.id}
           name={displayName}
@@ -57,7 +56,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
           className="shrink-0"
         />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold">{displayName}</p>
+          <p className="truncate text-sm font-semibold">{displayName}</p>
           {user?.slug && (
             <p className="text-muted-foreground truncate text-xs font-medium">
               {user.slug}
@@ -71,7 +70,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
           {CREATOR_NAV_SECTIONS.map((section) => (
             <div key={section.id} className="flex flex-col gap-1.5">
               {section.label && (
-                <p className="text-muted-foreground px-2 text-[11px] font-bold uppercase tracking-wide">
+                <p className="text-muted-foreground px-3 text-xs font-medium">
                   {section.label}
                 </p>
               )}
@@ -95,10 +94,10 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
                           showAskMeDot ? askMeAriaLabel : undefined
                         }
                         className={cn(
-                          "group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-bold transition-all",
+                          "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                           active
-                            ? "border-border bg-primary text-primary-foreground shadow-elevated-sm"
-                            : "border-transparent bg-transparent hover:border-border hover:bg-muted/60"
+                            ? "bg-sidebar-accent text-foreground font-semibold"
+                            : "text-muted-foreground font-medium hover:bg-sidebar-accent/70 hover:text-foreground"
                         )}
                       >
                         <span className="relative shrink-0">
@@ -108,12 +107,9 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
                           )}
                         </span>
                         <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                        <ChevronRight
-                          className={cn(
-                            "size-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-60",
-                            active && "opacity-80"
-                          )}
-                        />
+                        {active && (
+                          <span aria-hidden className="bg-aurora size-1.5 shrink-0 rounded-full" />
+                        )}
                       </Link>
                     </li>
                   );
@@ -171,10 +167,10 @@ export function CreatorMobileTopBar({ title, onOpenMenu }: CreatorMobileTopBarPr
         <Menu className="size-4" />
       </Button>
       <div className="min-w-0 flex-1">
-        <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        <p className="text-muted-foreground text-xs">
           Painel do criador
         </p>
-        <p className="truncate text-sm font-bold">{title}</p>
+        <p className="truncate text-sm font-semibold">{title}</p>
       </div>
       <ThemeToggle />
       <NotificationBell />

@@ -41,7 +41,7 @@ export default async function ProdutosPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Produtos</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Produtos</h1>
         <p className="text-muted-foreground text-sm font-medium">
           Desempenho de vendas e catálogo.
         </p>
@@ -58,7 +58,7 @@ export default async function ProdutosPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+        <h2 className="text-sm font-semibold text-muted-foreground">
           Visitas
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

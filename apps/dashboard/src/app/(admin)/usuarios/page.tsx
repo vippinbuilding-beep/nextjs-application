@@ -62,7 +62,7 @@ export default async function UsuariosPage({
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Usuários</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Usuários</h1>
         <p className="text-muted-foreground text-sm font-medium">
           {result.total.toLocaleString("pt-BR")} usuários no total.
         </p>
@@ -85,7 +85,7 @@ export default async function UsuariosPage({
       </Card>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+        <h2 className="text-sm font-semibold text-muted-foreground">
           Visitas em perfis
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -158,7 +158,7 @@ export default async function UsuariosPage({
         </select>
         <button
           type="submit"
-          className="rounded-xl border border-border bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-elevated-sm"
+          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-transform duration-150 ease-spring active:scale-[.97]"
         >
           Buscar
         </button>

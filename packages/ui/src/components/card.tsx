@@ -1,19 +1,33 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "../lib/utils";
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-3xl border border-border py-6 shadow-elevated",
-        className
-      )}
-      {...props}
-    />
-  );
+/**
+ * - surface (padrão): fundo do card e sombra suave, sem borda. Para painéis e
+ *   blocos de conteúdo; na maioria das telas o conteúdo fica solto na página
+ *   (ver PageShell/Section) e o Card só agrupa o que precisa de moldura.
+ * - outline: só borda (listas densas, formulários dentro de outra superfície).
+ * - elevated: destaque que flutua (modais in-line, resumo fixo).
+ */
+const cardVariants = cva("bg-card text-card-foreground flex flex-col gap-6 rounded-3xl py-6", {
+  variants: {
+    variant: {
+      surface: "shadow-surface",
+      outline: "border border-border",
+      elevated: "shadow-elevated-lg",
+    },
+  },
+  defaultVariants: { variant: "surface" },
+});
+
+function Card({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof cardVariants>) {
+  return <div data-slot="card" className={cn(cardVariants({ variant }), className)} {...props} />;
 }
 
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
@@ -39,7 +53,7 @@ function CardTitle({
   return (
     <Comp
       data-slot="card-title"
-      className={cn("leading-none font-bold tracking-tight", className)}
+      className={cn("leading-tight font-semibold tracking-tight", className)}
       {...props}
     />
   );

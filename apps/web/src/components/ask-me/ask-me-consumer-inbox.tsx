@@ -79,7 +79,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
             <div className="min-w-0 flex-1">
               <Link
                 href={`/@${q.creator.slug}`}
-                className="font-bold hover:underline"
+                className="font-semibold hover:underline"
               >
                 @{q.creator.creatorName}
               </Link>
@@ -89,7 +89,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
             </div>
           </div>
 
-          <p className="mb-2 text-xs font-bold">Sua pergunta</p>
+          <p className="mb-2 text-xs font-semibold">Sua pergunta</p>
           <p className="mb-3 whitespace-pre-wrap text-sm">{q.questionText}</p>
 
           {q.responseDeadlineAt && isAskMeAwaitingResponse(q.status) && (
@@ -100,8 +100,8 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
           )}
 
           {q.status === "answered" && (
-            <div className="rounded-lg border border-dashed border-border bg-primary/20 p-3">
-              <p className="mb-1 text-xs font-bold">Resposta</p>
+            <div className="rounded-lg border border-dashed border-input bg-muted p-3">
+              <p className="mb-1 text-xs font-semibold">Resposta</p>
               {q.answerText && (
                 <p className="whitespace-pre-wrap text-sm">{q.answerText}</p>
               )}

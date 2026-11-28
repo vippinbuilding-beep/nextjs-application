@@ -4,7 +4,6 @@ import { Check, Copy } from "lucide-react";
 
 import { DevSimulatePaymentButton } from "@/components/payments/dev-simulate-payment-button";
 import { Button } from "@vippin/ui/button";
-import { Loading } from "@vippin/ui/loading";
 import { formatBRL } from "@vippin/core/domain/money";
 
 import type { CheckoutResponse } from "./use-pix-charge";
@@ -22,7 +21,7 @@ interface PixPaymentPanelProps {
 }
 
 /**
- * QR code + copia-e-cola, na própria página do checkout. No celular o caminho
+ * Só o essencial do Pix: valor, QR Code e copia-e-cola. No celular o caminho
  * natural é copiar o código (não dá para escanear a própria tela), então o
  * botão de copiar é a ação principal.
  */
@@ -31,60 +30,41 @@ export function PixPaymentPanel({ order, copied, onCopy }: PixPaymentPanelProps)
     ? order.brCodeBase64
     : `data:image/png;base64,${order.brCodeBase64}`;
   const expiresAt = order.expiresAt ? new Date(order.expiresAt) : null;
+  const validUntil =
+    expiresAt && !Number.isNaN(expiresAt.getTime()) ? TIME_FORMAT.format(expiresAt) : null;
 
   return (
-    <div className="flex animate-pop flex-col gap-5">
-      <div className="flex flex-col items-center gap-1 text-center">
-        <span className="text-muted-foreground text-sm">Valor do PIX</span>
-        <span className="text-3xl font-extrabold tracking-tight">{formatBRL(order.amountCents)}</span>
-        {expiresAt && !Number.isNaN(expiresAt.getTime()) && (
-          <span className="text-muted-foreground text-xs">
-            Válido até {TIME_FORMAT.format(expiresAt)}
-          </span>
-        )}
+    <div className="flex animate-pop flex-col items-center gap-5 text-center">
+      <div className="flex flex-col gap-1">
+        <span className="text-3xl font-semibold tracking-tight">{formatBRL(order.amountCents)}</span>
+        <span className="text-muted-foreground text-sm">
+          {validUntil ? `Pix válido até ${validUntil}` : "Pague com o app do seu banco"}
+        </span>
       </div>
 
-      <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-        {/* O QR precisa de fundo branco nos dois temas para o banco ler. */}
-        <div className="border-spectrum shrink-0 rounded-3xl p-1">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imgSrc}
-            alt="QR Code PIX"
-            width={208}
-            height={208}
-            className="size-52 rounded-[1.25rem] bg-white p-2"
-          />
-        </div>
-
-        <ol className="flex flex-col gap-3 text-sm">
-          {[
-            "Abra o app do seu banco e entre na área Pix.",
-            "Escolha ler QR Code ou Pix copia e cola.",
-            "Confirme o pagamento. A liberação é automática.",
-          ].map((step, index) => (
-            <li key={step} className="flex items-start gap-3">
-              <span className="bg-secondary text-secondary-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
-                {index + 1}
-              </span>
-              <span className="pt-0.5">{step}</span>
-            </li>
-          ))}
-        </ol>
+      {/* O QR precisa de fundo branco nos dois temas para o banco ler. */}
+      <div className="border-aurora rounded-3xl p-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imgSrc}
+          alt="QR Code Pix"
+          width={224}
+          height={224}
+          className="size-56 rounded-[1.25rem] bg-white p-2"
+        />
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Button type="button" size="lg" onClick={onCopy} aria-live="polite">
-          {copied ? <Check className="size-5" /> : <Copy className="size-5" />}
-          {copied ? "Código copiado!" : "Copiar código PIX"}
-        </Button>
-        <code className="bg-muted text-muted-foreground max-h-16 overflow-hidden break-all rounded-xl px-3 py-2 text-[11px] leading-snug">
-          {order.brCode}
-        </code>
-      </div>
+      <Button type="button" size="lg" className="w-full max-w-xs" onClick={onCopy} aria-live="polite">
+        {copied ? <Check className="size-5" /> : <Copy className="size-5" />}
+        {copied ? "Código copiado" : "Copiar código Pix"}
+      </Button>
 
-      <p className="bg-muted flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium">
-        <Loading /> Aguardando a confirmação do banco...
+      <p className="text-muted-foreground flex items-center gap-2.5 text-sm">
+        <span aria-hidden className="relative flex size-2">
+          <span className="bg-ring absolute inset-0 animate-ping rounded-full opacity-60" />
+          <span className="bg-ring relative size-2 rounded-full" />
+        </span>
+        Esperando o banco confirmar
       </p>
 
       {/* Só aparece no modo dev da AbacatePay. */}

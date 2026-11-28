@@ -67,10 +67,10 @@ export function PfLimitNotice({ pfLimit }: { pfLimit: PfLimitEvaluation | null }
       role="status"
       className={cn(
         "rounded-xl border border-border p-3 text-sm font-medium",
-        reached ? "bg-destructive/10" : "bg-primary/40"
+        reached ? "bg-destructive/10" : "bg-muted"
       )}
     >
-      <p className="font-bold">{reached ? PF_LIMIT_REACHED_MESSAGE : PF_LIMIT_NEAR_MESSAGE}</p>
+      <p className="font-semibold">{reached ? PF_LIMIT_REACHED_MESSAGE : PF_LIMIT_NEAR_MESSAGE}</p>
       <p className="text-muted-foreground mt-1 text-xs">
         Este mês: {usage.orders} de {limits.maxOrders} pedidos ·{" "}
         {formatBRL(usage.amountCents)} de {formatBRL(limits.maxAmountCents)}.
@@ -253,9 +253,9 @@ export function ShipFromForm({ onSaved }: ShipFromFormProps) {
                             setSaved(false);
                           }}
                           className={cn(
-                            "rounded-xl border border-border p-3 text-left text-sm font-bold transition-all",
+                            "rounded-xl border border-border p-3 text-left text-sm font-semibold transition-all",
                             selected
-                              ? "bg-primary shadow-elevated-sm"
+                              ? "bg-secondary text-secondary-foreground"
                               : "bg-background",
                             enabled
                               ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-elevated-sm"

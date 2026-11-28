@@ -12,7 +12,6 @@ import {
   PlayCircle,
   Rocket,
   ShieldCheck,
-  Sparkles,
   Store,
   Wallet,
   Zap,
@@ -26,15 +25,7 @@ import { Button } from "@vippin/ui/button";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import { useCurrentReturnPath } from "@/hooks/use-current-return-path";
 import { buildLoginUrl } from "@/lib/auth/login-url";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
 import { SiteLogo } from "@/components/ui/site-logo";
-import { cn } from "@vippin/ui/lib/utils";
 
 import { LandingNavbar } from "./landing-navbar";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
@@ -125,10 +116,36 @@ const TRUST_BADGES = [
   { icon: InfinityIcon, label: "Acesso vitalício" },
 ] as const;
 
-/** Elemento decorativo estático de fundo. */
-function DecorShape({ className }: { className?: string }) {
+/** Coluna de recursos (criadores ou compradores): lista aberta, sem cards. */
+function FeatureColumn({
+  title,
+  lead,
+  features,
+}: {
+  title: string;
+  lead: string;
+  features: readonly { icon: React.ComponentType<{ className?: string }>; title: string; description: string }[];
+}) {
   return (
-    <div aria-hidden className={cn("pointer-events-none absolute", className)} />
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-2">
+        <h3 className="text-2xl font-semibold tracking-tight">{title}</h3>
+        <p className="text-muted-foreground max-w-[52ch]">{lead}</p>
+      </div>
+      <ul className="flex flex-col gap-7">
+        {features.map((feature) => (
+          <li key={feature.title} className="flex gap-4">
+            <span className="bg-muted flex size-11 shrink-0 items-center justify-center rounded-xl">
+              <feature.icon className="size-5" />
+            </span>
+            <span className="flex flex-col gap-1">
+              <span className="font-semibold">{feature.title}</span>
+              <span className="text-muted-foreground leading-relaxed">{feature.description}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -157,36 +174,18 @@ export function LandingPage() {
       <JsonLd data={organizationAndWebsiteJsonLd()} />
       <LandingNavbar />
 
-      {/* HERO */}
-      <section className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden px-4 pt-28 pb-20">
-        {/* Formas decorativas de fundo */}
-        <DecorShape className="lg:block hidden left-[6%] top-[22%] size-24 -rotate-12 rounded-3xl border border-border bg-primary shadow-elevated sm:size-32" />
-        <DecorShape className="lg:block hidden right-[8%] top-[18%] size-16 rounded-full border border-border bg-[#4dd2ff] shadow-elevated-sm sm:size-24" />
-        <DecorShape className="lg:block hidden left-[14%] bottom-[16%] size-14 rounded-full border border-border bg-[#9b5de5] shadow-elevated-sm sm:size-20" />
-        <DecorShape className="lg:block hidden right-[14%] bottom-[20%] size-20 rotate-10 rounded-2xl border border-border bg-[#ff4d4d] shadow-elevated sm:size-24" />
-        <DecorShape className="lg:block hidden left-[42%] top-[12%] size-12 rotate-45 border border-border bg-primary shadow-elevated-sm" />
-
-        <div className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-elevated-sm">
-            <Sparkles className="size-4" />
-            A plataforma de quem cria e de quem aprende
-          </span>
-
-          <h1 className="text-balance text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-            Transforme seu{" "}
-            <span className="relative inline-block">
-              <span className="relative z-10">conhecimento</span>
-              <span className="absolute inset-x-0 bottom-1 z-0 h-4 -rotate-1 bg-primary sm:h-5" />
-            </span>{" "}
-            em renda
+      {/* HERO: o único momento de movimento é a entrada do título. */}
+      <section className="relative overflow-hidden px-5 pt-36 pb-24 sm:px-8 sm:pt-44 sm:pb-32">
+        <div aria-hidden className="aurora-glow pointer-events-none absolute inset-0 -z-10" />
+        <div className="mx-auto flex w-full max-w-6xl animate-rise flex-col items-start gap-8">
+          <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.035em] sm:text-6xl md:text-7xl">
+            Transforme seu conhecimento em renda
           </h1>
-
-          <p className="max-w-xl text-pretty text-lg font-medium text-muted-foreground sm:text-xl">
+          <p className="text-muted-foreground max-w-[56ch] text-pretty text-lg leading-relaxed sm:text-xl">
             No Vippin, criadores vendem aulas e materiais direto para sua audiência,
             e quem quer aprender encontra conteúdo de qualidade em um só lugar.
           </p>
-
-          <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
                 <Rocket className="size-5" />
@@ -200,167 +199,71 @@ export function LandingPage() {
               </Link>
             </Button>
           </div>
-
           <InstallAppButton className="max-w-xs" />
-
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+          <ul className="text-muted-foreground flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
             {TRUST_BADGES.map((badge) => (
-              <span
-                key={badge.label}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground"
-              >
-                <badge.icon className="size-4" />
+              <li key={badge.label} className="inline-flex items-center gap-2">
+                <badge.icon className="text-ring size-4" />
                 {badge.label}
-              </span>
+              </li>
             ))}
-          </div>
-        </div>
-
-        <div
-          aria-hidden
-          className="absolute bottom-0 lg:bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-muted-foreground"
-        >
-          <div className="flex h-10 w-6 items-start justify-center rounded-full border border-border p-1">
-            <div className="h-2 w-1 rounded-full bg-border" />
-          </div>
+          </ul>
         </div>
       </section>
 
       {/* DOIS LADOS */}
-      <section className="relative mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-            Uma plataforma, dois mundos
-          </span>
-          <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
+        <div className="flex max-w-3xl flex-col gap-4">
+          <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
             Feito para os dois lados da mesa
           </h2>
-          <p className="max-w-2xl text-pretty text-lg font-medium text-muted-foreground">
+          <p className="text-muted-foreground max-w-[60ch] text-lg leading-relaxed">
             Seja você quem ensina ou quem quer aprender, o Vippin conecta os dois
             com uma experiência simples, bonita e segura.
           </p>
         </div>
 
-        {/* CRIADORES */}
-        <div className="mt-14 flex flex-col gap-8">
-          <div className="flex flex-col items-start gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-primary px-4 py-1.5 text-sm font-bold shadow-elevated-sm">
-              <Rocket className="size-4" />
-              Para criadores
-            </span>
-            <h3 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Monte seu negócio de conteúdo
-            </h3>
-            <p className="max-w-2xl text-pretty text-lg font-medium text-muted-foreground">
-              Tudo que você precisa para publicar, proteger e vender o que você sabe.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {CREATOR_FEATURES.map((feature) => (
-              <Card key={feature.title} className="gap-4 transition-transform hover:-translate-y-1">
-                <CardHeader className="gap-3">
-                  <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
-                    <feature.icon className="size-6" />
-                  </span>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* CONSUMIDORES */}
-        <div className="mt-20 flex flex-col gap-8">
-          <div className="flex flex-col items-start gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-[#4dd2ff] px-4 py-1.5 text-sm font-bold shadow-elevated-sm">
-              <Heart className="size-4" />
-              Para quem quer aprender
-            </span>
-            <h3 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Aprenda com quem você admira
-            </h3>
-            <p className="max-w-2xl text-pretty text-lg font-medium text-muted-foreground">
-              Encontre aulas e materiais dos criadores que você segue e evolua no
-              seu tempo.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {CONSUMER_FEATURES.map((feature) => (
-              <Card key={feature.title} className="gap-4 transition-transform hover:-translate-y-1">
-                <CardHeader className="gap-3">
-                  <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-[#4dd2ff] shadow-elevated-sm">
-                    <feature.icon className="size-6" />
-                  </span>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="mt-16 grid gap-16 lg:grid-cols-2 lg:gap-20">
+          <FeatureColumn
+            title="Para criadores"
+            lead="Tudo que você precisa para publicar, proteger e vender o que você sabe."
+            features={CREATOR_FEATURES}
+          />
+          <FeatureColumn
+            title="Para quem quer aprender"
+            lead="Encontre aulas e materiais dos criadores que você segue e evolua no seu tempo."
+            features={CONSUMER_FEATURES}
+          />
         </div>
       </section>
 
-      {/* COMO FUNCIONA */}
-      <section className="relative overflow-hidden py-16 sm:py-24">
-        <DecorShape className="lg:block hidden right-[6%] top-[45%] size-28 rounded-full border border-border bg-primary/40 shadow-elevated-sm" />
-        <DecorShape className="lg:block hidden left-[4%] bottom-[10%] size-20 rounded-2xl border border-border bg-[#9b5de5]/40" />
-        <div className="relative z-10 mx-auto w-full max-w-5xl px-4">
-          <div className="flex flex-col items-center gap-3 text-center">
-            <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              Simples do começo ao fim
-            </span>
-            <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-              Como funciona
-            </h2>
-          </div>
-
-          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-3">
-            {STEPS.map((step) => (
-              <Card key={step.number} className="relative gap-4 overflow-hidden">
-                <CardHeader className="gap-2">
-                  <CardTitle className="text-xl">{step.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {step.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+      {/* COMO FUNCIONA (sequência real: números fazem sentido aqui) */}
+      <section className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
+        <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">Como funciona</h2>
+        <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10">
+          {STEPS.map((step, index) => (
+            <li key={step.number} className="border-border flex flex-col gap-3 border-t pt-6">
+              <span className="text-muted-foreground text-sm font-medium">Passo {index + 1}</span>
+              <h3 className="text-xl font-semibold">{step.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {/* CTA FINAL */}
-      <section className="mx-auto w-full max-w-5xl px-4 pb-20 sm:pb-28">
-        <Card className="relative overflow-hidden bg-primary shadow-elevated-xl">
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-[radial-gradient(var(--border)_1.5px,transparent_1.5px)] bg-size-[24px_24px] opacity-30"
-          />
-          <CardContent className="relative z-10 flex flex-col items-center gap-6 px-6 py-14 text-center sm:py-20">
-            <span className="flex size-14 items-center justify-center rounded-2xl border border-border bg-background shadow-elevated">
-              <Sparkles className="size-7" />
-            </span>
-            <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8 sm:pb-32">
+        <div className="bg-card shadow-surface relative overflow-hidden rounded-[32px] px-6 py-16 sm:px-14 sm:py-20">
+          <div aria-hidden className="aurora-glow pointer-events-none absolute inset-0" />
+          <div className="relative flex max-w-2xl flex-col items-start gap-6">
+            <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
               Pronto para começar?
             </h2>
-            <p className="max-w-xl text-pretty text-lg font-semibold">
+            <p className="text-muted-foreground text-lg">
               Crie sua conta gratuitamente e comece a vender ou a aprender hoje mesmo.
             </p>
-            <div className="flex flex-col items-center gap-3 sm:flex-row">
-              <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <Button asChild size="lg" className="w-full sm:w-auto">
                 <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
                   <Rocket className="size-5" />
                   Quero criar conteúdo
@@ -373,18 +276,19 @@ export function LandingPage() {
                 </Link>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto flex flex-col items-center gap-3 px-4 py-8">
-          <SiteLogo size={32} nameClassName="text-lg" />
-          <p className="text-sm font-medium text-muted-foreground">
+      <footer className="border-border border-t">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-8 gap-y-4 px-5 py-10 sm:px-8">
+          <SiteLogo size={28} nameClassName="text-base" className="w-auto" />
+          <p className="text-muted-foreground text-sm">
             © {new Date().getFullYear()} Vippin. Conhecimento que gera renda.
           </p>
-          <ContactEmailLink />
+          <div className="sm:ml-auto">
+            <ContactEmailLink />
+          </div>
         </div>
       </footer>
     </LayoutBackground>

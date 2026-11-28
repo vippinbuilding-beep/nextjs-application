@@ -39,10 +39,10 @@ function KpiCard({
   return (
     <Card className={cn("shadow-elevated-sm", className)}>
       <CardContent className="flex flex-col gap-1 pt-6">
-        <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        <p className="text-muted-foreground text-xs font-semibold">
           {label}
         </p>
-        <p className="text-2xl font-bold tracking-tight">{value}</p>
+        <p className="text-2xl font-semibold tracking-tight">{value}</p>
         {hint && (
           <p className="text-muted-foreground text-xs font-medium">{hint}</p>
         )}
@@ -261,7 +261,7 @@ export function CreatorPerformancePanel() {
                   item.status === "answered"
                     ? "bg-chart-4"
                     : item.status === "awaiting_response"
-                      ? "bg-primary"
+                      ? "bg-chart-1"
                       : item.status === "declined" || item.status === "expired"
                         ? "bg-chart-3"
                         : "bg-muted",

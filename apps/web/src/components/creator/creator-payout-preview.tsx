@@ -39,7 +39,7 @@ export function CreatorPayoutPreview({
     <div className={cn("flex flex-col gap-1 text-xs font-medium", className)}>
       <p>
         Você recebe{" "}
-        <span className="font-bold text-foreground">
+        <span className="font-semibold text-foreground">
           {formatBRL(breakdown.netWithdrawCents)}
         </span>{" "}
         líquido no PIX por {unitLabel}.

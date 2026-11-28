@@ -151,11 +151,11 @@ export default function ConsumerHomePage() {
                   href={option.href}
                   className="group flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-4 text-left shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
                 >
-                  <span className="flex size-10 md:size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
+                  <span className="flex size-10 md:size-11 shrink-0 items-center justify-center rounded-xl bg-muted shadow-elevated-sm">
                     <Icon className="size-5" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="font-bold">{option.title}</span>
+                    <span className="font-semibold">{option.title}</span>
                     <span className="text-muted-foreground text-xs font-medium">
                       {option.description}
                     </span>
@@ -165,14 +165,14 @@ export default function ConsumerHomePage() {
               );
             })}
 
-            <div className="mt-1 rounded-xl border border-border bg-primary/20 p-4 shadow-elevated-sm">
+            <div className="mt-1 rounded-xl bg-muted p-5">
               <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted shadow-elevated-sm">
                   <Sparkles className="size-5" />
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex flex-col gap-0.5">
-                    <span className="font-bold">Quer vender seu conteúdo?</span>
+                    <span className="font-semibold">Quer vender seu conteúdo?</span>
                     <span className="text-muted-foreground text-xs font-medium">
                       Configure seu perfil de criador, publique produtos e receba
                       via PIX. Seus produtos comprados continuam na biblioteca.
