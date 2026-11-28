@@ -8,20 +8,14 @@
  * a pessoa pede menos movimento ou em aparelho com pouca memória.
  */
 
+import { springEasing } from "./css-springs";
+
 export type ThemePreference = "light" | "dark" | "system";
 export type ResolvedTheme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "vippin-theme";
 
 const REVEAL_DURATION_MS = 560;
-/** Spring sem passar do ponto (mesma curva do --spring-soft do globals.css). */
-const REVEAL_SPRING =
-  "linear(0, 0.049, 0.157, 0.285, 0.411, 0.525, 0.624, 0.706, 0.772, 0.825, 0.866, 0.899, 0.924, 0.943, 0.957, 0.968, 0.976, 0.983, 0.987, 0.991, 0.993, 0.995, 0.996, 0.997, 1)";
-const REVEAL_FALLBACK_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
-
-function revealEasing(): string {
-  return CSS.supports("transition-timing-function", REVEAL_SPRING) ? REVEAL_SPRING : REVEAL_FALLBACK_EASING;
-}
 
 /**
  * Roda no <head> antes da primeira pintura (ver ThemeScript), para a página
@@ -103,7 +97,7 @@ export function setTheme(preference: ThemePreference, origin?: ThemeChangeOrigin
     .then(() => {
       document.documentElement.animate(
         { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        { duration: REVEAL_DURATION_MS, easing: revealEasing(), pseudoElement: "::view-transition-new(root)" }
+        { duration: REVEAL_DURATION_MS, easing: springEasing("soft"), pseudoElement: "::view-transition-new(root)" }
       );
     })
     .catch(() => {

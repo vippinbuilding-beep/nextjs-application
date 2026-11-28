@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useLayoutEffect, useRef } from "react";
 
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ContactEmailLink } from "@/components/ui/contact-email-link";
@@ -31,6 +32,43 @@ interface CreatorSidebarProps {
 
 export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
   const pathname = usePathname();
+  const navListRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+
+  // Posiciona o destaque no item ativo (recorte vertical em variáveis CSS).
+  // A transição só liga depois da primeira posição: no carregamento ele já
+  // nasce no lugar; trocar de página faz ele deslizar.
+  useLayoutEffect(() => {
+    const list = navListRef.current;
+    const indicator = indicatorRef.current;
+    if (!list || !indicator) return;
+    let frame = 0;
+    const update = () => {
+      const active = list.querySelector<HTMLElement>('a[aria-current="page"]');
+      if (!active) {
+        delete list.dataset.indicator;
+        return;
+      }
+      const height = list.offsetHeight;
+      const top = active.offsetTop;
+      indicator.style.height = `${height}px`;
+      indicator.style.setProperty("--nav-top", `${top}px`);
+      indicator.style.setProperty("--nav-bottom", `${Math.max(height - top - active.offsetHeight, 0)}px`);
+      if (list.dataset.indicator !== "ready") {
+        list.dataset.indicator = "ready";
+        frame = requestAnimationFrame(() => {
+          indicator.dataset.animate = "";
+        });
+      }
+    };
+    update();
+    const resize = new ResizeObserver(update);
+    resize.observe(list);
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+    };
+  }, [pathname]);
   const router = useRouter();
   const { user, signOut } = useAuth();
   const pendingAskMe = useCreatorPendingAskMe(user?.id);
@@ -66,7 +104,13 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
-        <div className="flex flex-col gap-5">
+        <div ref={navListRef} className="group/nav relative flex flex-col gap-5">
+          {/* Destaque único que desliza até o item ativo (clip-path com mola). */}
+          <span
+            ref={indicatorRef}
+            aria-hidden
+            className="bg-sidebar-accent pointer-events-none absolute inset-x-0 top-0 opacity-0 group-data-[indicator=ready]/nav:opacity-100 [clip-path:inset(var(--nav-top,0px)_0_var(--nav-bottom,100%)_0_round_0.75rem)] data-[animate]:transition-[clip-path] data-[animate]:duration-[460ms] data-[animate]:ease-spring"
+          />
           {CREATOR_NAV_SECTIONS.map((section) => (
             <div key={section.id} className="flex flex-col gap-1.5">
               {section.label && (
@@ -93,10 +137,11 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
                         aria-label={
                           showAskMeDot ? askMeAriaLabel : undefined
                         }
+                        aria-current={active ? "page" : undefined}
                         className={cn(
                           "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                           active
-                            ? "bg-sidebar-accent text-foreground font-semibold"
+                            ? "bg-sidebar-accent text-foreground font-semibold group-data-[indicator=ready]/nav:bg-transparent"
                             : "text-muted-foreground font-medium hover:bg-sidebar-accent/70 hover:text-foreground"
                         )}
                       >

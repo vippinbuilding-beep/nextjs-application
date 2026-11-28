@@ -322,6 +322,19 @@
   }
 }
 
+/* Barras de gráfico crescendo a partir da base (uma vez, ao aparecer). */
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
 /*
  * Animações ligadas à rolagem (CSS scroll-driven: `animation-timeline`).
  * Rodam no compositor, sem JS por frame. Sem suporte, a animação termina na

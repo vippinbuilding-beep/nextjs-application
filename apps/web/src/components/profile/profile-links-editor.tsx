@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useFlipList } from "@vippin/ui/lib/flip-list";
 
 import { ProfileLinkThumbnail } from "@/components/profile/profile-link-thumbnail";
 import { Button } from "@vippin/ui/button";
@@ -104,6 +105,9 @@ export function ProfileLinksEditor({
   compact = false,
 }: ProfileLinksEditorProps) {
   const [links, setLinks] = useState<ProfileLink[]>([]);
+  // Ao reordenar, os links deslizam até a nova posição (FLIP).
+  const listRef = useRef<HTMLUListElement>(null);
+  const captureListPositions = useFlipList(listRef);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -260,6 +264,7 @@ export function ProfileLinksEditor({
   }
 
   async function moveLink(index: number, direction: -1 | 1) {
+    captureListPositions();
     const target = index + direction;
     if (target < 0 || target >= links.length) return;
 
@@ -296,7 +301,7 @@ export function ProfileLinksEditor({
   return (
     <div className="flex flex-col gap-4">
       {links.length > 0 && (
-        <ul className="flex flex-col gap-3">
+        <ul ref={listRef} className="flex flex-col gap-3">
           {links.map((link, index) =>
             editingId === link.id ? (
               <li
@@ -325,6 +330,7 @@ export function ProfileLinksEditor({
             ) : (
               <li
                 key={link.id}
+                data-flip-id={link.id}
                 className="flex-col md:flex-row flex md:items-center gap-3 rounded-xl border border-border bg-background p-3 "
               >
                 <ProfileLinkThumbnail

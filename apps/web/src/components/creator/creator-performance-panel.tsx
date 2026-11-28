@@ -24,6 +24,7 @@ import {
 } from "@/lib/creator-dashboard/performance-period";
 import { formatBRL } from "@vippin/core/domain/money";
 import { cn } from "@vippin/ui/lib/utils";
+import { RollingNumber } from "@vippin/ui/rolling-number";
 
 function KpiCard({
   label,
@@ -42,7 +43,9 @@ function KpiCard({
         <p className="text-muted-foreground text-xs font-semibold">
           {label}
         </p>
-        <p className="text-2xl font-semibold tracking-tight">{value}</p>
+        <p className="text-2xl font-semibold tracking-tight">
+          <RollingNumber value={value} />
+        </p>
         {hint && (
           <p className="text-muted-foreground text-xs font-medium">{hint}</p>
         )}
