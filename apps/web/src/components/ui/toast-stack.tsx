@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Banknote, CheckCircle2, X, XCircle } from "lucide-react";
+import { CheckCircle2, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -96,84 +96,39 @@ function ToastCard({ item }: { item: ToastItem }) {
   const isSuccess = item.variant === "success";
 
   return (
-    <div
-      role="status"
-      className={cn(
-        "flex w-full items-start gap-3 rounded-xl border border-border bg-background p-4"
-      )}
-    >
+    <div role="status" className={TOAST_SURFACE}>
       {isSuccess ? (
-        <CheckCircle2
-          className="mt-0.5 size-5 shrink-0 text-foreground"
-          aria-hidden
-        />
+        <CheckCircle2 className="text-success mt-0.5 size-5 shrink-0" aria-hidden />
       ) : (
-        <XCircle
-          className="mt-0.5 size-5 shrink-0 text-destructive"
-          aria-hidden
-        />
+        <XCircle className="text-destructive mt-0.5 size-5 shrink-0" aria-hidden />
       )}
 
-      <p className="min-w-0 flex-1 text-sm font-semibold leading-snug">
-        {item.message}
-      </p>
+      <p className="min-w-0 flex-1 text-sm font-semibold leading-snug">{item.message}</p>
 
-      <button
-        type="button"
-        className="shrink-0 rounded-lg border border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
-        onClick={() => dismissToast(item.id)}
-        aria-label="Fechar aviso"
-      >
-        <X className="size-4" aria-hidden />
-      </button>
+      <CloseToastButton id={item.id} label="Fechar aviso" />
     </div>
   );
 }
 
 function NotificationToastCard({ item }: { item: ToastItem }) {
   const tone = item.notificationTone ?? "default";
-  const styles = NOTIFICATION_TONE_STYLES[tone];
-  const Icon =
-    tone === "financial"
-      ? Banknote
-      : tone === "financial-error"
-        ? XCircle
-        : Bell;
+  const { icon: Icon, iconClassName } = NOTIFICATION_TONE_STYLES[tone];
 
   const content = (
     <>
-      <span
-        className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-xl border shadow-elevated-sm",
-          styles.icon
-        )}
-      >
+      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", iconClassName)}>
         <Icon className="size-4" aria-hidden />
       </span>
 
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold leading-snug">{item.title}</p>
         {item.body && (
-          <p className="text-muted-foreground mt-0.5 text-xs leading-snug">
-            {item.body}
-          </p>
+          <p className="text-muted-foreground mt-0.5 text-xs leading-snug">{item.body}</p>
         )}
       </div>
 
-      <button
-        type="button"
-        className="shrink-0 rounded-lg border border-transparent p-0.5 transition-colors hover:border-border hover:bg-muted"
-        onClick={() => dismissToast(item.id)}
-        aria-label="Fechar notificação"
-      >
-        <X className="size-4" aria-hidden />
-      </button>
+      <CloseToastButton id={item.id} label="Fechar notificação" />
     </>
-  );
-
-  const className = cn(
-    "flex w-full items-start gap-3 rounded-xl border p-4 shadow-elevated-lg",
-    styles.toast
   );
 
   if (item.href) {
@@ -181,7 +136,7 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
       <Link
         href={item.href}
         role="status"
-        className={cn(className, "transition-colors hover:bg-muted/40")}
+        className={cn(TOAST_SURFACE, "transition-colors hover:bg-accent")}
         onClick={() => dismissToast(item.id)}
       >
         {content}
@@ -190,8 +145,30 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
   }
 
   return (
-    <div role="status" className={className}>
+    <div role="status" className={TOAST_SURFACE}>
       {content}
     </div>
+  );
+}
+
+/** Superfície única dos avisos: cartão do tema com sombra (sem borda). */
+const TOAST_SURFACE =
+  "bg-card text-card-foreground flex w-full items-start gap-3 rounded-2xl p-4 shadow-elevated-lg";
+
+function CloseToastButton({ id, label }: { id: string; label: string }) {
+  return (
+    <button
+      type="button"
+      className="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring/30 -m-1 shrink-0 rounded-lg p-1 transition-colors outline-none focus-visible:ring-4"
+      onClick={(event) => {
+        // Dentro de um aviso com link: fechar não deve navegar.
+        event.preventDefault();
+        event.stopPropagation();
+        dismissToast(id);
+      }}
+      aria-label={label}
+    >
+      <X className="size-4" aria-hidden />
+    </button>
   );
 }

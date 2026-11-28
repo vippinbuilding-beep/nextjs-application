@@ -1,3 +1,5 @@
+import { AlertTriangle, Banknote, Bell, type LucideIcon } from "lucide-react";
+
 import type { NotificationType } from "@vippin/core/models/notification";
 
 export type NotificationTone = "default" | "financial" | "financial-error";
@@ -10,38 +12,32 @@ const FINANCIAL_SUCCESS_TYPES = new Set<NotificationType>([
   "order_released",
 ]);
 
-/** Visual tone for in-app notification surfaces (dialog list + toast). */
+/** Visual tone for in-app notification surfaces (bell list + toast). */
 export function getNotificationTone(type: NotificationType): NotificationTone {
   if (type === "pix_transfer_failed" || type === "shipment_problem") return "financial-error";
   if (FINANCIAL_SUCCESS_TYPES.has(type)) return "financial";
   return "default";
 }
 
+/**
+ * Aparência de cada tom, igual na lista do sininho e no aviso (toast): só o
+ * ícone muda de cor; a superfície é sempre a mesma (cartão do tema). Só
+ * tokens, então funciona nos temas claro e escuro.
+ */
 export const NOTIFICATION_TONE_STYLES: Record<
   NotificationTone,
-  {
-    itemUnread: string;
-    itemInteractive: string;
-    toast: string;
-    icon: string;
-  }
+  { icon: LucideIcon; iconClassName: string }
 > = {
   default: {
-    itemUnread: "bg-primary/10",
-    itemInteractive: "hover:bg-muted/50 active:bg-muted/50",
-    toast: "border-border bg-background",
-    icon: "border-border bg-primary text-foreground",
+    icon: Bell,
+    iconClassName: "bg-primary text-primary-foreground",
   },
   financial: {
-    itemUnread: "bg-green-100",
-    itemInteractive: "hover:bg-green-50 active:bg-green-50",
-    toast: "border-green-600 bg-green-50",
-    icon: "border-green-600 bg-green-100 text-green-800",
+    icon: Banknote,
+    iconClassName: "bg-success/15 text-success",
   },
   "financial-error": {
-    itemUnread: "bg-destructive/10",
-    itemInteractive: "hover:bg-destructive/5 active:bg-destructive/5",
-    toast: "border-destructive bg-destructive/5",
-    icon: "border-destructive bg-destructive/10 text-destructive",
+    icon: AlertTriangle,
+    iconClassName: "bg-destructive/12 text-destructive",
   },
 };
