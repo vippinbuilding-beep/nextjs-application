@@ -20,6 +20,8 @@ export interface UpdateShipmentInput {
   company?: string;
   documentType?: ShipmentDocumentType | null;
   invoiceKey?: string | null;
+  dceAcceptedAt?: Date | null;
+  dceDeclarationVersion?: string | null;
   providerOrderId?: string | null;
   protocol?: string | null;
   trackingCode?: string | null;

@@ -29,6 +29,9 @@ export interface Shipment {
   company?: string;
   documentType?: ShipmentDocumentType;
   invoiceKey?: string;
+  /** DC-e only: when the creator confirmed the content declaration, and which text. */
+  dceAcceptedAt?: Date;
+  dceDeclarationVersion?: string;
   /** Label id on the carrier platform (Melhor Envio order id). */
   providerOrderId?: string;
   protocol?: string;

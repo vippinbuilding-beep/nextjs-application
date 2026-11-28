@@ -1,23 +1,35 @@
 import type { NextRequest } from "next/server";
 
 import { requireRouteCreator } from "@/lib/auth/route-auth";
-import { canSellPhysical, isDceAllowed } from "@/lib/shipping/config";
-import { getShipFrom, parseShipFromInput, saveShipFrom } from "@/lib/shipping/ship-from";
+import { canSellPhysical } from "@/lib/shipping/config";
+import { getSellerEligibility, type SellerEligibility } from "@/lib/shipping/seller-eligibility";
+import { parseShipFromInput, saveShipFrom } from "@/lib/shipping/ship-from";
+
+function statusBody(creatorId: string, e: SellerEligibility) {
+  return {
+    allowed: canSellPhysical(creatorId),
+    canSell: e.canSell,
+    blockReason: e.blockReason ?? null,
+    shipFrom: e.shipFrom,
+    sellerProfile: e.profile,
+    termsAccepted: e.termsAccepted,
+    allowedDocumentTypes: e.allowedDocumentTypes,
+    pfLimit: e.pfLimit,
+  };
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** Creator's sender address (PII) + whether they can sell physical products. */
+/**
+ * Creator's sender address (PII), fiscal profile and selling status (terms,
+ * allowed label documents, PF monthly limit).
+ */
 export async function GET() {
   const auth = await requireRouteCreator();
   if (auth.error) return auth.error;
 
-  const shipFrom = await getShipFrom(auth.user.id);
-  return Response.json({
-    allowed: canSellPhysical(auth.user.id),
-    dceAllowed: isDceAllowed(),
-    shipFrom,
-  });
+  return Response.json(statusBody(auth.user.id, await getSellerEligibility(auth.user.id)));
 }
 
 /** Saves the sender address (service role; profiles writes are server-only). */
@@ -33,7 +45,8 @@ export async function PUT(request: NextRequest) {
 
   try {
     await saveShipFrom(auth.user.id, parsed.value);
-    return Response.json({ ok: true, shipFrom: await getShipFrom(auth.user.id) });
+    const eligibility = await getSellerEligibility(auth.user.id);
+    return Response.json({ ok: true, ...statusBody(auth.user.id, eligibility) });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Falha ao salvar o endereço.";
     return Response.json({ error: message }, { status: 500 });

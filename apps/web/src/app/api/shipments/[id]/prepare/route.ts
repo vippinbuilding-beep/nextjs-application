@@ -35,6 +35,7 @@ export async function POST(
       creatorId: auth.user.id,
       documentType,
       invoiceKey: typeof body?.invoiceKey === "string" ? body.invoiceKey : undefined,
+      dceAccepted: body?.dceAccepted === true,
       package: pkg,
     });
     return Response.json({

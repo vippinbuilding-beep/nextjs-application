@@ -3,6 +3,8 @@
  * Backend-agnostic; money in integer cents, documents/CEP/phone as digits only.
  */
 
+import type { SellerProfile } from "../domain/seller-profile";
+
 export interface ShippingAddress {
   name: string;
   /** CPF (11) or CNPJ (14) digits. */
@@ -24,6 +26,11 @@ export interface ShippingAddress {
 /** Sender data (creator) — adds the optional Inscrição Estadual. */
 export interface ShipFromAddress extends ShippingAddress {
   stateRegister?: string;
+  /**
+   * Fiscal profile chosen by the seller (pf | mei | company). Undefined on
+   * legacy records: CPF is always PF; a CNPJ without a choice is treated as MEI.
+   */
+  sellerProfile?: SellerProfile;
 }
 
 /** Packed volume. Weight in grams, dimensions in centimeters. */

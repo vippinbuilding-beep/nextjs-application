@@ -7,7 +7,11 @@ import {
   PrepareShipmentDialog,
   type PrepareTarget,
 } from "@/components/shipping/prepare-shipment-dialog";
-import { fetchShipFromStatus } from "@/components/shipping/ship-from-form";
+import {
+  fetchShipFromStatus,
+  PfLimitNotice,
+  type ShipFromStatus,
+} from "@/components/shipping/ship-from-form";
 import { Button } from "@vippin/ui/button";
 import {
   Card,
@@ -78,7 +82,7 @@ export function CreatorShipmentsPanel() {
   const [filter, setFilter] = useState<Filter>("prepare");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [target, setTarget] = useState<PrepareTarget | null>(null);
-  const [dceAllowed, setDceAllowed] = useState(true);
+  const [sellerStatus, setSellerStatus] = useState<ShipFromStatus | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -98,7 +102,7 @@ export function CreatorShipmentsPanel() {
   useEffect(() => {
     void load();
     fetchShipFromStatus()
-      .then((status) => setDceAllowed(status.dceAllowed))
+      .then(setSellerStatus)
       .catch(() => undefined);
   }, [load]);
 
@@ -189,6 +193,7 @@ export function CreatorShipmentsPanel() {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        <PfLimitNotice pfLimit={sellerStatus?.pfLimit ?? null} />
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button
@@ -342,7 +347,12 @@ export function CreatorShipmentsPanel() {
 
       <PrepareShipmentDialog
         target={target}
-        dceAllowed={dceAllowed}
+        allowedDocumentTypes={sellerStatus?.allowedDocumentTypes ?? []}
+        sender={
+          sellerStatus?.shipFrom
+            ? { document: sellerStatus.shipFrom.document, state: sellerStatus.shipFrom.state }
+            : null
+        }
         onClose={() => setTarget(null)}
         onPrepared={() => {
           setTarget(null);

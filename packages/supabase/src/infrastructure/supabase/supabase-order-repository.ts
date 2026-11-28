@@ -193,6 +193,26 @@ export class SupabaseOrderRepository implements OrderRepository {
     return ((data as OrderRow[]) ?? []).map(toOrder);
   }
 
+  async summarizePhysicalPaidByCreatorSince(
+    creatorId: string,
+    since: Date
+  ): Promise<{ count: number; amountCents: number }> {
+    const { data, error } = await this.client
+      .from(TABLE)
+      .select("amount_cents")
+      .eq("creator_id", creatorId)
+      .eq("status", "paid")
+      .neq("fulfillment_status", "none")
+      .gte("paid_at", since.toISOString());
+
+    if (error) throw new Error(error.message);
+    const rows = (data as { amount_cents: number }[]) ?? [];
+    return {
+      count: rows.length,
+      amountCents: rows.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0),
+    };
+  }
+
   async listPhysicalByBuyer(buyerId: string, limit = 100): Promise<Order[]> {
     const { data, error } = await this.client
       .from(TABLE)

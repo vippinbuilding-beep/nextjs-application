@@ -28,7 +28,9 @@ import {
   getShippingGateway,
 } from "@vippin/supabase/factories/shipping-factory";
 
-export type EscrowActor = { kind: "system" } | { kind: "creator" | "admin"; userId: string };
+export type EscrowActor =
+  | { kind: "system" }
+  | { kind: "creator" | "admin" | "buyer"; userId: string };
 
 const SYSTEM: EscrowActor = { kind: "system" };
 const BATCH_LIMIT = 200;

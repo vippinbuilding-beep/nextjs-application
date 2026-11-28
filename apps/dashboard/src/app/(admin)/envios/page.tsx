@@ -4,6 +4,7 @@ import type { FulfillmentStatus, Order } from "@vippin/core/models/order";
 import type { Shipment } from "@vippin/core/models/shipment";
 import { adminOrderRepository } from "@vippin/supabase/factories/admin-repository-factory";
 import {
+  getOrderReturnRepository,
   getShipmentRepository,
   getShippingGateway,
 } from "@vippin/supabase/factories/shipping-factory";
@@ -60,11 +61,13 @@ function isStuck(order: Order, shipment: Shipment | undefined, now: number): boo
 
 export default async function EnviosPage() {
   const shipments = getShipmentRepository();
-  const [orders, balanceCents, openLabels] = await Promise.all([
+  const [orders, balanceCents, openLabels, openReturns] = await Promise.all([
     adminOrderRepository.listByFulfillmentStatus(ACTIVE, 300),
     loadBalance(),
     shipments.countOpenLabels().catch(() => null),
+    getOrderReturnRepository().listOpen(100),
   ]);
+  const openReturnByOrder = new Map(openReturns.map((r) => [r.orderId, r]));
   const byOrder = new Map(
     (await shipments.listByOrderIds(orders.map((o) => o.id))).map((s) => [s.orderId, s])
   );
@@ -83,7 +86,7 @@ export default async function EnviosPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           label="Saldo Melhor Carteira"
           value={balanceCents === null ? "Indisponível" : formatBRL(balanceCents)}
@@ -91,7 +94,41 @@ export default async function EnviosPage() {
         <StatCard label="Etiquetas abertas" value={openLabels === null ? "—" : String(openLabels)} />
         <StatCard label="Em retenção (criadores)" value={formatBRL(heldCents)} />
         <StatCard label="Precisam de atenção" value={String(stuck.length)} />
+        <StatCard label="Devoluções abertas" value={String(openReturns.length)} />
       </div>
+
+      {openReturns.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Devoluções solicitadas ({openReturns.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm">
+            <p className="text-muted-foreground text-xs font-medium">
+              Gere a etiqueta reversa no painel da Melhor Envio e mande ao comprador. Quando o
+              produto voltar: primeiro <strong>Cobrar frete da devolução</strong> (valor da etiqueta
+              reversa), depois <strong>Reembolsar</strong>. Se não couber devolução, <strong>Recusar devolução</strong>{" "}
+              com o motivo (libera o repasse). As ações ficam na linha do pedido abaixo.
+            </p>
+            <ul className="flex flex-col gap-2">
+              {openReturns.map((request) => {
+                const days = Math.floor((now - request.requestedAt.getTime()) / (24 * 60 * 60 * 1000));
+                return (
+                  <li key={request.id} className="rounded-xl border-2 border-border p-3">
+                    <p className="text-xs">
+                      <span className="font-mono">{shortId(request.orderId)}</span> · pedida em{" "}
+                      {formatDate(request.requestedAt)} ·{" "}
+                      <span className={days >= 3 ? "text-destructive font-bold" : "font-bold"}>
+                        {days} dia{days === 1 ? "" : "s"} em aberto
+                      </span>
+                    </p>
+                    <p className="text-muted-foreground mt-1 text-xs">Motivo: {request.reason}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {balanceCents !== null && balanceCents < LOW_BALANCE_CENTS && (
         <p className="rounded-xl border-2 border-destructive bg-destructive/5 px-4 py-3 text-sm font-bold text-destructive">
@@ -136,8 +173,12 @@ export default async function EnviosPage() {
                       <td className="py-3 pr-3">
                         <p className="font-bold">{FULFILLMENT_LABELS[order.fulfillmentStatus]}</p>
                         <p className="text-muted-foreground text-xs">repasse: {order.transferStatus}</p>
-                        {order.adminHoldAt && (
-                          <p className="text-destructive text-xs font-bold">retido pelo admin</p>
+                        {openReturnByOrder.has(order.id) ? (
+                          <p className="text-destructive text-xs font-bold">devolução solicitada</p>
+                        ) : (
+                          order.adminHoldAt && (
+                            <p className="text-destructive text-xs font-bold">retido pelo admin</p>
+                          )
                         )}
                       </td>
                       <td className="py-3 pr-3 text-xs">
@@ -177,7 +218,11 @@ export default async function EnviosPage() {
                       <td className="py-3">
                         <EscrowActionsForm
                           orderId={order.id}
-                          canRelease={["posted", "in_transit", "delivered"].includes(order.fulfillmentStatus)}
+                          canRelease={
+                            !openReturnByOrder.has(order.id) &&
+                            ["posted", "in_transit", "delivered"].includes(order.fulfillmentStatus)
+                          }
+                          hasOpenReturn={openReturnByOrder.has(order.id)}
                           canHold={
                             !order.adminHoldAt &&
                             (["awaiting_shipment", "label_ready", "posted", "in_transit", "delivered"].includes(

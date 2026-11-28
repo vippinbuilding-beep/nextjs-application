@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { fetchShipFromStatus } from "@/components/shipping/ship-from-form";
+import { ProhibitedItemsList, SellerTermsCard } from "@/components/shipping/seller-terms-card";
 import { Button } from "@vippin/ui/button";
 import { Input } from "@vippin/ui/input";
 import { Label } from "@vippin/ui/label";
@@ -79,6 +80,8 @@ interface PhysicalProductFieldsProps {
   onChange: (value: PhysicalFieldsValue) => void;
   priceCents: number;
   disabled?: boolean;
+  /** Seller terms acceptance state (null while loading). */
+  onTermsAcceptedChange?: (accepted: boolean | null) => void;
 }
 
 function digitsOnly(value: string, max: number) {
@@ -94,6 +97,7 @@ export function PhysicalProductFields({
   onChange,
   priceCents,
   disabled,
+  onTermsAcceptedChange,
 }: PhysicalProductFieldsProps) {
   const [hasShipFrom, setHasShipFrom] = useState<boolean | null>(null);
   const [estimates, setEstimates] = useState<Estimate[] | null>(null);
@@ -153,6 +157,8 @@ export function PhysicalProductFields({
 
   return (
     <div className="flex flex-col gap-4">
+      <SellerTermsCard onAcceptedChange={onTermsAcceptedChange} disabled={disabled} />
+      <ProhibitedItemsList />
       {hasShipFrom === false && (
         <div className="rounded-xl border-2 border-dashed border-destructive/50 bg-destructive/5 p-3 text-sm">
           <p className="font-bold">Cadastre seu endereço de remetente</p>

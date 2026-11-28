@@ -52,6 +52,8 @@ interface PhysicalCheckoutProps {
   priceCents: number;
   shippingMode: ShippingMode;
   inStock: boolean;
+  /** False when the seller can't receive new orders now (e.g. PF monthly limit). */
+  available?: boolean;
   isAuthenticated: boolean;
 }
 
@@ -87,6 +89,7 @@ export function PhysicalCheckout({
   priceCents,
   shippingMode,
   inStock,
+  available = true,
   isAuthenticated,
 }: PhysicalCheckoutProps) {
   const returnPath = useCurrentReturnPath();
@@ -216,6 +219,18 @@ export function PhysicalCheckout({
     } catch {
       // Clipboard blocked; the code is still visible for manual copy.
     }
+  }
+
+  if (inStock && !available) {
+    return (
+      <div className="flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted px-4 py-6 text-center">
+        <PackageCheck className="size-6" />
+        <p className="font-bold">Indisponível no momento</p>
+        <p className="text-muted-foreground text-sm">
+          Este produto não está aceitando novos pedidos agora. Tente novamente mais tarde.
+        </p>
+      </div>
+    );
   }
 
   if (!inStock) {

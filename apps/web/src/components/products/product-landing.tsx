@@ -9,6 +9,7 @@ import { Button } from "@vippin/ui/button";
 import { PriceTransparency } from "@/components/products/price-transparency";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
+import { SellerInfo, type PublicSellerInfo } from "@/components/products/seller-info";
 import {
   Card,
   CardContent,
@@ -35,7 +36,13 @@ interface ProductLandingProps {
   creatorAvatarUrl?: string | null;
   isAuthenticated: boolean;
   /** Physical products: freight payer and stock. */
-  physical?: { shippingMode: ShippingMode; inStock: boolean };
+  physical?: {
+    shippingMode: ShippingMode;
+    inStock: boolean;
+    /** Seller can receive new orders (profile, terms, PF monthly limit). */
+    available?: boolean;
+    seller?: PublicSellerInfo | null;
+  };
   /** Creator viewing their own physical product page. */
   isOwner?: boolean;
 }
@@ -143,6 +150,7 @@ export function ProductLanding({
               priceCents={priceCents}
               shippingMode={physical?.shippingMode ?? "buyer_pays"}
               inStock={physical?.inStock ?? false}
+              available={physical?.available ?? true}
               isAuthenticated={isAuthenticated}
             />
           ) : isFree ? (
@@ -156,6 +164,10 @@ export function ProductLanding({
               priceCents={priceCents}
               isAuthenticated={isAuthenticated}
             />
+          )}
+
+          {isPhysical && (
+            <SellerInfo seller={physical?.seller ?? null} creatorSlug={creatorSlug} />
           )}
         </CardContent>
       </Card>

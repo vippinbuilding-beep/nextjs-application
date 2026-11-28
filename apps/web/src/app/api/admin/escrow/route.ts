@@ -9,13 +9,15 @@ import {
   type EscrowActor,
 } from "@/lib/payments/escrow";
 import { getOrderRepository } from "@vippin/supabase/factories/payment-factory";
+import { getOrderReturnRepository } from "@vippin/supabase/factories/shipping-factory";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
  * Internal endpoint for the admin dashboard's escrow overrides (liberar /
- * reter / reembolsar / ajuste de frete). Keeps a single implementation of the
+ * reter / reembolsar / ajuste de frete) and buyer returns (recusar devolução,
+ * cobrar o frete da devolução do criador). Keeps a single implementation of the
  * escrow rules (this app). Auth: `Authorization: Bearer $ADMIN_API_SECRET`
  * (shared server-side with apps/dashboard); `actorUserId` is the admin who
  * acted and is recorded in `fulfillment_events` / `shipping_adjustments`.
@@ -39,15 +41,75 @@ export async function POST(request: NextRequest) {
   try {
     switch (body?.action) {
       case "release": {
+        const returns = getOrderReturnRepository();
+        const openReturn = await returns.getByOrderId(orderId);
+        if (openReturn?.status === "open") {
+          return Response.json(
+            { error: "Há uma devolução aberta: use Reembolsar ou Recusar devolução." },
+            { status: 409 }
+          );
+        }
         const order = await releaseOrder(orderId, actor, note ?? "override admin");
         return result(order, "Não foi possível liberar (estado atual não permite).");
+      }
+      case "reject_return": {
+        if (!note?.trim()) {
+          return Response.json(
+            { error: "Informe o motivo da recusa (fica na auditoria)." },
+            { status: 400 }
+          );
+        }
+        const rejected = await getOrderReturnRepository().resolve(
+          orderId,
+          "rejected",
+          actorUserId,
+          note
+        );
+        if (!rejected) {
+          return Response.json({ error: "Não há devolução aberta neste pedido." }, { status: 409 });
+        }
+        const order = await releaseOrder(orderId, actor, `devolução recusada: ${note}`);
+        return result(
+          order ?? (await getOrderRepository().getById(orderId)),
+          "Devolução recusada, mas não foi possível liberar o repasse."
+        );
+      }
+      case "charge_return": {
+        const amountCents = Math.round(Number(body?.amountCents));
+        if (!Number.isFinite(amountCents) || amountCents <= 0) {
+          return Response.json({ error: "Valor do frete da devolução inválido." }, { status: 400 });
+        }
+        const order = await getOrderRepository().getById(orderId);
+        if (!order) return Response.json({ error: "Pedido não encontrado." }, { status: 404 });
+        await recordShippingAdjustment({
+          order,
+          kind: "return_cost",
+          amountCents,
+          chargedTo: "creator",
+          note: note ?? "Frete da devolução (arrependimento) cobrado do criador.",
+          createdBy: actorUserId,
+        });
+        return Response.json({ ok: true });
       }
       case "hold": {
         const order = await holdOrder(orderId, actor, note ?? "override admin");
         return result(order, "Não dá para reter: pedido já sacado, reembolsado ou já retido.");
       }
       case "refund": {
-        const order = await refundPhysicalOrder(orderId, "admin", actor, note);
+        const returns = getOrderReturnRepository();
+        const openReturn = (await returns.getByOrderId(orderId))?.status === "open";
+        const order = await refundPhysicalOrder(
+          orderId,
+          openReturn ? "buyer_return" : "admin",
+          actor,
+          note
+        );
+        if (
+          openReturn &&
+          (order?.fulfillmentStatus === "refunded" || order?.fulfillmentStatus === "refund_pending")
+        ) {
+          await returns.resolve(orderId, "refunded", actorUserId, note);
+        }
         return result(
           order?.fulfillmentStatus === "refunded" || order?.fulfillmentStatus === "refund_pending"
             ? order

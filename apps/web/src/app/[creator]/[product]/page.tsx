@@ -26,6 +26,8 @@ import { productAspectRatio } from "@/lib/media-dimensions";
 import { createProductMetadata } from "@/lib/metadata";
 import { signMediaToken } from "@/lib/security/media-token";
 import { createSupabaseServerClient } from "@vippin/supabase/client/server";
+import { getSellerEligibility } from "@/lib/shipping/seller-eligibility";
+import type { PublicSellerInfo } from "@/components/products/seller-info";
 import {
   getProductDownloadUrl,
   getProductMediaUrl,
@@ -139,6 +141,28 @@ export default async function ProductPage({ params }: ProductPageProps) {
   // tokens are minted for them, so the gated routes stay out of reach.
   // Physical products have no gated content: everyone (owner included) sees
   // the sales page; buyers track their orders in "Meus pedidos".
+  // Physical: seller identification (Decreto 7.962/2013, masked document via
+  // RPC) and whether the creator can receive a new order right now.
+  let seller: PublicSellerInfo | null = null;
+  let available = true;
+  if (isPhysical) {
+    const [{ data: sellerRows }, eligibility] = await Promise.all([
+      supabase.rpc("get_public_seller_info", { p_product_id: row.id }),
+      getSellerEligibility(profile.id).catch(() => null),
+    ]);
+    const info = (sellerRows as Record<string, string | null>[] | null)?.[0];
+    if (info?.seller_name) {
+      seller = {
+        name: info.seller_name,
+        maskedDocument: info.masked_document ?? null,
+        city: info.city ?? null,
+        state: info.state ?? null,
+        profile: info.seller_profile ?? null,
+      };
+    }
+    available = eligibility?.canSell ?? false;
+  }
+
   if (!canAccess || isPhysical) {
     return (
       <LayoutBackground
@@ -169,6 +193,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   ? {
                       shippingMode: row.shipping_mode === "free" ? "free" : "buyer_pays",
                       inStock: (row.stock ?? 0) > 0,
+                      available,
+                      seller,
                     }
                   : undefined
               }

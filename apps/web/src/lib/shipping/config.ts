@@ -1,6 +1,9 @@
 import "server-only";
 
 import type { EscrowConfig } from "@vippin/core/domain/fulfillment";
+import type { PfLimits } from "@vippin/core/domain/pf-limit";
+import { DEFAULT_RETURN_WINDOW_DAYS } from "@vippin/core/domain/returns";
+import type { DocumentRuleOptions } from "@vippin/core/domain/seller-profile";
 import type { SaleFeeConfig } from "@vippin/core/domain/shipping";
 import {
   ABACATEPAY_PIX_SEND_FEE_CENTS,
@@ -14,11 +17,16 @@ import {
  * POST_DEADLINE_DAYS           dias para postar após imprimir (default 6; ME: 7)
  * ESCROW_AUTORELEASE_DAYS      mínimo de dias pós-postagem p/ auto-liberar (14)
  * ESCROW_AUTORELEASE_EXTRA_DAYS folga sobre o prazo da transportadora (7)
- * ESCROW_DISPUTE_BUFFER_DAYS   dias após a entrega antes de liberar (0)
+ * ESCROW_DISPUTE_BUFFER_DAYS   dias após a entrega antes de liberar (7, prazo do arrependimento)
+ * RETURN_WINDOW_DAYS           dias após a entrega para pedir devolução (7)
  * MIN_CREATOR_NET_CENTS        líquido mínimo do criador com frete grátis (200)
  * MELHOR_ENVIO_LOW_BALANCE_CENTS saldo da Melhor Carteira que dispara alerta (15000)
- * ALLOW_DCE_FOR_SALES          permite declaração de conteúdo (default true)
- * MELHOR_ENVIO_SERVICE_IDS     allowlist de serviços "1,2,3,4,17" (vazio = todos)
+ * ALLOW_DCE_FOR_SALES          "false" desliga a declaração de conteúdo para todos (kill switch)
+ * ALLOW_DCE_FOR_MEI            MEI pode usar DC-e além de NF-e (default true)
+ * PF_MONTHLY_ORDER_LIMIT       pedidos físicos pagos/mês de pessoa física (10)
+ * PF_MONTHLY_AMOUNT_LIMIT_CENTS valor vendido/mês de pessoa física (200000)
+ * PF_LIMIT_WARNING_PERCENT     % do limite que dispara o aviso de formalização (80)
+ * MELHOR_ENVIO_SERVICE_IDS     allowlist de serviços "1,2,17" (vazio = só Correios: PAC, SEDEX, Mini Envios)
  * PHYSICAL_PRODUCTS_CREATOR_IDS allowlist de criadores (vazio = todos)
  * NEXT_PUBLIC_SITE_URL         usado nos links impressos na etiqueta
  */
@@ -47,7 +55,19 @@ export const ESCROW_CONFIG: EscrowConfig = {
   postDeadlineDays: intEnv("POST_DEADLINE_DAYS", 6, 1),
   autoReleaseMinDays: intEnv("ESCROW_AUTORELEASE_DAYS", 14, 1),
   autoReleaseExtraDays: intEnv("ESCROW_AUTORELEASE_EXTRA_DAYS", 7, 0),
-  disputeBufferDays: intEnv("ESCROW_DISPUTE_BUFFER_DAYS", 0, 0),
+  disputeBufferDays: intEnv("ESCROW_DISPUTE_BUFFER_DAYS", DEFAULT_RETURN_WINDOW_DAYS, 0),
+};
+
+/**
+ * Days after delivery the buyer may ask to return (arrependimento). The escrow
+ * buffer must cover it, otherwise the creator's share could be released first.
+ */
+export const RETURN_WINDOW_DAYS = intEnv("RETURN_WINDOW_DAYS", DEFAULT_RETURN_WINDOW_DAYS, 1);
+
+export const PF_LIMITS: PfLimits = {
+  maxOrders: intEnv("PF_MONTHLY_ORDER_LIMIT", 10, 1),
+  maxAmountCents: intEnv("PF_MONTHLY_AMOUNT_LIMIT_CENTS", 200_000, 1),
+  warningRatio: Math.min(intEnv("PF_LIMIT_WARNING_PERCENT", 80, 1), 100) / 100,
 };
 
 export const MIN_CREATOR_NET_CENTS = intEnv("MIN_CREATOR_NET_CENTS", 200, 0);
@@ -55,14 +75,22 @@ export const MIN_CREATOR_NET_CENTS = intEnv("MIN_CREATOR_NET_CENTS", 200, 0);
 /** Below this Melhor Carteira balance the daily cron alerts the team. */
 export const LOW_BALANCE_CENTS = intEnv("MELHOR_ENVIO_LOW_BALANCE_CENTS", 15_000, 0);
 
-export function isDceAllowed(): boolean {
-  return process.env.ALLOW_DCE_FOR_SALES !== "false";
+/** Inputs of `allowedDocumentTypes` (per-profile DC-e/NF-e rules). */
+export function documentRuleOptions(): DocumentRuleOptions {
+  return {
+    dceEnabled: process.env.ALLOW_DCE_FOR_SALES !== "false",
+    allowDceForMei: process.env.ALLOW_DCE_FOR_MEI !== "false",
+  };
 }
 
+/** Correios only at launch: PAC (1), SEDEX (2), Mini Envios (17). */
+export const DEFAULT_SERVICE_IDS = [1, 2, 17] as const;
+
 export function allowedServiceIds(): number[] {
-  return listEnv("MELHOR_ENVIO_SERVICE_IDS")
+  const fromEnv = listEnv("MELHOR_ENVIO_SERVICE_IDS")
     .map((id) => Number.parseInt(id, 10))
     .filter((id) => Number.isFinite(id));
+  return fromEnv.length > 0 ? fromEnv : [...DEFAULT_SERVICE_IDS];
 }
 
 /** Rollout gate: empty allowlist = every creator can sell physical products. */

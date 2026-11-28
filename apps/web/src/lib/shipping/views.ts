@@ -1,12 +1,21 @@
 import "server-only";
 
 import { FULFILLMENT_LABELS } from "@vippin/core/domain/fulfillment";
+import {
+  canRequestReturn,
+  returnWindowEndsAt,
+  type ReturnRequestStatus,
+} from "@vippin/core/domain/returns";
 import type { FulfillmentStatus, Order } from "@vippin/core/models/order";
 import type { ShipmentStatus } from "@vippin/core/models/shipment";
 import type { ShippingAddress, ShippingPackage } from "@vippin/core/models/shipping";
 import { createSupabaseAdminClient } from "@vippin/supabase/client/admin";
 import { getOrderRepository } from "@vippin/supabase/factories/payment-factory";
-import { getShipmentRepository } from "@vippin/supabase/factories/shipping-factory";
+import {
+  getOrderReturnRepository,
+  getShipmentRepository,
+} from "@vippin/supabase/factories/shipping-factory";
+import { RETURN_WINDOW_DAYS } from "@/lib/shipping/config";
 import { isStalePurchasing } from "@/lib/shipping/prepare-shipment";
 
 /** JSON-safe row for the creator "Envios" panel and the buyer "Meus pedidos". */
@@ -37,6 +46,11 @@ export interface PhysicalOrderView {
   canPrepare: boolean;
   canPrint: boolean;
   canCancelLabel: boolean;
+  /** Arrependimento: open/resolved request, if any. */
+  returnStatus: ReturnRequestStatus | null;
+  /** Buyer only: "Quero devolver" is available (within the window after delivery). */
+  canRequestReturn: boolean;
+  returnWindowEndsAt: string | null;
   /** Creator only. */
   shipTo?: ShippingAddress;
   package?: ShippingPackage;
@@ -67,10 +81,14 @@ async function loadProducts(ids: string[]): Promise<Map<string, ProductInfo>> {
 
 async function buildViews(orders: Order[], audience: "creator" | "buyer"): Promise<PhysicalOrderView[]> {
   const shipmentRepo = getShipmentRepository();
-  const [initialShipments, products] = await Promise.all([
-    shipmentRepo.listByOrderIds(orders.map((o) => o.id)),
+  const orderIds = orders.map((o) => o.id);
+  const [initialShipments, products, returnRequests] = await Promise.all([
+    shipmentRepo.listByOrderIds(orderIds),
     loadProducts([...new Set(orders.map((o) => o.productId))]),
+    getOrderReturnRepository().listByOrderIds(orderIds),
   ]);
+  const returnByOrder = new Map(returnRequests.map((r) => [r.orderId, r]));
+  const now = new Date();
   const shipments = [...initialShipments];
   if (audience === "creator") {
     // Self-heal: a paid order whose shipment row wasn't created (crash right
@@ -96,6 +114,11 @@ async function buildViews(orders: Order[], audience: "creator" | "buyer"): Promi
     const shipment = shipmentByOrder.get(order.id);
     const product = products.get(order.productId);
     const status = order.fulfillmentStatus;
+    const returnRequest = returnByOrder.get(order.id);
+    const deliveredAt = shipment?.deliveredAt ?? null;
+    const returnable =
+      order.status === "paid" &&
+      (status === "delivered" || (status === "released" && order.transferStatus === "pending"));
     const labelOpen =
       Boolean(shipment?.providerOrderId) &&
       (shipment?.status === "printed" || shipment?.status === "purchased");
@@ -132,6 +155,15 @@ async function buildViews(orders: Order[], audience: "creator" | "buyer"): Promi
         (shipment!.status !== "purchasing" || isStalePurchasing(shipment!)),
       canPrint: audience === "creator" && status === "label_ready" && labelOpen,
       canCancelLabel: audience === "creator" && status === "label_ready" && labelOpen,
+      returnStatus: returnRequest?.status ?? null,
+      canRequestReturn:
+        audience === "buyer" &&
+        !returnRequest &&
+        returnable &&
+        canRequestReturn(deliveredAt, now, RETURN_WINDOW_DAYS),
+      returnWindowEndsAt: deliveredAt
+        ? returnWindowEndsAt(deliveredAt, RETURN_WINDOW_DAYS).toISOString()
+        : null,
       ...(audience === "creator"
         ? { shipTo: order.shipTo, package: shipment?.package }
         : {}),
