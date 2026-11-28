@@ -20,7 +20,7 @@ import { cn } from "@vippin/ui/lib/utils";
 
 import { CheckoutDivider, CheckoutStep } from "./checkout-step";
 import { CheckoutLogin } from "./checkout-login";
-import { PaidMessage } from "./digital-checkout-flow";
+import { PaidMessage } from "./paid-message";
 import { PixPaymentPanel } from "./pix-payment-panel";
 import { usePixCharge } from "./use-pix-charge";
 
@@ -156,7 +156,7 @@ export function PhysicalCheckoutFlow({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <CheckoutStep number={1} title="Conta" done={isAuthenticated}>
         {isAuthenticated ? (
           <p className="text-muted-foreground text-sm">
@@ -228,7 +228,7 @@ export function PhysicalCheckoutFlow({
                     className={cn(
                       "interactive-press flex cursor-pointer items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left text-sm",
                       isSelected
-                        ? "border-spectrum shadow-elevated-sm"
+                        ? "border-aurora shadow-elevated-sm"
                         : "border border-border bg-card hover:bg-accent"
                     )}
                   >
@@ -243,7 +243,7 @@ export function PhysicalCheckoutFlow({
                         {isSelected && <span className="bg-foreground size-2 rounded-full" />}
                       </span>
                       <span className="flex min-w-0 flex-col">
-                        <span className="font-bold">
+                        <span className="font-semibold">
                           {option.company} · {option.serviceName}
                         </span>
                         <span className="text-muted-foreground text-xs font-medium">
@@ -253,7 +253,7 @@ export function PhysicalCheckoutFlow({
                         </span>
                       </span>
                     </span>
-                    <span className="shrink-0 font-bold">
+                    <span className="shrink-0 font-semibold">
                       {option.buyerPriceCents === 0 ? "Grátis" : formatBRL(option.buyerPriceCents)}
                     </span>
                   </button>
@@ -281,7 +281,7 @@ export function PhysicalCheckoutFlow({
                   <dt className="text-muted-foreground">Frete</dt>
                   <dd>{selected.buyerPriceCents === 0 ? "Grátis" : formatBRL(selected.buyerPriceCents)}</dd>
                 </div>
-                <div className="border-border mt-1 flex justify-between border-t pt-2 text-base font-bold">
+                <div className="border-border mt-1 flex justify-between border-t pt-2 text-base font-semibold">
                   <dt>Total</dt>
                   <dd>{formatBRL(totalCents)}</dd>
                 </div>

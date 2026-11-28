@@ -16,14 +16,14 @@ export function CreatorModuleHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between",
+        "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
         className
       )}
     >
-      <div className="min-w-0 space-y-1">
-        <h1 className="text-xl font-bold sm:text-2xl">{title}</h1>
+      <div className="flex min-w-0 animate-rise flex-col gap-2">
+        <h1 className="text-3xl font-semibold leading-tight tracking-[-0.025em] sm:text-4xl">{title}</h1>
         {description && (
-          <p className="text-muted-foreground text-sm font-medium">{description}</p>
+          <p className="text-muted-foreground max-w-[60ch] text-base sm:text-lg">{description}</p>
         )}
       </div>
       {children ? <div className="shrink-0">{children}</div> : null}

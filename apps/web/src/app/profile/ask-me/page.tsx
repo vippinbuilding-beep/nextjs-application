@@ -125,7 +125,7 @@ export default function AskMeProfilePage() {
               >
                 Não respondidas
                 {pendingCount > 0 && (
-                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full border border-border bg-background px-1 text-[10px] font-bold leading-5">
+                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full border border-border bg-background px-1 text-[10px] font-semibold leading-5">
                     {pendingCount > 9 ? "9+" : pendingCount}
                   </span>
                 )}
@@ -146,7 +146,7 @@ export default function AskMeProfilePage() {
                     disabled={submitting}
                   />
                   <span className="flex flex-col gap-0.5 text-left">
-                    <span className="font-bold">Ativar Me pergunte</span>
+                    <span className="font-semibold">Ativar Me pergunte</span>
                     <span className="text-muted-foreground text-xs">
                       Exibe o botão no seu perfil público
                     </span>

@@ -1,8 +1,7 @@
-import { CheckCircle2, Package, ShieldCheck, Undo2, Zap } from "lucide-react";
+import { Package, ShieldCheck, Undo2 } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { DigitalCheckoutFlow } from "@/components/checkout/digital-checkout-flow";
 import { PhysicalCheckoutFlow } from "@/components/checkout/physical-checkout-flow";
 import { PublicNavBar } from "@/components/navigation/public-nav-bar";
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
@@ -14,8 +13,9 @@ import { getProductThumbnailUrl } from "@/lib/supabase/storage";
 import { formatBRL } from "@vippin/core/domain/money";
 import type { ProductType } from "@vippin/core/models/product";
 import { createSupabaseServerClient } from "@vippin/supabase/client/server";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@vippin/ui/card";
+import { Card } from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageShell } from "@vippin/ui/page-shell";
 
 interface CheckoutPageProps {
   params: Promise<{ creator: string; product: string }>;
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * Checkout de um produto em tela própria. Só PIX (mesmas APIs de antes:
- * `/api/products/[id]/checkout` e `/api/orders/[id]/status`). Quem já tem o
- * produto, o próprio criador ou um produto grátis volta para a página dele.
+ * Checkout de produto físico em tela própria (endereço, frete e Pix). Produto
+ * digital paga o Pix numa janela na própria página do produto, então volta
+ * para ela; o criador e produtos grátis também.
  */
 export default async function CheckoutPage({ params }: CheckoutPageProps) {
   const { creator, product } = await params;
@@ -65,20 +65,11 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   const priceCents = row.price_cents ?? 0;
   const isOwner = user?.id === profile.id;
 
-  if (isOwner || priceCents <= 0) redirect(productHref);
+  if (isOwner || priceCents <= 0 || !isPhysical) redirect(productHref);
 
-  if (user && !isPhysical) {
-    // RLS returns only the caller's own grants: a row means they already own it.
-    const { count } = await supabase
-      .from("product_accesses")
-      .select("product_id", { count: "exact", head: true })
-      .eq("product_id", row.id);
-    if ((count ?? 0) > 0) redirect(productHref);
-  }
-
-  const sale = isPhysical ? await loadPhysicalSaleInfo(supabase, row.id, profile.id) : null;
+  const sale = await loadPhysicalSaleInfo(supabase, row.id, profile.id);
   // Sem estoque ou vendedor indisponível: a página do produto explica o motivo.
-  if (isPhysical && ((row.stock ?? 0) <= 0 || !sale?.available)) redirect(productHref);
+  if ((row.stock ?? 0) <= 0 || !sale.available) redirect(productHref);
 
   const thumbnailUrl = row.thumbnail_path ? getProductThumbnailUrl(row.id, row.thumbnail_path) : null;
   const aspectRatio = productAspectRatio({
@@ -89,65 +80,46 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
   });
   const shippingMode = row.shipping_mode === "free" ? "free" : "buyer_pays";
 
-  const perks = isPhysical
-    ? [
-        { icon: Package, text: shippingMode === "free" ? "Frete grátis" : "Frete calculado pelo seu CEP" },
-        { icon: ShieldCheck, text: "Compra protegida até a entrega" },
-        { icon: Undo2, text: "7 dias para desistir depois de receber" },
-      ]
-    : [
-        { icon: Zap, text: "Acesso imediato depois do pagamento" },
-        { icon: CheckCircle2, text: "Fica salvo na sua conta" },
-        { icon: ShieldCheck, text: "Pagamento seguro com PIX" },
-      ];
+  const perks = [
+    { icon: Package, text: shippingMode === "free" ? "Frete grátis" : "Frete calculado pelo seu CEP" },
+    { icon: ShieldCheck, text: "Compra protegida até a entrega" },
+    { icon: Undo2, text: "7 dias para desistir depois de receber" },
+  ];
 
   return (
     <LayoutBackground element="main" className="flex min-h-svh flex-col">
       <PublicNavBar backFallback={productHref} sticky={false} />
-      <div className="flex flex-1 flex-col items-center p-4 py-8 sm:py-10">
-        <div className="grid w-full max-w-5xl gap-6 md:grid-cols-[minmax(0,1fr)_22rem] md:items-start">
-          <Card className="animate-rise order-2 md:order-1">
-            <CardHeader>
-              <CardTitle className="text-2xl">Finalizar compra</CardTitle>
-              <CardDescription>
-                {isPhysical ? "Entrega, frete e pagamento com PIX." : "Pagamento com PIX, sem cadastro de cartão."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isPhysical ? (
-                <PhysicalCheckoutFlow
-                  productId={row.id}
-                  priceCents={priceCents}
-                  shippingMode={shippingMode}
-                  isAuthenticated={Boolean(user)}
-                />
-              ) : (
-                <DigitalCheckoutFlow
-                  productId={row.id}
-                  priceCents={priceCents}
-                  isAuthenticated={Boolean(user)}
-                  productHref={productHref}
-                />
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="animate-rise order-1 gap-5 overflow-hidden pt-0 md:sticky md:top-6 md:order-2">
-            <ProductThumbnail
-              type={type}
-              thumbnailUrl={thumbnailUrl}
-              rounded="rounded-none"
-              className="w-full border-0 border-b"
-              iconClassName="size-12"
-              sizes="(min-width: 768px) 352px, 100vw"
-              aspectRatio={aspectRatio ?? 16 / 9}
+      <PageShell className="pt-6 sm:pt-8">
+        <div className="flex flex-wrap items-start gap-12 lg:gap-20">
+          <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-10">
+            <div className="flex animate-rise flex-col gap-3">
+              <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.03em] sm:text-5xl">
+                Finalizar compra
+              </h1>
+              <p className="text-muted-foreground text-lg">Entrega, frete e pagamento com Pix.</p>
+            </div>
+            <PhysicalCheckoutFlow
+              productId={row.id}
+              priceCents={priceCents}
+              shippingMode={shippingMode}
+              isAuthenticated={Boolean(user)}
             />
-            <CardContent className="flex flex-col gap-4">
+          </div>
+
+          <aside aria-label="Resumo do pedido" className="w-full flex-[1_1_320px] lg:sticky lg:top-6 lg:max-w-[380px]">
+            <Card className="gap-5 p-6">
+              <ProductThumbnail
+                type={type}
+                thumbnailUrl={thumbnailUrl}
+                rounded="rounded-2xl"
+                className="w-full border-0"
+                iconClassName="size-12"
+                sizes="(min-width: 1024px) 332px, 100vw"
+                aspectRatio={aspectRatio ?? 16 / 9}
+              />
               <div className="flex flex-col gap-1">
-                <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-                  {isPhysical ? "Produto físico" : "Conteúdo digital"}
-                </span>
-                <p className="text-lg font-bold leading-tight">{row.title}</p>
+                <p className="text-lg font-semibold leading-snug">{row.title}</p>
+                <span className="text-muted-foreground text-sm">Produto físico</span>
               </div>
 
               <CreatorProfileLink
@@ -158,27 +130,27 @@ export default async function CheckoutPage({ params }: CheckoutPageProps) {
                 avatarUrl={profile.avatar_url}
               />
 
-              <div className="bg-muted flex items-center justify-between rounded-2xl px-4 py-3">
-                <span className="text-muted-foreground text-sm">
-                  {isPhysical ? (shippingMode === "free" ? "Preço (frete grátis)" : "Preço + frete") : "Você paga"}
+              <div className="border-border flex items-baseline justify-between border-t pt-5">
+                <span className="text-muted-foreground">
+                  {shippingMode === "free" ? "Preço, com frete grátis" : "Preço, sem o frete"}
                 </span>
-                <span className="text-xl font-bold">{formatBRL(priceCents)}</span>
+                <span className="text-xl font-semibold">{formatBRL(priceCents)}</span>
               </div>
 
-              <ul className="flex flex-col gap-2.5 text-sm">
+              <ul className="text-muted-foreground flex flex-col gap-3 text-sm">
                 {perks.map(({ icon: Icon, text }) => (
-                  <li key={text} className="flex items-center gap-2.5">
-                    <Icon className="text-muted-foreground size-4 shrink-0" />
+                  <li key={text} className="flex items-center gap-3">
+                    <Icon className="text-ring size-4 shrink-0" />
                     {text}
                   </li>
                 ))}
               </ul>
 
-              {isPhysical && <SellerInfo seller={sale?.seller ?? null} creatorSlug={profile.slug} />}
-            </CardContent>
-          </Card>
+              <SellerInfo seller={sale.seller} creatorSlug={profile.slug} />
+            </Card>
+          </aside>
         </div>
-      </div>
+      </PageShell>
     </LayoutBackground>
   );
 }

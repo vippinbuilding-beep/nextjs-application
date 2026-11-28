@@ -74,7 +74,7 @@ export function ExpandableText({
         <button
           type="button"
           onClick={() => setExpanded((value) => !value)}
-          className="mt-1 inline-block font-bold text-foreground underline underline-offset-2 hover:opacity-80"
+          className="mt-1 inline-block font-semibold text-foreground underline underline-offset-2 hover:opacity-80"
         >
           {expanded ? "Mostrar menos" : "Mostrar mais"}
         </button>

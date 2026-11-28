@@ -166,10 +166,10 @@ export function AskMeDialog({
       <DialogContent className="max-w-md">
         {phase === "paid" ? (
           <div className="flex flex-col items-center gap-3 py-4 text-center">
-            <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-primary shadow-elevated-sm">
+            <span className="flex size-12 items-center justify-center rounded-full bg-success text-background">
               <Check className="size-6" />
             </span>
-            <p className="font-bold">Pergunta enviada!</p>
+            <p className="font-semibold">Pergunta enviada!</p>
             <p className="text-muted-foreground text-sm">
               O criador tem até {ASK_ME_LIMITS.responseDeadlineHours}h para responder.
               Acompanhe em Minhas perguntas.
@@ -305,10 +305,10 @@ export function AskMeProfileButton({
 
   if (isOwner) {
     return (
-      <Button size="sm" variant="outline" asChild>
+      <Button size="lg" variant="outline" asChild>
         <Link href="/profile/ask-me">
-          <MessageCircleQuestion className="size-4" />
-          Me pergunte
+          <MessageCircleQuestion className="size-5" />
+          Configurar perguntas
         </Link>
       </Button>
     );
@@ -316,9 +316,9 @@ export function AskMeProfileButton({
 
   return (
     <>
-      <Button size="sm" onClick={() => setOpen(true)}>
-        <MessageCircleQuestion className="size-4" />
-        Me pergunte · {formatBRL(priceCents)}
+      <Button size="lg" onClick={() => setOpen(true)}>
+        <MessageCircleQuestion className="size-5" />
+        Fazer uma pergunta por {formatBRL(priceCents)}
       </Button>
       <AskMeDialog
         creatorId={creatorId}

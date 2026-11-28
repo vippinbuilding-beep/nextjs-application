@@ -49,7 +49,7 @@ export function ProductFeed({
       {lessons.length > 0 && (
         <section className="flex flex-col gap-3">
           {documents.length > 0 && (
-            <h3 className="text-sm font-bold uppercase tracking-wide">Aulas</h3>
+            <h3 className="text-sm font-semibold">Aulas</h3>
           )}
           <ul
             className={cn(
@@ -71,7 +71,7 @@ export function ProductFeed({
       {documents.length > 0 && (
         <section className="flex flex-col gap-3">
           {lessons.length > 0 && (
-            <h3 className="text-sm font-bold uppercase tracking-wide">Vips</h3>
+            <h3 className="text-sm font-semibold">Vips</h3>
           )}
           <ul className="flex flex-col gap-3">
             {documents.map((item) => (
@@ -86,7 +86,7 @@ export function ProductFeed({
       {physical.length > 0 && (
         <section className="flex flex-col gap-3">
           {(lessons.length > 0 || documents.length > 0) && (
-            <h3 className="text-sm font-bold uppercase tracking-wide">Produtos</h3>
+            <h3 className="text-sm font-semibold">Produtos</h3>
           )}
           <ul
             className={cn(
@@ -122,13 +122,13 @@ function ProductPriceBadge({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-lg border border-border font-bold shadow-elevated-sm",
+        "inline-flex shrink-0 items-center rounded-lg border border-border font-semibold shadow-elevated-sm",
         size === "lg" && "px-3 py-1.5 text-base",
         size === "md" && "px-2.5 py-1 text-sm",
         size === "sm" && "px-2 py-0.5 text-xs",
         isFree
           ? "bg-muted text-foreground"
-          : "bg-primary text-primary-foreground",
+          : "bg-secondary text-secondary-foreground",
         className
       )}
     >
@@ -163,7 +163,7 @@ function ProductFeedCard({
         />
 
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="line-clamp-2 font-bold leading-snug">{item.title}</span>
+          <span className="line-clamp-2 font-semibold leading-snug">{item.title}</span>
           <span className="text-muted-foreground text-xs font-medium">
             {item.creator.handle}
           </span>
@@ -216,7 +216,7 @@ function ProductFeedCard({
       </span>
 
       <span className="flex min-w-0 flex-1 flex-col gap-2 p-4">
-        <span className="line-clamp-2 text-base leading-snug font-bold">
+        <span className="line-clamp-2 text-base leading-snug font-semibold">
           {item.title}
         </span>
 

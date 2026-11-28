@@ -43,15 +43,31 @@ packages/
 
 ## UI / Layout (IMPORTANTE)
 
-O app usa a identidade **"Espectro"**: interface neutra (branco/preto), com tema
-**claro e escuro**, bordas finas (`border border-border`), cantos bem arredondados
-(`rounded-xl` / `rounded-3xl`, botões em pílula), sombras suaves (`shadow-elevated`,
-`-sm`, `-lg`, `-xl`) e o espectro de cores só como destaque (`border-spectrum`,
-`bg-spectrum`). Siga estas regras em toda tela nova:
+O app usa a identidade **"Espectro 2"**: interface neutra e espaçosa, com tema
+**claro e escuro**, conteúdo solto sobre o fundo (seções separadas por espaço,
+não por caixas), um acento só — a **aurora** (lilás → rosa → pêssego,
+`border-aurora`, `bg-aurora`, `aurora-glow`) — e o amarelo só na ação
+principal de cada tela. Siga estas regras em toda tela nova:
 
 - **Sempre** envolva páginas inteiras em `LayoutBackground` (`@vippin/ui/layout-background`).
-  Ele aplica o fundo padrão com grade fina. Use `background="primary"` só
-  para telas de destaque (ex.: onboarding).
+  Ele aplica só a cor de fundo do tema (a grade é opcional, `grid`). Use
+  `background="primary"` (brilho da aurora) só em telas de destaque (ex.: onboarding).
+- **Layout aberto** (`@vippin/ui/page-shell`): dentro do `LayoutBackground`, use
+  `PageShell` (container `max-w-6xl`; `width="narrow"` para leitura/formulários,
+  `"wide"` para tabelas), `PageHeader` (h1, descrição, ações; `glow` só na
+  vitrine e no produto) e `Section` (h2 + conteúdo). O espaço separa os blocos
+  (64–96 px entre seções); conteúdo alinhado à esquerda.
+- **`Card` só agrupa o que precisa de moldura** (painel de compra, resumo,
+  formulário, gráfico). Padrão `variant="surface"` (fundo + sombra suave, sem
+  borda); `outline` para listas densas; `elevated` para o que flutua. Listas e
+  textos ficam soltos na página. Produtos em grade: imagem com canto grande e
+  título/preço abaixo, sem caixa em volta.
+- **Hierarquia de cantos**: 24–28 px em superfícies grandes (`rounded-3xl`),
+  16–20 px em imagens/cards de item, 12 px em campos, botões em pílula.
+- **Tipografia**: só Geist. Títulos em `font-semibold` (não `font-bold`), h1
+  40–64 px, h2 20–28 px, corpo 16–18 px com linhas de até ~65 caracteres.
+  **Sem rótulos em caixa alta** (`uppercase`/`tracking-wide`) e sem metadados
+  colados com "·"; use sentence case e elementos separados.
 - **Tema claro e escuro**: toda tela funciona nos dois. Use só tokens (eles
   trocam sozinhos com a classe `dark` no `<html>`); para um ajuste pontual,
   `dark:`. A troca é feita pelo `ThemeToggle` (`@vippin/ui/theme-toggle`), que
@@ -68,13 +84,9 @@ O app usa a identidade **"Espectro"**: interface neutra (branco/preto), com tema
     (alvos de toque); curvas `ease-spring` (interação) e `ease-out-soft`
     (entrada); 150–250 ms.
   - `prefers-reduced-motion` já desliga tudo no `globals.css`; não reative.
-- **Centralize o conteúdo**: `className="flex min-h-svh flex-col items-center justify-center p-4 py-10"`
-  no `LayoutBackground`, com um container interno `flex w-full max-w-md flex-col gap-6`.
-  Use `max-w-md` para fluxos de formulário/cards; listas mais largas podem usar `max-w-2xl`.
-- **Nada solto fora de `Card`**: botões de ação (Voltar, submit, etc.) e conteúdo
-  devem ficar **dentro** de um `Card`/`CardContent`, não flutuando ao lado dele.
-  Padrão de navegação: botões `Voltar` (variant `outline`) e ação primária dentro
-  do card, como em `product-form.tsx`.
+- **Movimento com intenção**: uma entrada por tela (o `PageHeader` já faz),
+  hover só no que é clicável de verdade (itens de produto, botões). Nada de
+  animar cada seção.
 - Reuse os primitivos genéricos de `@vippin/ui/*` (`Button`, `Card`, `Input`, `Label`,
   `Textarea`, `Select`...). Componentes compostos específicos do app principal (ex.:
   `UserAvatar`, `Toaster`, `SiteLogo`, que dependem de dados/rotas do `apps/web`)
@@ -82,9 +94,10 @@ O app usa a identidade **"Espectro"**: interface neutra (branco/preto), com tema
   existe um primitivo.
 - Cores: use tokens (`bg-primary`, `bg-secondary`, `bg-muted`, `text-muted-foreground`),
   nunca hex fixo. Paleta: primário = amarelo `#ffe502` (ação principal),
-  secundário = preto no claro / branco no escuro, borda = cinza translúcido,
-  foco = violeta (`ring`). Texto sobre fundo colorido precisa de contraste 4.5:1
-  nos dois temas.
+  secundário = tinta (`#16161d` no claro / `#f2f2f7` no escuro), borda e
+  divisórias finas (`border`), links e foco em violeta (`text-link`, `ring`),
+  acento = aurora. Texto nunca vai em cima do gradiente; contraste 4.5:1 nos
+  dois temas.
   Os tokens vivem em `packages/ui/src/styles/globals.css`; o `globals.css` de cada
   app só faz `@import "@vippin/ui/styles/globals.css";`.
 - Estados de carregamento de página inteira usam `ScreenLoading` (`@vippin/ui/screen-loading`).

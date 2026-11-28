@@ -75,7 +75,7 @@ function ReturnRequestBox({
   if (item.returnStatus) {
     return (
       <p className="rounded-xl border border-border bg-muted p-3 text-xs font-medium">
-        <span className="font-bold">{RETURN_STATUS_LABELS[item.returnStatus]}.</span>{" "}
+        <span className="font-semibold">{RETURN_STATUS_LABELS[item.returnStatus]}.</span>{" "}
         {item.returnStatus === "open"
           ? "A equipe Vippin vai te enviar as instruções para devolver o produto. O reembolso sai no PIX usado na compra."
           : ""}
@@ -208,11 +208,11 @@ export function BuyerOrdersList() {
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 {item.productHref ? (
-                  <Link href={item.productHref} className="font-bold hover:underline">
+                  <Link href={item.productHref} className="font-semibold hover:underline">
                     {item.productTitle}
                   </Link>
                 ) : (
-                  <p className="font-bold">{item.productTitle}</p>
+                  <p className="font-semibold">{item.productTitle}</p>
                 )}
                 <p className="text-muted-foreground text-xs">
                   {formatBRL(item.amountCents)}
@@ -224,8 +224,8 @@ export function BuyerOrdersList() {
               </div>
               <span
                 className={cn(
-                  "shrink-0 rounded-full border border-border px-2 py-0.5 text-xs font-bold",
-                  refunded ? "bg-muted" : "bg-primary"
+                  "shrink-0 rounded-full border border-border px-2 py-0.5 text-xs font-semibold",
+                  refunded ? "bg-muted" : "bg-ring"
                 )}
               >
                 {item.statusLabel}
@@ -239,10 +239,10 @@ export function BuyerOrdersList() {
                     <span
                       className={cn(
                         "h-2 rounded-full border border-border",
-                        index <= current ? "bg-primary" : "bg-muted"
+                        index <= current ? "bg-ring" : "bg-muted"
                       )}
                     />
-                    <span className="text-muted-foreground text-[10px] font-bold uppercase">
+                    <span className="text-muted-foreground text-xs font-semibold">
                       {step.label}
                     </span>
                   </li>

@@ -78,7 +78,7 @@ function LoginCard() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="items-center text-center">
-        <CardTitle className="text-4xl font-bold tracking-tight">Vippin</CardTitle>
+        <CardTitle className="text-4xl font-semibold tracking-tight">Vippin</CardTitle>
         <CardDescription className="font-medium">
           {role
             ? copy?.description

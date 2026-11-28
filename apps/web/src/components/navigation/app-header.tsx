@@ -90,7 +90,7 @@ export function AppHeader({ className, loading = false }: AppHeaderProps) {
                   avatarUrl={user.avatarUrl}
                   size="sm"
                 />
-                <span className="min-w-0 truncate text-xs font-bold sm:text-sm">
+                <span className="min-w-0 truncate text-xs font-semibold sm:text-sm">
                   {displayName}
                 </span>
               </Link>

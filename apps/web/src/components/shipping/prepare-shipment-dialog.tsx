@@ -182,10 +182,10 @@ export function PrepareShipmentDialog({
                   disabled={submitting}
                   className={cn(
                     "rounded-xl border border-border px-3 py-2 text-left text-sm cursor-pointer",
-                    documentType === "dce" ? "bg-primary shadow-elevated-sm" : "bg-background"
+                    documentType === "dce" ? "bg-secondary text-secondary-foreground" : "bg-background"
                   )}
                 >
-                  <span className="font-bold">Declaração de conteúdo</span>
+                  <span className="font-semibold">Declaração de conteúdo</span>
                   <span className="text-muted-foreground block text-xs">
                     Para quem vende como pessoa física, sem nota.
                   </span>
@@ -199,10 +199,10 @@ export function PrepareShipmentDialog({
                 disabled={submitting}
                 className={cn(
                   "rounded-xl border border-border px-3 py-2 text-left text-sm cursor-pointer",
-                  documentType === "nfe" ? "bg-primary shadow-elevated-sm" : "bg-background"
+                  documentType === "nfe" ? "bg-secondary text-secondary-foreground" : "bg-background"
                 )}
               >
-                <span className="font-bold">Nota fiscal (NF-e)</span>
+                <span className="font-semibold">Nota fiscal (NF-e)</span>
                 <span className="text-muted-foreground block text-xs">
                   Para MEI/empresa: informe a chave de acesso.
                 </span>

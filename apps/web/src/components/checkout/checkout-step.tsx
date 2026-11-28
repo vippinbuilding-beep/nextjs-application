@@ -18,20 +18,21 @@ export function CheckoutStep({ number, title, done, locked, children, className 
   return (
     <section
       aria-label={title}
-      className={cn("flex flex-col gap-4", locked && "opacity-60", className)}
+      className={cn("flex gap-5", locked && "opacity-55", className)}
     >
-      <h2 className="flex items-center gap-3 text-base font-bold">
-        <span
-          className={cn(
-            "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-            done ? "bg-success text-background" : "bg-secondary text-secondary-foreground"
-          )}
-        >
-          {done ? <Check className="size-4" strokeWidth={3} /> : number}
-        </span>
-        {title}
-      </h2>
-      {!locked && children ? <div className="animate-rise">{children}</div> : null}
+      <span
+        aria-hidden
+        className={cn(
+          "flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
+          done ? "bg-success text-background" : "bg-secondary text-secondary-foreground"
+        )}
+      >
+        {done ? <Check className="size-4" strokeWidth={3} /> : number}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-4 pt-0.5">
+        <h2 className="text-xl font-semibold leading-tight">{title}</h2>
+        {!locked && children ? children : null}
+      </div>
     </section>
   );
 }

@@ -85,10 +85,10 @@ export function ProfileDefaultTabPicker({
               disabled={!enabled || saving}
               onClick={() => void handleSelect(option.value)}
               className={cn(
-                "rounded-xl border border-border px-3 py-2 text-sm font-bold shadow-elevated-sm transition-all",
+                "rounded-xl border border-border px-3 py-2 text-sm font-semibold shadow-elevated-sm transition-all",
                 "disabled:cursor-not-allowed disabled:opacity-40",
                 active
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-secondary text-secondary-foreground"
                   : "bg-background hover:bg-muted"
               )}
             >

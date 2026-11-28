@@ -10,6 +10,8 @@ export interface LayoutBackgroundProps {
     className?: string;
     element?: "main" | "section" | "div";
     background?: TypeBackground;
-    /** Opacidade da camada de pontinhos (0 a 1). Padrão: 1. */
+    /** Mostra a grade fina de fundo. Padrão: desligada. */
+    grid?: boolean;
+    /** Opacidade da grade (0 a 1), quando `grid`. Padrão: 1. */
     dotsOpacity?: number;
 }

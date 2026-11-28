@@ -97,7 +97,7 @@ function NotificationToastCard({ item }: { item: ToastItem }) {
       </span>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold leading-snug">{item.title}</p>
+        <p className="text-sm font-semibold leading-snug">{item.title}</p>
         {item.body && (
           <p className="text-muted-foreground mt-0.5 text-xs leading-snug">
             {item.body}

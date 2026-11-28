@@ -52,7 +52,7 @@ export function PriceInput({
 
   return (
     <div className="relative transition-all focus-within:-translate-y-0.5">
-      <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 z-10 -translate-y-1/2 text-sm font-bold">
+      <span className="text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 z-10 -translate-y-1/2 text-sm font-semibold">
         R$
       </span>
       <Input

@@ -36,17 +36,17 @@ export function CartoonBarChart({
 
         return (
           <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-center gap-3">
-            <span className="truncate text-sm font-bold">{item.label}</span>
+            <span className="truncate text-sm font-semibold">{item.label}</span>
             <div className="h-4 rounded-full border border-border bg-muted">
               <div
                 className={cn(
                   "h-full rounded-full border border-border shadow-elevated-sm",
-                  item.colorClassName ?? "bg-primary"
+                  item.colorClassName ?? "bg-chart-1"
                 )}
                 style={{ width: `${widthPercent}%` }}
               />
             </div>
-            <span className="text-muted-foreground text-xs font-bold tabular-nums">
+            <span className="text-muted-foreground text-xs font-semibold tabular-nums">
               {valueFormatter(item.value)}
             </span>
           </div>
@@ -123,7 +123,7 @@ export function CartoonTimelineChart({
                       )}
                       {point.productCents > 0 && (
                         <div
-                          className="w-full bg-primary"
+                          className="w-full bg-chart-1"
                           style={{
                             flexGrow: point.productCents,
                           }}
@@ -139,7 +139,7 @@ export function CartoonTimelineChart({
                     <div className="h-1.5 w-full rounded-full bg-muted" />
                   )}
                 </div>
-                <span className="text-muted-foreground text-[10px] font-bold">
+                <span className="text-muted-foreground text-[10px] font-semibold">
                   {showLabel ? point.label : ""}
                 </span>
               </div>
@@ -148,9 +148,9 @@ export function CartoonTimelineChart({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
+      <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
         <span className="inline-flex items-center gap-2">
-          <span className="size-3 rounded-sm border border-border bg-primary" />
+          <span className="size-3 rounded-sm bg-chart-1" />
           Produtos
         </span>
         <span className="inline-flex items-center gap-2">

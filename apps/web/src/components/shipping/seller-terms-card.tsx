@@ -24,7 +24,7 @@ interface SellerTermsCardProps {
 export function ProhibitedItemsList() {
   return (
     <div className="rounded-xl border border-border bg-muted p-3 text-sm">
-      <p className="font-bold">Itens proibidos (Correios e Vippin)</p>
+      <p className="font-semibold">Itens proibidos (Correios e Vippin)</p>
       <ul className="text-muted-foreground mt-1 list-disc pl-5 text-xs">
         {PROHIBITED_ITEMS.map((item) => (
           <li key={item}>{item}</li>
@@ -98,13 +98,13 @@ export function SellerTermsCard({ onAcceptedChange, disabled }: SellerTermsCardP
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-background p-3">
-      <p className="flex items-center gap-2 font-bold">
+      <p className="flex items-center gap-2 font-semibold">
         <ShieldCheck className="size-5" /> {SELLER_TERMS_TITLE}
       </p>
       <div className="flex max-h-56 flex-col gap-2 overflow-y-auto pr-1 text-xs">
         {SELLER_TERMS_SECTIONS.map((section) => (
           <div key={section.title}>
-            <p className="font-bold">{section.title}</p>
+            <p className="font-semibold">{section.title}</p>
             <p className="text-muted-foreground">{section.body}</p>
           </div>
         ))}

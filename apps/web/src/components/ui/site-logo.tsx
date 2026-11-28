@@ -31,7 +31,7 @@ export function SiteLogo({
         className={cn("shrink-0 rounded-xl", imageClassName)}
       />
       {showName && (
-        <span className={cn("font-bold tracking-tight", nameClassName)}>
+        <span className={cn("font-semibold tracking-tight", nameClassName)}>
           {SITE_NAME}
         </span>
       )}

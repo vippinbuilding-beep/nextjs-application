@@ -8,14 +8,8 @@ import { CreatorLibraryPanel } from "@/components/creator/creator-library-panel"
 import { ProductFeed } from "@/components/products/product-feed";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useLoginRedirect } from "@/hooks/use-login-redirect";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageHeader, PageShell } from "@vippin/ui/page-shell";
 import { Loading } from "@vippin/ui/loading";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import type { ProductWithCreator } from "@vippin/core/repositories/product-repository";
@@ -73,34 +67,24 @@ export default function MyProductsPage() {
   }
 
   return (
-    <LayoutBackground
-      element="main"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      <div className="flex w-full max-w-md flex-col gap-6 sm:max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Meus produtos</CardTitle>
-            <CardDescription>
-              Aulas e materiais que você comprou ou recebeu acesso.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {productsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loading />
-              </div>
-            ) : (
-              <ProductFeed
-                products={products}
-                emptyLabel="Você ainda não tem nenhum produto na sua biblioteca."
-              />
-            )}
-
-            <BackButton fallback="/" className="w-full mt-5" />
-          </CardContent>
-        </Card>
-      </div>
+    <LayoutBackground element="main" className="flex min-h-svh flex-col">
+      <PageShell width="default">
+        <PageHeader
+          title="Meus produtos"
+          description="Aulas e materiais que você comprou ou recebeu acesso."
+          actions={<BackButton fallback="/" />}
+        />
+        {productsLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loading />
+          </div>
+        ) : (
+          <ProductFeed
+            products={products}
+            emptyLabel="Você ainda não tem nenhum produto na sua biblioteca."
+          />
+        )}
+      </PageShell>
     </LayoutBackground>
   );
 }

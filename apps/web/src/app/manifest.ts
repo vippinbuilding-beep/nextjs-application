@@ -11,7 +11,7 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#f7f7f8",
+    background_color: "#f6f6f9",
     theme_color: "#ffe502",
     lang: "pt-BR",
     categories: ["business", "education"],

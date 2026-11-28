@@ -77,7 +77,7 @@ export default function NewProductPage() {
               >
                 <ProductTypeIcon type={type} />
                 <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="font-bold">{config.label}</span>
+                  <span className="font-semibold">{config.label}</span>
                   <span className="text-muted-foreground text-xs font-medium">
                     {config.description}
                   </span>

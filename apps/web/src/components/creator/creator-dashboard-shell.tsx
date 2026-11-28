@@ -37,8 +37,8 @@ export function CreatorDashboardShell({ children }: CreatorDashboardShellProps) 
       />
 
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background/80 lg:flex xl:w-72">
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border px-5 py-4">
+        <aside className="hidden w-64 shrink-0 flex-col border-r border-border lg:flex xl:w-72">
+          <div className="flex shrink-0 items-center justify-between gap-3 px-5 py-5">
             <SiteLogo size={32} nameClassName="text-lg" />
             <NotificationBell />
           </div>
@@ -46,7 +46,7 @@ export function CreatorDashboardShell({ children }: CreatorDashboardShellProps) 
         </aside>
 
         <div className="min-w-0 flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:py-10">
+          <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
             {children}
           </div>
         </div>

@@ -36,7 +36,7 @@ export default function AcessoNegadoPage() {
     >
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">
+          <CardTitle className="text-2xl font-semibold tracking-tight">
             Acesso negado
           </CardTitle>
           <CardDescription className="font-medium">

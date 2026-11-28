@@ -36,12 +36,12 @@ export function SellerInfo({
 
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/40 p-3 text-xs">
-      <p className="flex items-center gap-2 text-sm font-bold">
+      <p className="flex items-center gap-2 text-sm font-semibold">
         <Store className="size-4" /> Vendido por
       </p>
       {seller ? (
         <div className="flex flex-col gap-0.5">
-          <p className="font-bold">{seller.name}</p>
+          <p className="font-semibold">{seller.name}</p>
           {documentLabel && (
             <p className="text-muted-foreground">
               {documentLabel} {seller.maskedDocument}
