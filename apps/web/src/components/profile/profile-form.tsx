@@ -26,20 +26,14 @@ import { BackButton } from "@/components/navigation/back-button";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
 import { Loading } from "@vippin/ui/loading";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
+import { Card } from "@vippin/ui/card";
 import type { User, UserSocials } from "@vippin/core/models/user";
 import { userRepository } from "@vippin/supabase/factories/repository-factory";
 import { toast } from "@/lib/toast";
 import { navigateBack } from "@/lib/navigation/navigate-back";
-import { cn } from "@vippin/ui/lib/utils";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { FormSection, PageHeader, PageShell } from "@vippin/ui/page-shell";
 
 function formFromUser(user: User): OnboardingFormData {
   const pixKey = formatPixKey(user.pixKey ?? "");
@@ -190,22 +184,16 @@ export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
   }
 
   const formContent = (
-    <form onSubmit={handleSubmit} className="w-full">
-      <Card>
-        <CardHeader>
-          <CardTitle>Editar perfil</CardTitle>
-          <CardDescription>
-            Atualize seus dados, redes sociais e informações de pagamento.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
+      <Card className="px-6 py-6 sm:px-10 sm:py-8">
+        <FormSection
+          title="Seu link"
+          description="Se você mudar o nome de criador, o link muda junto."
+        >
           <LinkStepFields slug={slug} />
-          <p className="text-muted-foreground -mt-2 text-xs">
-            Se você alterar o nome de criador, o link será atualizado automaticamente.
-          </p>
+        </FormSection>
 
-          <div className="border-t border-dashed border-border" />
-
+        <FormSection title="Foto e dados" description="Como você aparece na vitrine e nos recibos de pagamento.">
           <AvatarPicker
             userId={user!.id}
             displayName={form.creatorName || form.name}
@@ -213,34 +201,26 @@ export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
             avatarFromGoogle={profileAvatarFromGoogle}
             onChange={handleAvatarChange}
           />
-
           <ProfileStepFields data={form} onChange={updateField} />
+        </FormSection>
 
-          <div className="border-t border-dashed border-border" />
-
-          <p className="text-sm font-semibold">Redes sociais</p>
+        <FormSection title="Redes sociais" description="Aparecem como ícones no topo da sua vitrine.">
           <SocialsStepFields socials={form.socials} onSocialChange={updateSocial} />
-
-          {error && (
-            <p className="text-destructive text-sm" role="alert">
-              {error}
-            </p>
-          )}
-
-          <div className={cn("mt-2 flex gap-3", embedded && "justify-end")}>
-            {!embedded && (
-              <BackButton fallback="/" className="flex-1" disabled={submitting} />
-            )}
-            <Button
-              type="submit"
-              className={embedded ? undefined : "flex-1"}
-              disabled={submitting}
-            >
-              {submitting ? "Salvando..." : "Salvar alterações"}
-            </Button>
-          </div>
-        </CardContent>
+        </FormSection>
       </Card>
+
+      {error && (
+        <p className="text-destructive text-sm" role="alert">
+          {error}
+        </p>
+      )}
+
+      <div className="flex justify-end gap-3">
+        {!embedded && <BackButton fallback="/" disabled={submitting} />}
+        <Button type="submit" size="lg" disabled={submitting}>
+          {submitting ? "Salvando..." : "Salvar alterações"}
+        </Button>
+      </div>
     </form>
   );
 
@@ -249,12 +229,14 @@ export function ProfileForm({ embedded = false }: { embedded?: boolean }) {
   }
 
   return (
-    <LayoutBackground
-      element="main"
-      background="primary"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      {formContent}
+    <LayoutBackground element="main" className="flex min-h-svh flex-col">
+      <PageShell width="form" className="gap-10 sm:gap-12">
+        <PageHeader
+          title="Editar perfil"
+          description="Atualize seus dados, redes sociais e informações de pagamento."
+        />
+        {formContent}
+      </PageShell>
     </LayoutBackground>
   );
 }

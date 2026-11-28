@@ -9,14 +9,9 @@ import { getConsumerDisplayName } from "@/components/profile/consumer-nav-profil
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@vippin/ui/button";
 import { useAuth } from "@/components/providers/auth-provider";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
+import { Card } from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageHeader, PageShell } from "@vippin/ui/page-shell";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import { requestBecomeCreator } from "@/lib/profile/become-creator";
 import { toast } from "@/lib/toast";
@@ -117,82 +112,74 @@ export default function ConsumerHomePage() {
       className="flex min-h-svh flex-col"
     >
       <PublicNavBar backFallback="/" sticky={false} />
-      <div className="flex flex-1 flex-col items-center justify-center p-4 py-6 sm:py-10">
-        <Card className="relative w-full max-w-md">
-          <div className="absolute top-4 right-4 items-center gap-2 flex">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleSignOut}
-            >
-              <LogOut className="size-4" />
-
-            </Button>
-          </div>
-          <CardHeader className="items-center text-center">
+      <PageShell width="narrow">
+        <PageHeader
+          leading={
             <UserAvatar
               userId={user.id}
               name={displayName}
               avatarPath={user.avatarPath}
               avatarUrl={user.avatarUrl}
               size="lg"
-              className="mb-2 mx-auto"
             />
-            <CardTitle className="text-2xl">Olá, {displayName}</CardTitle>
-            <CardDescription>O que você quer fazer hoje?</CardDescription>
-            <InstallAppButton className="mt-2" />
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {MENU_OPTIONS.map((option) => {
-              const Icon = option.icon;
-              return (
+          }
+          title={`Olá, ${displayName}`}
+          description="O que você quer fazer hoje?"
+          actions={
+            <Button size="sm" variant="ghost" onClick={handleSignOut}>
+              <LogOut className="size-4" />
+              Sair
+            </Button>
+          }
+        />
+
+        <InstallAppButton />
+
+        <ul className="flex flex-col gap-1">
+          {MENU_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            return (
+              <li key={option.href}>
                 <Link
-                  key={option.href}
                   href={option.href}
-                  className="group flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-4 text-left shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+                  className="group -mx-3 flex items-center gap-4 rounded-2xl px-3 py-4 text-left transition-colors hover:bg-accent"
                 >
-                  <span className="flex size-10 md:size-11 shrink-0 items-center justify-center rounded-xl bg-muted shadow-elevated-sm">
+                  <span className="bg-muted flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 ease-spring group-hover:scale-105">
                     <Icon className="size-5" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <span className="font-semibold">{option.title}</span>
-                    <span className="text-muted-foreground text-xs font-medium">
-                      {option.description}
-                    </span>
+                    <span className="text-muted-foreground text-sm">{option.description}</span>
                   </span>
-                  <ChevronRight className="size-5 shrink-0 transition-transform group-hover:translate-x-0.5" />
+                  <ChevronRight className="text-muted-foreground size-5 shrink-0 transition-transform group-hover:translate-x-0.5" />
                 </Link>
-              );
-            })}
+              </li>
+            );
+          })}
+        </ul>
 
-            <div className="mt-1 rounded-xl bg-muted p-5">
-              <div className="flex items-start gap-3">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted shadow-elevated-sm">
-                  <Sparkles className="size-5" />
-                </span>
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-semibold">Quer vender seu conteúdo?</span>
-                    <span className="text-muted-foreground text-xs font-medium">
-                      Configure seu perfil de criador, publique produtos e receba
-                      via PIX. Seus produtos comprados continuam na biblioteca.
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    className="w-full"
-                    disabled={becomingCreator}
-                    onClick={() => void handleBecomeCreator()}
-                  >
-                    {becomingCreator ? "Preparando..." : "Quero ser um criador"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
+        <Card className="gap-4 px-6 py-6 sm:px-8 sm:py-8">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-xl font-semibold">Quer vender seu conteúdo?</h2>
+            <p className="text-muted-foreground">
+              Configure seu perfil de criador, publique produtos e receba via Pix.
+              Seus produtos comprados continuam na biblioteca.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="lg"
+            className="w-full sm:w-fit"
+            disabled={becomingCreator}
+            onClick={() => void handleBecomeCreator()}
+          >
+            <Sparkles className="size-5" />
+            {becomingCreator ? "Preparando..." : "Quero ser um criador"}
+          </Button>
         </Card>
-        <ContactEmailLink className="mt-4" />
-      </div>
+
+        <ContactEmailLink />
+      </PageShell>
     </LayoutBackground>
   );
 }

@@ -121,7 +121,7 @@ export default async function AskMePage({
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Ask Me</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">Ask Me</h1>
         <p className="text-muted-foreground text-sm font-medium">
           Perguntas pagas: status, taxa de resposta e repasses.
         </p>

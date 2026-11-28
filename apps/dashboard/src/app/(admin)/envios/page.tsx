@@ -80,7 +80,7 @@ export default async function EnviosPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Envios</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">Envios</h1>
         <p className="text-muted-foreground text-sm font-medium">
           Produtos físicos, carteira Melhor Envio e overrides do escrow.
         </p>

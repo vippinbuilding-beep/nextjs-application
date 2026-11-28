@@ -17,13 +17,8 @@ import { CreatorPayoutPreview } from "@/components/creator/creator-payout-previe
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
+import { Card } from "@vippin/ui/card";
+import { FormSection } from "@vippin/ui/page-shell";
 import {
   Dialog,
   DialogContent,
@@ -363,28 +358,23 @@ export function ProductForm({ type, product }: ProductFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
-      <Card className="w-full">
-        <CardHeader>
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <span className="rounded-full bg-muted px-3 py-0.5 text-xs font-semibold text-primary-foreground shadow-elevated-sm">
-              {config.label}
-            </span>
-            {isEdit && product && user?.slug && (
-              <Button type="button" variant="outline" size="sm" asChild>
-                <Link
-                  href={`/@${user.slug}/${product.slug}`}
-                >
-                  <ExternalLink className="size-4" />
-                  Ver página
-                </Link>
-              </Button>
-            )}
-          </div>
-          <CardTitle>{isEdit ? "Editar produto" : "Criar produto"}</CardTitle>
-          <CardDescription>{config.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-sm font-medium">
+          {config.label}
+        </span>
+        {isEdit && product && user?.slug && (
+          <Button type="button" variant="outline" size="sm" asChild>
+            <Link href={`/@${user.slug}/${product.slug}`}>
+              <ExternalLink className="size-4" />
+              Ver página
+            </Link>
+          </Button>
+        )}
+      </div>
+
+      <Card className="px-6 py-6 sm:px-10 sm:py-8">
+        <FormSection title="Capa" description="Aparece na vitrine e quando alguém compartilha o link.">
           <div className="flex flex-col gap-2">
             <Label htmlFor="thumbnail">Miniatura do produto (opcional)</Label>
             <ImageUploadField
@@ -402,7 +392,9 @@ export function ProductForm({ type, product }: ProductFormProps) {
               hint={`PNG, JPG, WEBP ou GIF. Máx. ${formatFileSize(THUMBNAIL_MAX_SIZE)}. Se não enviar, usamos um ícone genérico do tipo de produto.`}
             />
           </div>
+        </FormSection>
 
+        <FormSection title="Nome e descrição" description={config.description}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Nome do produto</Label>
             <Input
@@ -418,7 +410,6 @@ export function ProductForm({ type, product }: ProductFormProps) {
               {title.length}/{TITLE_MAX}
             </p>
           </div>
-
           <div className="flex flex-col gap-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
@@ -435,7 +426,9 @@ export function ProductForm({ type, product }: ProductFormProps) {
               {description.length}/{DESCRIPTION_MAX}
             </p>
           </div>
+        </FormSection>
 
+        <FormSection title="Preço" description="Quanto o comprador paga e quanto chega para você.">
           <div className="flex flex-col gap-2">
             <Label htmlFor="price">Preço</Label>
             <PriceInput
@@ -454,8 +447,10 @@ export function ProductForm({ type, product }: ProductFormProps) {
               <CreatorPayoutPreview grossCents={priceCents} />
             )}
           </div>
+        </FormSection>
 
-          {isPhysical && (
+        {isPhysical ? (
+          <FormSection title="Entrega" description="Estoque, embalagem e quem paga o frete.">
             <PhysicalProductFields
               value={physical}
               onChange={setPhysical}
@@ -463,39 +458,41 @@ export function ProductForm({ type, product }: ProductFormProps) {
               disabled={submitting}
               onTermsAcceptedChange={setSellerTermsAccepted}
             />
-          )}
+          </FormSection>
+        ) : (
+          <FormSection title="Arquivo" description="O que o comprador recebe depois de pagar.">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="file">{config.uploadLabel}</Label>
+              <FileUploadField
+                id="file"
+                accept={config.accept}
+                file={file}
+                onFileChange={handleFileChange}
+                validate={(selected) => validateProductFile(type, selected)}
+                onValidationError={setError}
+                title={
+                  type === "single_lesson"
+                    ? "Escolher vídeo da aula"
+                    : "Escolher documento"
+                }
+                description="Clique ou arraste o arquivo para esta área"
+                existingFileName={isEdit && product?.fileName && !file ? product.fileName : null}
+                icon={type === "single_lesson" ? Film : FileText}
+                hint={`${config.allowedHint}. Máx. ${formatFileSize(config.maxSize)}.`}
+              />
+            </div>
+          </FormSection>
+        )}
+      </Card>
 
-          {!isPhysical && (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="file">{config.uploadLabel}</Label>
-            <FileUploadField
-              id="file"
-              accept={config.accept}
-              file={file}
-              onFileChange={handleFileChange}
-              validate={(selected) => validateProductFile(type, selected)}
-              onValidationError={setError}
-              title={
-                type === "single_lesson"
-                  ? "Escolher vídeo da aula"
-                  : "Escolher documento"
-              }
-              description="Clique ou arraste o arquivo para esta área"
-              existingFileName={isEdit && product?.fileName && !file ? product.fileName : null}
-              icon={type === "single_lesson" ? Film : FileText}
-              hint={`${config.allowedHint}. Máx. ${formatFileSize(config.maxSize)}.`}
-            />
-          </div>
-          )}
-
-          {error && (
+      {error && (
             <p className="text-destructive text-sm" role="alert">
               {error}
             </p>
           )}
 
           {isEdit && product && isCancelled && (
-            <div className="rounded-xl border border-dashed border-border bg-muted/40 p-4">
+            <div className="rounded-3xl border border-dashed border-input p-6">
               <p className="text-sm font-semibold">Produto cancelado</p>
               <p className="text-muted-foreground mt-1 text-xs">
                 Este produto está fora do ar para novos compradores. Restaure
@@ -515,7 +512,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
           )}
 
           {isEdit && product && !isCancelled && (
-            <div className="rounded-xl border border-dashed border-destructive/40 bg-destructive/5 p-4">
+            <div className="rounded-3xl border border-destructive/30 p-6">
               <p className="text-sm font-semibold text-destructive">Zona de perigo</p>
               <p className="text-muted-foreground mt-1 text-xs">
                 Cancelar tira o produto do ar: ele deixa de aparecer para novos
@@ -535,22 +532,16 @@ export function ProductForm({ type, product }: ProductFormProps) {
             </div>
           )}
 
-          <div className="mt-2 flex gap-3">
-            <BackButton
-              fallback="/"
-              className="flex-1"
-              disabled={submitting || deleting}
-            />
-            <Button type="submit" className="flex-1" disabled={submitting || deleting}>
-              {submitting
-                ? "Salvando..."
-                : isEdit
-                  ? "Salvar alterações"
-                  : "Publicar produto"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-end gap-3">
+        <BackButton fallback="/" disabled={submitting || deleting} />
+        <Button type="submit" size="lg" disabled={submitting || deleting}>
+          {submitting
+            ? "Salvando..."
+            : isEdit
+              ? "Salvar alterações"
+              : "Publicar produto"}
+        </Button>
+      </div>
 
       <Dialog open={showFreeConfirm} onOpenChange={setShowFreeConfirm}>
         <DialogContent>
