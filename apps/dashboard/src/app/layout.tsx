@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+
+import { ThemeScript } from "@vippin/ui/theme-script";
 
 import { AuthProvider } from "@/components/providers/auth-provider";
 import "./globals.css";
 
-const fredoka = Fredoka({
+const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -21,7 +22,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffe502",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f8" },
+    { media: "(prefers-color-scheme: dark)", color: "#070708" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -33,8 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`${fredoka.variable} ${geistMono.variable} antialiased`}>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

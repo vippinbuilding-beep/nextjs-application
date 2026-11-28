@@ -145,12 +145,12 @@ export default async function UsuariosPage({
           name="q"
           defaultValue={query}
           placeholder="Buscar por nome, e-mail ou handle"
-          className="flex-1 rounded-xl border-2 border-border bg-card px-3 py-2 text-sm font-medium"
+          className="flex-1 rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium"
         />
         <select
           name="role"
           defaultValue={role ?? ""}
-          className="rounded-xl border-2 border-border bg-card px-3 py-2 text-sm font-semibold"
+          className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-semibold"
         >
           <option value="">Todos</option>
           <option value="creator">Criadores</option>
@@ -158,7 +158,7 @@ export default async function UsuariosPage({
         </select>
         <button
           type="submit"
-          className="rounded-xl border-2 border-border bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-cartoon-sm"
+          className="rounded-xl border border-border bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-elevated-sm"
         >
           Buscar
         </button>
@@ -201,7 +201,7 @@ export default async function UsuariosPage({
           {page > 1 ? (
             <Link
               href={buildPageHref(page - 1)}
-              className="rounded-xl border-2 border-border bg-card px-3 py-1.5 text-sm font-semibold hover:bg-muted"
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-sm font-semibold hover:bg-muted"
             >
               Anterior
             </Link>
@@ -209,7 +209,7 @@ export default async function UsuariosPage({
           {page < totalPages ? (
             <Link
               href={buildPageHref(page + 1)}
-              className="rounded-xl border-2 border-border bg-card px-3 py-1.5 text-sm font-semibold hover:bg-muted"
+              className="rounded-xl border border-border bg-card px-3 py-1.5 text-sm font-semibold hover:bg-muted"
             >
               Próxima
             </Link>

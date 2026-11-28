@@ -39,7 +39,7 @@ export function ProductThumbnail({
     return (
       <span
         className={cn(
-          "relative block shrink-0 overflow-hidden border-2 border-border bg-secondary",
+          "relative block shrink-0 overflow-hidden border border-border bg-secondary",
           rounded,
           className
         )}
@@ -59,7 +59,7 @@ export function ProductThumbnail({
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center border-2 border-border bg-secondary text-secondary-foreground",
+        "flex shrink-0 items-center justify-center border border-border bg-secondary text-secondary-foreground",
         rounded,
         className
       )}

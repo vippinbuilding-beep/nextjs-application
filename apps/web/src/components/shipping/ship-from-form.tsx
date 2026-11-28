@@ -66,7 +66,7 @@ export function PfLimitNotice({ pfLimit }: { pfLimit: PfLimitEvaluation | null }
     <div
       role="status"
       className={cn(
-        "rounded-xl border-2 border-border p-3 text-sm font-medium",
+        "rounded-xl border border-border p-3 text-sm font-medium",
         reached ? "bg-destructive/10" : "bg-primary/40"
       )}
     >
@@ -253,12 +253,12 @@ export function ShipFromForm({ onSaved }: ShipFromFormProps) {
                             setSaved(false);
                           }}
                           className={cn(
-                            "rounded-xl border-2 border-border p-3 text-left text-sm font-bold transition-all",
+                            "rounded-xl border border-border p-3 text-left text-sm font-bold transition-all",
                             selected
-                              ? "bg-primary shadow-cartoon-sm"
+                              ? "bg-primary shadow-elevated-sm"
                               : "bg-background",
                             enabled
-                              ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-cartoon-sm"
+                              ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-elevated-sm"
                               : "cursor-not-allowed opacity-50"
                           )}
                         >

@@ -32,7 +32,7 @@ export function ProductFeed({
   if (!products.length) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
           <FileText className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">{emptyLabel}</p>
@@ -122,7 +122,7 @@ function ProductPriceBadge({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-lg border-2 border-border font-bold shadow-cartoon-sm",
+        "inline-flex shrink-0 items-center rounded-lg border border-border font-bold shadow-elevated-sm",
         size === "lg" && "px-3 py-1.5 text-base",
         size === "md" && "px-2.5 py-1 text-sm",
         size === "sm" && "px-2 py-0.5 text-xs",
@@ -153,7 +153,7 @@ function ProductFeedCard({
     return (
       <Link
         href={href}
-        className="group flex items-center gap-4 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm transition-all hover:-translate-y-0.5 hover:shadow-cartoon"
+        className="group flex items-center gap-4 rounded-xl border border-border bg-background p-4 shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
       >
         <ProductThumbnail
           type={item.type}
@@ -195,13 +195,13 @@ function ProductFeedCard({
   return (
     <Link
       href={href}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-border bg-background shadow-cartoon-sm transition-all hover:-translate-y-1 hover:shadow-cartoon"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-elevated-sm transition-all hover:-translate-y-1 hover:shadow-elevated"
     >
       <span className="relative block">
         <ProductThumbnail
           type={item.type as ProductType}
           thumbnailUrl={thumbnailUrl}
-          className="w-full rounded-none border-0 border-b-2"
+          className="w-full rounded-none border-0 border-b"
           iconClassName="size-10"
           sizes="(min-width: 640px) 45vw, 100vw"
           aspectRatio={bannerAspectRatio}

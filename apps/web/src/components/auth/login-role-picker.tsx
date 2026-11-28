@@ -34,7 +34,7 @@ export function LoginRolePicker({ next, className }: LoginRolePickerProps) {
             <span className="flex min-w-0 items-start gap-2 sm:gap-3">
               <span
                 className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-xl border-2 border-border shadow-cartoon-sm sm:size-10",
+                  "flex size-9 shrink-0 items-center justify-center rounded-xl border border-border shadow-elevated-sm sm:size-10",
                   role === "creator" ? "bg-primary" : "bg-[#4dd2ff]"
                 )}
               >

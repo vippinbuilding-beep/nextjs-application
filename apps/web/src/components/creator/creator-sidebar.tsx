@@ -23,6 +23,7 @@ import {
   isCreatorNavItemActive,
 } from "@/lib/creator-dashboard/navigation";
 import { cn } from "@vippin/ui/lib/utils";
+import { ThemeToggle } from "@vippin/ui/theme-toggle";
 
 interface CreatorSidebarProps {
   className?: string;
@@ -46,7 +47,7 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
 
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
-      <div className="flex shrink-0 items-center gap-3 border-b-2 border-border px-4 py-4">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-4">
         <UserAvatar
           userId={user!.id}
           name={displayName}
@@ -94,9 +95,9 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
                           showAskMeDot ? askMeAriaLabel : undefined
                         }
                         className={cn(
-                          "group relative flex items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-sm font-bold transition-all",
+                          "group relative flex items-center gap-3 rounded-xl border px-3 py-2.5 text-sm font-bold transition-all",
                           active
-                            ? "border-border bg-primary text-primary-foreground shadow-cartoon-sm"
+                            ? "border-border bg-primary text-primary-foreground shadow-elevated-sm"
                             : "border-transparent bg-transparent hover:border-border hover:bg-muted/60"
                         )}
                       >
@@ -123,7 +124,11 @@ export function CreatorSidebar({ className, onNavigate }: CreatorSidebarProps) {
         </div>
       </nav>
 
-      <div className="flex shrink-0 flex-col gap-2 border-t-2 border-border px-3 py-4">
+      <div className="flex shrink-0 flex-col gap-2 border-t border-border px-3 py-4">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-sm font-semibold text-muted-foreground">Tema escuro</span>
+          <ThemeToggle />
+        </div>
         {user?.slug && (
           <Button asChild variant="outline" size="sm" className="w-full justify-start">
             <Link href={`/@${user.slug}`} onClick={onNavigate}>
@@ -155,7 +160,7 @@ interface CreatorMobileTopBarProps {
 
 export function CreatorMobileTopBar({ title, onOpenMenu }: CreatorMobileTopBarProps) {
   return (
-    <header className="sticky top-0 z-40 flex items-center gap-3 border-b-2 border-border bg-background/95 px-4 py-3 backdrop-blur-md lg:hidden">
+    <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-border bg-background/95 px-4 py-3 lg:hidden">
       <Button
         type="button"
         size="icon"
@@ -171,6 +176,7 @@ export function CreatorMobileTopBar({ title, onOpenMenu }: CreatorMobileTopBarPr
         </p>
         <p className="truncate text-sm font-bold">{title}</p>
       </div>
+      <ThemeToggle />
       <NotificationBell />
     </header>
   );
@@ -192,8 +198,8 @@ export function CreatorMobileSidebar({ open, onOpenChange }: CreatorMobileSideba
         aria-label="Fechar menu"
         onClick={() => onOpenChange(false)}
       />
-      <aside className="absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col border-r-2 border-border bg-background shadow-cartoon-lg">
-        <div className="flex shrink-0 items-center justify-between border-b-2 border-border px-4 py-3">
+      <aside className="absolute inset-y-0 left-0 flex w-[min(100%,18rem)] flex-col border-r border-border bg-background shadow-elevated-lg">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
           <SiteLogo size={28} nameClassName="text-base" />
           <Button
             type="button"

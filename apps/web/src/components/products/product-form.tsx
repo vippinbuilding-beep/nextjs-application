@@ -367,7 +367,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
       <Card className="w-full">
         <CardHeader>
           <div className="mb-1 flex items-center justify-between gap-2">
-            <span className="rounded-full border-2 border-border bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground shadow-cartoon-sm">
+            <span className="rounded-full border border-border bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground shadow-elevated-sm">
               {config.label}
             </span>
             {isEdit && product && user?.slug && (
@@ -495,7 +495,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
           )}
 
           {isEdit && product && isCancelled && (
-            <div className="rounded-xl border-2 border-dashed border-border bg-muted/40 p-4">
+            <div className="rounded-xl border border-dashed border-border bg-muted/40 p-4">
               <p className="text-sm font-bold">Produto cancelado</p>
               <p className="text-muted-foreground mt-1 text-xs">
                 Este produto está fora do ar para novos compradores. Restaure
@@ -515,7 +515,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
           )}
 
           {isEdit && product && !isCancelled && (
-            <div className="rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 p-4">
+            <div className="rounded-xl border border-dashed border-destructive/40 bg-destructive/5 p-4">
               <p className="text-sm font-bold text-destructive">Zona de perigo</p>
               <p className="text-muted-foreground mt-1 text-xs">
                 Cancelar tira o produto do ar: ele deixa de aparecer para novos

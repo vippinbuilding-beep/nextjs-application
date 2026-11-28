@@ -25,7 +25,7 @@ export function OnboardingStep({
     <Card className="w-full max-w-md">
       <CardHeader>
         <div className="mb-1 flex items-center gap-2">
-          <span className="rounded-full border-2 border-border bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground shadow-cartoon-sm">
+          <span className="rounded-full border border-border bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground shadow-elevated-sm">
             {step} / {totalSteps}
           </span>
         </div>

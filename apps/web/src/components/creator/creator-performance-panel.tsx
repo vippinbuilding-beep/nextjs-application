@@ -37,7 +37,7 @@ function KpiCard({
   className?: string;
 }) {
   return (
-    <Card className={cn("shadow-cartoon-sm", className)}>
+    <Card className={cn("shadow-elevated-sm", className)}>
       <CardContent className="flex flex-col gap-1 pt-6">
         <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           {label}

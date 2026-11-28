@@ -27,7 +27,7 @@ const alignClass: Record<NonNullable<DataTableColumn<unknown>["align"]>, string>
 };
 
 /**
- * Tabela genérica no estilo "cartoon". Puramente apresentacional (server-safe):
+ * Tabela genérica no estilo da Vippin. Puramente apresentacional (server-safe):
  * paginação/ordenação/busca ficam a cargo da página (ex.: via URL + links), não
  * deste componente. Rola horizontalmente em telas estreitas.
  */
@@ -41,7 +41,7 @@ export function DataTable<T>({
   return (
     <div
       className={cn(
-        "bg-card overflow-x-auto rounded-2xl border-2 border-border shadow-cartoon",
+        "bg-card overflow-x-auto rounded-3xl border border-border shadow-elevated-sm",
         className
       )}
     >
@@ -74,7 +74,7 @@ export function DataTable<T>({
             </tr>
           ) : (
             rows.map((row) => (
-              <tr key={getRowKey(row)} className="border-t-2 border-border">
+              <tr key={getRowKey(row)} className="border-t border-border">
                 {columns.map((col) => (
                   <td
                     key={col.key}

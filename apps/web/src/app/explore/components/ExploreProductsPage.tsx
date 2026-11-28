@@ -30,10 +30,10 @@ function ExploreFeedLoading({ searching }: { searching: boolean }) {
       className="flex min-h-[min(60vh,28rem)] flex-col items-center justify-center gap-5 py-16 text-center"
       aria-busy="true"
     >
-      <div className="relative flex size-16 items-center justify-center rounded-2xl border-2 border-border bg-background shadow-cartoon">
-        <span className="absolute inset-0 animate-ping rounded-2xl border-2 border-border opacity-20" />
+      <div className="relative flex size-16 items-center justify-center rounded-2xl border border-border bg-background shadow-elevated">
+        <span className="absolute inset-0 animate-ping rounded-2xl border border-border opacity-20" />
         <Icon className="text-muted-foreground size-7" strokeWidth={2.25} />
-        <Loading className="absolute -right-2 -bottom-2 size-6 rounded-full border-2 border-border bg-primary p-0.5" />
+        <Loading className="absolute -right-2 -bottom-2 size-6 rounded-full border border-border bg-primary p-0.5" />
       </div>
 
       <div className="flex flex-col gap-1">
@@ -134,10 +134,9 @@ export default function ExploreProductsPage() {
   return (
     <LayoutBackground
       element="main"
-      dotsOpacity={0.1}
       className="flex h-svh min-h-svh flex-col overflow-hidden"
     >
-      <header className="lg:shrink-0 border-b-2 border-border bg-background/95 px-4 py-4 backdrop-blur-md sm:px-6">
+      <header className="lg:shrink-0 border-b border-border bg-background/95 px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -235,7 +234,7 @@ export default function ExploreProductsPage() {
       </section>
 
       {totalPages > 1 && (
-        <footer className="shrink-0 border-t-2 border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:px-6">
+        <footer className="shrink-0 border-t border-border bg-background/95 px-4 py-3 sm:px-6">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
             <Button
               type="button"

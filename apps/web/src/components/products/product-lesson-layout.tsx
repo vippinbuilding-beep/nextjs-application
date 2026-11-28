@@ -127,7 +127,7 @@ export function ProductLessonLayout({
         <aside
           className={cn(
             "hidden lg:flex lg:w-[min(100%,25vw)] lg:shrink-0 lg:flex-col",
-            "lg:border-l-2 lg:border-border lg:bg-muted/20"
+            "lg:border-l lg:border-border lg:bg-muted/20"
           )}
         >
           <ProductCommentsCard

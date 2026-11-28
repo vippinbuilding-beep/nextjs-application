@@ -11,7 +11,7 @@ export function AlertDot({ className, "aria-label": ariaLabel }: AlertDotProps) 
   return (
     <span
       className={cn(
-        "absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background bg-destructive shadow-cartoon-sm",
+        "absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-destructive",
         className
       )}
       role="status"

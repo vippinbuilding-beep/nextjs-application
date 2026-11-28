@@ -63,7 +63,7 @@ export function CreatorPageTabs({
   if (!hasAnyContent) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
           <FileText className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">
@@ -180,7 +180,7 @@ function CreatorFeed({
   if (links.length === 0 && products.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-xl border-2 border-border bg-muted">
+        <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-muted">
           <FileText className="size-6" />
         </span>
         <p className="text-muted-foreground text-sm">{emptyLabel}</p>

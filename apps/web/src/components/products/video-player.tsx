@@ -528,8 +528,8 @@ export function VideoPlayer({
         theatre && "rounded-none border-0 shadow-none",
         !theatre &&
         immersive &&
-        "rounded-none border-0 shadow-none lg:rounded-xl lg:border-2 lg:border-border lg:shadow-cartoon-sm",
-        !theatre && !immersive && "rounded-xl border-2 border-border shadow-cartoon-sm",
+        "rounded-none border-0 shadow-none lg:rounded-xl lg:border lg:border-border lg:shadow-elevated-sm",
+        !theatre && !immersive && "rounded-xl border border-border shadow-elevated-sm",
         fullscreen && "aspect-auto h-screen w-screen rounded-none border-0 shadow-none",
         className
       )}
@@ -616,7 +616,7 @@ export function VideoPlayer({
 
         {!ready && loading && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-            <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
+            <span className="flex size-16 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-elevated">
               <Loader2 className="size-7 animate-spin" />
             </span>
           </div>
@@ -624,7 +624,7 @@ export function VideoPlayer({
 
         {playing && loading && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-            <span className="flex size-16 items-center justify-center rounded-full border-2 border-border bg-primary text-primary-foreground shadow-cartoon">
+            <span className="flex size-16 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-elevated">
               <Loader2 className="size-7 animate-spin" />
             </span>
           </div>
@@ -762,7 +762,7 @@ export function VideoPlayer({
             aria-hidden={!commentsOpen}
             className={cn(
               "absolute z-40 flex flex-col overflow-hidden",
-              "rounded-2xl border-2 border-border bg-background text-foreground shadow-cartoon-lg",
+              "rounded-2xl border border-border bg-background text-foreground shadow-elevated-lg",
               "transition-[transform,opacity] duration-300 ease-out",
               commentsOpen
                 ? "translate-x-0 opacity-100"
@@ -776,7 +776,7 @@ export function VideoPlayer({
                     : "top-4 right-3 bottom-6 w-[min(calc(100%-1.25rem),340px)]"
             )}
           >
-            <div className="flex items-center justify-between gap-2 border-b-2 border-border px-3 py-2">
+            <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
               <span className="flex items-center gap-2 text-sm font-bold">
                 <MessageSquare className="size-4" />
                 Comentários

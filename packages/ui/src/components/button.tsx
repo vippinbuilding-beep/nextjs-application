@@ -5,26 +5,24 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center hover:cursor-pointer justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-bold border-2 border-border transition-all duration-100 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none active:translate-x-0.5 active:translate-y-0.5 active:shadow-cartoon-sm hover:-translate-y-0.5 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring focus-visible:ring-[3px] aria-invalid:border-destructive",
+  // Desempenho: só transform anima (mola curta); cores trocam sem transição.
+  "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold outline-none transition-transform duration-150 ease-spring hover:-translate-y-px active:translate-y-0 active:scale-[.97] disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-ring/30 aria-invalid:ring-4 aria-invalid:ring-destructive/25 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-cartoon hover:bg-primary",
-        destructive:
-          "bg-destructive text-foreground shadow-cartoon hover:bg-destructive",
+          "bg-primary text-primary-foreground shadow-[inset_0_0_0_1px_rgb(10_10_11/0.08),0_8px_18px_-10px_rgb(201_154_0/0.7)]",
+        destructive: "bg-destructive text-destructive-foreground",
         outline:
-          "bg-background text-foreground shadow-cartoon hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-cartoon hover:bg-secondary",
-        ghost:
-          "border-transparent shadow-none hover:bg-accent hover:text-accent-foreground hover:border-border",
-        link: "border-transparent shadow-none text-foreground underline-offset-4 hover:underline hover:translate-y-0",
+          "border border-input bg-card text-foreground shadow-elevated-sm hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-foreground underline-offset-4 hover:translate-y-0 hover:underline",
       },
       size: {
         default: "h-10 px-5 py-2 has-[>svg]:px-4",
-        sm: "h-9 rounded-lg gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-12 rounded-xl px-7 text-base has-[>svg]:px-5",
+        sm: "h-9 gap-1.5 px-3.5 has-[>svg]:px-3",
+        lg: "h-12 px-7 text-base has-[>svg]:px-6",
         icon: "size-10",
       },
     },

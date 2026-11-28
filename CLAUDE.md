@@ -43,13 +43,31 @@ packages/
 
 ## UI / Layout (IMPORTANTE)
 
-O app usa um visual "cartoon": bordas pretas grossas (`border-2 border-border`),
-cantos arredondados (`rounded-xl` / `rounded-2xl`) e sombras duras
-(`shadow-cartoon`, `-sm`, `-lg`). Siga estas regras em toda tela nova:
+O app usa a identidade **"Espectro"**: interface neutra (branco/preto), com tema
+**claro e escuro**, bordas finas (`border border-border`), cantos bem arredondados
+(`rounded-xl` / `rounded-3xl`, botões em pílula), sombras suaves (`shadow-elevated`,
+`-sm`, `-lg`, `-xl`) e o espectro de cores só como destaque (`border-spectrum`,
+`bg-spectrum`). Siga estas regras em toda tela nova:
 
 - **Sempre** envolva páginas inteiras em `LayoutBackground` (`@vippin/ui/layout-background`).
-  Ele aplica o fundo padrão com grade de pontos. Use `background="primary"` só
+  Ele aplica o fundo padrão com grade fina. Use `background="primary"` só
   para telas de destaque (ex.: onboarding).
+- **Tema claro e escuro**: toda tela funciona nos dois. Use só tokens (eles
+  trocam sozinhos com a classe `dark` no `<html>`); para um ajuste pontual,
+  `dark:`. A troca é feita pelo `ThemeToggle` (`@vippin/ui/theme-toggle`), que
+  anima o tema novo num círculo (`setTheme` em `@vippin/ui/lib/theme`).
+- **Animações leves (obrigatório)**: o app precisa rodar liso em PC e celular
+  fracos.
+  - Anime **só `transform` e `opacity`**. Nunca `width`/`height`/`top`/`left`,
+    `box-shadow` ou `filter` (use `scaleX` para barras; sombra de hover num
+    `::after` que aparece por `opacity`, como em `interactive-lift`).
+  - Sem animação em loop infinito, a não ser indicador pequeno (ex.: "ao vivo").
+    Entradas rodam uma vez (`animate-rise`, `animate-pop`).
+  - Sem `backdrop-blur`: barras fixas usam fundo quase opaco (`bg-background/95`).
+  - Interações: `interactive-lift` (cards clicáveis), `interactive-press`
+    (alvos de toque); curvas `ease-spring` (interação) e `ease-out-soft`
+    (entrada); 150–250 ms.
+  - `prefers-reduced-motion` já desliga tudo no `globals.css`; não reative.
 - **Centralize o conteúdo**: `className="flex min-h-svh flex-col items-center justify-center p-4 py-10"`
   no `LayoutBackground`, com um container interno `flex w-full max-w-md flex-col gap-6`.
   Use `max-w-md` para fluxos de formulário/cards; listas mais largas podem usar `max-w-2xl`.
@@ -63,7 +81,10 @@ cantos arredondados (`rounded-xl` / `rounded-2xl`) e sombras duras
   ficam em `apps/web/src/components/ui/*`. Não recrie estilos à mão quando já
   existe um primitivo.
 - Cores: use tokens (`bg-primary`, `bg-secondary`, `bg-muted`, `text-muted-foreground`),
-  nunca hex fixo. Paleta: primário = amarelo `#ffe502`, secundário/borda = preto.
+  nunca hex fixo. Paleta: primário = amarelo `#ffe502` (ação principal),
+  secundário = preto no claro / branco no escuro, borda = cinza translúcido,
+  foco = violeta (`ring`). Texto sobre fundo colorido precisa de contraste 4.5:1
+  nos dois temas.
   Os tokens vivem em `packages/ui/src/styles/globals.css`; o `globals.css` de cada
   app só faz `@import "@vippin/ui/styles/globals.css";`.
 - Estados de carregamento de página inteira usam `ScreenLoading` (`@vippin/ui/screen-loading`).

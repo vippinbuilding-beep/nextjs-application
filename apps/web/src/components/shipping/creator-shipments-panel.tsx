@@ -208,8 +208,8 @@ export function CreatorShipmentsPanel() {
                 setSelected(new Set());
               }}
               className={cn(
-                "rounded-full border-2 border-border px-3 py-1 text-xs font-bold cursor-pointer",
-                filter === f.id ? "bg-primary shadow-cartoon-sm" : "bg-background"
+                "rounded-full border border-border px-3 py-1 text-xs font-bold cursor-pointer",
+                filter === f.id ? "bg-primary shadow-elevated-sm" : "bg-background"
               )}
             >
               {f.label}
@@ -247,7 +247,7 @@ export function CreatorShipmentsPanel() {
             {visible.map((item) => (
               <li
                 key={item.orderId}
-                className="flex flex-col gap-3 rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm"
+                className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-sm"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-start gap-2">
@@ -273,7 +273,7 @@ export function CreatorShipmentsPanel() {
                       </p>
                     </div>
                   </div>
-                  <span className="shrink-0 rounded-full border-2 border-border bg-muted px-2 py-0.5 text-xs font-bold">
+                  <span className="shrink-0 rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-bold">
                     {item.statusLabel}
                   </span>
                 </div>

@@ -37,10 +37,10 @@ export function CartoonBarChart({
         return (
           <div key={item.key} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto] items-center gap-3">
             <span className="truncate text-sm font-bold">{item.label}</span>
-            <div className="h-4 rounded-full border-2 border-border bg-muted">
+            <div className="h-4 rounded-full border border-border bg-muted">
               <div
                 className={cn(
-                  "h-full rounded-full border-2 border-border shadow-cartoon-sm",
+                  "h-full rounded-full border border-border shadow-elevated-sm",
                   item.colorClassName ?? "bg-primary"
                 )}
                 style={{ width: `${widthPercent}%` }}
@@ -110,7 +110,7 @@ export function CartoonTimelineChart({
                 <div className="flex h-40 w-full items-end">
                   {total > 0 ? (
                     <div
-                      className="flex w-full flex-col justify-end overflow-hidden rounded-t-xl border-2 border-border shadow-cartoon-sm"
+                      className="flex w-full flex-col justify-end overflow-hidden rounded-t-xl border border-border shadow-elevated-sm"
                       style={{ height: `${heightPercent}%` }}
                     >
                       {point.askMeCents > 0 && (
@@ -150,11 +150,11 @@ export function CartoonTimelineChart({
 
       <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
         <span className="inline-flex items-center gap-2">
-          <span className="size-3 rounded-sm border-2 border-border bg-primary" />
+          <span className="size-3 rounded-sm border border-border bg-primary" />
           Produtos
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="size-3 rounded-sm border-2 border-border bg-chart-4" />
+          <span className="size-3 rounded-sm border border-border bg-chart-4" />
           Me pergunte
         </span>
       </div>

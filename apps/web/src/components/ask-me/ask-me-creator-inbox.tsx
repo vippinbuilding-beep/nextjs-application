@@ -196,7 +196,7 @@ export function AskMeCreatorInbox({
       {visibleQuestions.map((q) => (
         <li
           key={q.id}
-          className="rounded-xl border-2 border-border bg-background p-4 shadow-cartoon-sm"
+          className="rounded-xl border border-border bg-background p-4 shadow-elevated-sm"
         >
           <div className="mb-3 flex items-start gap-3">
             <UserAvatar
@@ -232,7 +232,7 @@ export function AskMeCreatorInbox({
           )}
 
           {q.answerText && (
-            <div className="mb-3 rounded-lg border-2 border-dashed border-border bg-muted/40 p-3 text-sm">
+            <div className="mb-3 rounded-lg border border-dashed border-border bg-muted/40 p-3 text-sm">
               <p className="mb-1 text-xs font-bold">Sua resposta</p>
               <p className="whitespace-pre-wrap">{q.answerText}</p>
             </div>
@@ -242,12 +242,12 @@ export function AskMeCreatorInbox({
             <video
               src={getAskMeAnswerVideoUrl(q.id)}
               controls
-              className="mb-3 w-full rounded-xl border-2 border-border"
+              className="mb-3 w-full rounded-xl border border-border"
             />
           )}
 
           {canCreatorRespondToAskMe(q.status, q.responseDeadlineAt) && (
-            <div className="flex flex-col gap-3 border-t-2 border-dashed border-border pt-3">
+            <div className="flex flex-col gap-3 border-t border-dashed border-border pt-3">
               <div className="flex flex-col gap-2">
                 <Label>Responder em texto</Label>
                 <Textarea

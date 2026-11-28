@@ -55,7 +55,7 @@ export function DevSimulatePaymentButton({ kind, id }: DevSimulatePaymentButtonP
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border bg-muted p-3">
+    <div className="flex w-full flex-col items-center gap-2 rounded-2xl border border-dashed border-input bg-muted p-3">
       <p className="text-muted-foreground text-xs font-medium">
         Ambiente de desenvolvimento
       </p>
