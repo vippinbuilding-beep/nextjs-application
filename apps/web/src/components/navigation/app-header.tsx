@@ -80,7 +80,7 @@ export function AppHeader({ className, loading = false }: AppHeaderProps) {
 
               <Link
                 href="/profile/edit"
-                className="flex max-w-[9rem] items-center gap-2 rounded-xl border border-border bg-background px-2 py-1 shadow-elevated-sm transition-all hover:-translate-y-0.5 sm:max-w-[11rem]"
+                className="flex max-w-[9rem] items-center gap-2 rounded-xl border border-border bg-background px-2 py-1 transition-[color,background-color,border-color,opacity,transform] hover:-translate-y-0.5 sm:max-w-[11rem]"
                 aria-label={`Editar perfil de ${displayName}`}
               >
                 <UserAvatar

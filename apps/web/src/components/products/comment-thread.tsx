@@ -183,7 +183,7 @@ function CommentCard({
   }
 
   return (
-    <article className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5 shadow-elevated-sm">
+    <article className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5">
       {parent && parent.id !== node.id && (
         <p className="text-muted-foreground mb-2 text-xs font-medium">
           Em resposta a {authorLabel(parent)}

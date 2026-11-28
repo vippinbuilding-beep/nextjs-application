@@ -73,7 +73,7 @@ export default function NewProductPage() {
                 key={type}
                 type="button"
                 onClick={() => router.push(`/products/new/${type}`)}
-                className="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-4 text-left shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated cursor-pointer"
+                className="flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-4 text-left transition-[color,background-color,border-color,opacity,transform] hover:-translate-y-0.5 cursor-pointer"
               >
                 <ProductTypeIcon type={type} />
                 <span className="flex min-w-0 flex-1 flex-col">

@@ -12,13 +12,7 @@ import {
 } from "@/components/profile/avatar-picker";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
+import { Card } from "@vippin/ui/card";
 import { Input } from "@vippin/ui/input";
 import { Label } from "@vippin/ui/label";
 import { navigateBack } from "@/lib/navigation/navigate-back";
@@ -27,6 +21,7 @@ import { userRepository } from "@vippin/supabase/factories/repository-factory";
 import { toast } from "@/lib/toast";
 import { ScreenLoading } from "@vippin/ui/screen-loading";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { FormSection, PageHeader, PageShell } from "@vippin/ui/page-shell";
 
 export function ConsumerProfileForm() {
   const router = useRouter();
@@ -115,57 +110,54 @@ export function ConsumerProfileForm() {
     (user ? resolveConsumerDisplayName(user) : "Usuário");
 
   return (
-    <LayoutBackground
-      element="main"
-      background="primary"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Editar perfil</CardTitle>
-          <CardDescription>
-            Atualize como você aparece na plataforma.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <AvatarPicker
-              userId={user!.id}
-              displayName={previewName}
-              avatarPath={profileAvatarPath}
-              avatarFromGoogle={profileAvatarFromGoogle}
-              avatarFallbackLabel="Usuário"
-              onChange={handleAvatarChange}
-            />
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="consumer-profile-name">Como quer ser chamado?</Label>
-              <Input
-                id="consumer-profile-name"
-                value={consumerName}
-                onChange={(event) => setConsumerName(event.target.value)}
-                placeholder="Seu nome na plataforma"
-                autoComplete="nickname"
-                maxLength={ONBOARDING_LIMITS.consumerName.max}
-                disabled={submitting}
+    <LayoutBackground element="main" className="flex min-h-svh flex-col">
+      <PageShell width="form" className="gap-10 sm:gap-12">
+        <PageHeader
+          title="Editar perfil"
+          description="Atualize como você aparece na plataforma."
+          actions={<BackButton fallback="/" disabled={submitting} />}
+        />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          <Card className="px-6 py-6 sm:px-10 sm:py-8">
+            <FormSection title="Foto" description="Aparece nos seus comentários e perguntas.">
+              <AvatarPicker
+                userId={user!.id}
+                displayName={previewName}
+                avatarPath={profileAvatarPath}
+                avatarFromGoogle={profileAvatarFromGoogle}
+                avatarFallbackLabel="Usuário"
+                onChange={handleAvatarChange}
               />
-            </div>
+            </FormSection>
+            <FormSection title="Nome" description="Como os criadores vão te chamar.">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="consumer-profile-name">Como quer ser chamado?</Label>
+                <Input
+                  id="consumer-profile-name"
+                  value={consumerName}
+                  onChange={(event) => setConsumerName(event.target.value)}
+                  placeholder="Seu nome na plataforma"
+                  autoComplete="nickname"
+                  maxLength={ONBOARDING_LIMITS.consumerName.max}
+                  disabled={submitting}
+                />
+              </div>
+            </FormSection>
+          </Card>
 
-            {error && (
-              <p className="text-destructive text-sm" role="alert">
-                {error}
-              </p>
-            )}
+          {error && (
+            <p className="text-destructive text-sm" role="alert">
+              {error}
+            </p>
+          )}
 
-            <div className="flex flex-row gap-2">
-              <BackButton fallback="/" className="flex-1" disabled={submitting} />
-              <Button type="submit" className="flex-1" disabled={submitting}>
-                {submitting ? "Salvando..." : "Salvar"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          <div className="flex justify-end">
+            <Button type="submit" size="lg" disabled={submitting}>
+              {submitting ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </div>
+        </form>
+      </PageShell>
     </LayoutBackground>
   );
 }

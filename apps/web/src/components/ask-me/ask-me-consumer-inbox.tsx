@@ -66,7 +66,7 @@ export function AskMeConsumerInbox({ askerId }: AskMeConsumerInboxProps) {
       {questions.map((q) => (
         <li
           key={q.id}
-          className="rounded-xl border border-border bg-background p-4 shadow-elevated-sm"
+          className="rounded-xl border border-border bg-background p-4"
         >
           <div className="mb-3 flex items-start gap-3">
             <UserAvatar

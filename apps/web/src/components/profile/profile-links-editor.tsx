@@ -325,7 +325,7 @@ export function ProfileLinksEditor({
             ) : (
               <li
                 key={link.id}
-                className="flex-col md:flex-row flex md:items-center gap-3 rounded-xl border border-border bg-background p-3 shadow-elevated-sm "
+                className="flex-col md:flex-row flex md:items-center gap-3 rounded-xl border border-border bg-background p-3 "
               >
                 <ProfileLinkThumbnail
                   url={link.url}

@@ -1,7 +1,7 @@
 import { cn } from "@vippin/ui/lib/utils";
 
 const skeletonBase =
-  "relative overflow-hidden rounded-xl border border-border bg-muted shadow-elevated-sm";
+  "relative overflow-hidden rounded-xl border border-border bg-muted";
 
 const shimmer =
   "after:absolute after:inset-0 after:-translate-x-full after:animate-[nav-shimmer_1.4s_ease-in-out_infinite] after:bg-linear-to-r after:from-transparent after:via-background/70 after:to-transparent";

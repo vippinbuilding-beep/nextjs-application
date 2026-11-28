@@ -17,6 +17,8 @@ import { cn } from "../lib/utils";
 const SHELL_WIDTHS = {
   /** Leitura e formulários curtos. */
   narrow: "max-w-3xl",
+  /** Formulários com seções (FormSection). */
+  form: "max-w-4xl",
   /** Padrão: vitrines, listas, painel. */
   default: "max-w-6xl",
   /** Tabelas e painéis densos. */
@@ -105,4 +107,34 @@ function Section({ title, description, action, className, children, ...props }: 
   );
 }
 
-export { PageShell, PageHeader, Section };
+interface FormSectionProps extends Omit<React.ComponentProps<"section">, "title"> {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+}
+
+/**
+ * Grupo de campos de um formulário: em telas largas, título e explicação à
+ * esquerda e campos à direita; no celular, empilhado. Seções seguidas se
+ * separam por uma linha fina. Use dentro de um `Card` (o formulário é o
+ * único bloco que leva moldura).
+ */
+function FormSection({ title, description, className, children, ...props }: FormSectionProps) {
+  return (
+    <section
+      data-slot="form-section"
+      className={cn(
+        "grid gap-x-10 gap-y-5 py-8 first:pt-2 last:pb-2 [&+&]:border-t [&+&]:border-border lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]",
+        className
+      )}
+      {...props}
+    >
+      <div className="flex flex-col gap-1.5">
+        <h2 className="text-lg font-semibold leading-tight">{title}</h2>
+        {description && <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>}
+      </div>
+      <div className="flex min-w-0 flex-col gap-4">{children}</div>
+    </section>
+  );
+}
+
+export { PageShell, PageHeader, Section, FormSection };

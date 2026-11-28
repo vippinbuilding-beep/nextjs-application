@@ -18,8 +18,8 @@ export default function AdminLayout({
       <div className="sticky top-0 h-svh">
         <AdminSidebar />
       </div>
-      <LayoutBackground element="main" className="flex-1 overflow-x-hidden p-6">
-        <div className="mx-auto w-full max-w-6xl">{children}</div>
+      <LayoutBackground element="main" className="flex-1 overflow-x-hidden px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+        <div className="mx-auto w-full max-w-7xl">{children}</div>
       </LayoutBackground>
     </div>
   );

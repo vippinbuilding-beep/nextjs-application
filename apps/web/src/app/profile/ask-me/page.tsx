@@ -137,7 +137,7 @@ export default function AskMeProfilePage() {
 
             <TabsContent value="settings">
               <form onSubmit={handleSaveSettings} className="flex flex-col gap-4">
-                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-sm">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-background p-4">
                   <input
                     type="checkbox"
                     checked={enabled}

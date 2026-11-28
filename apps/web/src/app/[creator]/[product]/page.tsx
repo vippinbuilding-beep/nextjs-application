@@ -347,7 +347,7 @@ function DocumentBlock({
   const name = fileName ?? "documento";
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-border bg-background px-6 py-10 text-center">
+    <div className="bg-muted flex flex-col items-center gap-4 rounded-2xl px-6 py-10 text-center">
       <div className="flex flex-col gap-1">
         <p className="font-semibold break-all">{name}</p>
         {fileSize != null && (

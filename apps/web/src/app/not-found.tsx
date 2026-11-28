@@ -2,45 +2,36 @@ import { Compass, Home } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@vippin/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@vippin/ui/card";
 import { LayoutBackground } from "@vippin/ui/layout-background";
+import { PageShell } from "@vippin/ui/page-shell";
 import { SiteLogo } from "@/components/ui/site-logo";
 
 export default function NotFound() {
   return (
-    <LayoutBackground
-      element="main"
-      className="flex min-h-svh flex-col items-center justify-center p-4 py-10"
-    >
-      <Card className="w-full max-w-md">
-        <CardHeader className="items-center text-center">
-          <SiteLogo size={48} nameClassName="text-2xl" />
-          <CardTitle className="text-2xl">Página não encontrada</CardTitle>
-          <CardDescription>
-            O endereço que você acessou não existe ou foi movido.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          <Button asChild className="w-full">
-            <Link href="/">
-              <Home className="size-4" />
-              Ir para o início
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="w-full">
-            <Link href="/explore">
-              <Compass className="size-4" />
-              Explorar produtos
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+    <LayoutBackground element="main" background="primary" className="flex min-h-svh flex-col">
+      <PageShell width="narrow" className="flex-1 justify-center">
+        <div className="flex animate-rise flex-col items-start gap-6">
+          <SiteLogo size={40} nameClassName="text-xl" className="w-auto" />
+          <div className="flex flex-col gap-3">
+            <h1 className="text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">Página não encontrada</h1>
+            <p className="text-muted-foreground text-lg">O endereço que você acessou não existe ou foi movido.</p>
+          </div>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <Button asChild size="lg">
+              <Link href="/">
+                <Home className="size-5" />
+                Ir para o início
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/explore">
+                <Compass className="size-5" />
+                Explorar produtos
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </PageShell>
     </LayoutBackground>
   );
 }

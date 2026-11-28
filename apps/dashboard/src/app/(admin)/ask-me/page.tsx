@@ -121,7 +121,7 @@ export default async function AskMePage({
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Ask Me</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">Ask Me</h1>
         <p className="text-muted-foreground text-sm font-medium">
           Perguntas pagas: status, taxa de resposta e repasses.
         </p>
@@ -146,7 +146,7 @@ export default async function AskMePage({
           <div className="flex flex-wrap gap-2">
             <Link
               href={buildHref(undefined)}
-              className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${!status ? "bg-secondary text-secondary-foreground shadow-elevated-sm" : "bg-card hover:bg-muted"
+              className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${!status ? "bg-secondary text-secondary-foreground" : "bg-card hover:bg-muted"
                 }`}
             >
               Todas
@@ -155,7 +155,7 @@ export default async function AskMePage({
               <Link
                 key={opt}
                 href={buildHref(opt)}
-                className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${status === opt ? "bg-secondary text-secondary-foreground shadow-elevated-sm" : "bg-card hover:bg-muted"
+                className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${status === opt ? "bg-secondary text-secondary-foreground" : "bg-card hover:bg-muted"
                   }`}
               >
                 {STATUS_LABELS[opt]}

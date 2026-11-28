@@ -529,7 +529,7 @@ export function VideoPlayer({
         !theatre &&
         immersive &&
         "rounded-none border-0 shadow-none lg:rounded-xl lg:border lg:border-border lg:shadow-elevated-sm",
-        !theatre && !immersive && "rounded-xl border border-border shadow-elevated-sm",
+        !theatre && !immersive && "rounded-xl border border-border",
         fullscreen && "aspect-auto h-screen w-screen rounded-none border-0 shadow-none",
         className
       )}
@@ -616,7 +616,7 @@ export function VideoPlayer({
 
         {!ready && loading && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-            <span className="flex size-16 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-elevated">
+            <span className="flex size-16 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground">
               <Loader2 className="size-7 animate-spin" />
             </span>
           </div>
@@ -624,7 +624,7 @@ export function VideoPlayer({
 
         {playing && loading && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/30">
-            <span className="flex size-16 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-elevated">
+            <span className="flex size-16 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground">
               <Loader2 className="size-7 animate-spin" />
             </span>
           </div>
@@ -762,7 +762,7 @@ export function VideoPlayer({
             aria-hidden={!commentsOpen}
             className={cn(
               "absolute z-40 flex flex-col overflow-hidden",
-              "rounded-2xl border border-border bg-background text-foreground shadow-elevated-lg",
+              "rounded-2xl border border-border bg-background text-foreground",
               "transition-[transform,opacity] duration-300 ease-out",
               commentsOpen
                 ? "translate-x-0 opacity-100"

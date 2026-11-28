@@ -40,7 +40,7 @@ export function CartoonBarChart({
             <div className="h-4 rounded-full border border-border bg-muted">
               <div
                 className={cn(
-                  "h-full rounded-full border border-border shadow-elevated-sm",
+                  "h-full rounded-full border border-border",
                   item.colorClassName ?? "bg-chart-1"
                 )}
                 style={{ width: `${widthPercent}%` }}
@@ -110,7 +110,7 @@ export function CartoonTimelineChart({
                 <div className="flex h-40 w-full items-end">
                   {total > 0 ? (
                     <div
-                      className="flex w-full flex-col justify-end overflow-hidden rounded-t-xl border border-border shadow-elevated-sm"
+                      className="flex w-full flex-col justify-end overflow-hidden rounded-t-xl border border-border"
                       style={{ height: `${heightPercent}%` }}
                     >
                       {point.askMeCents > 0 && (

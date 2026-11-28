@@ -30,7 +30,7 @@ export default async function VisaoGeralPage({
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Visão Geral</h1>
+          <h1 className="text-3xl font-semibold tracking-[-0.025em] sm:text-4xl">Visão Geral</h1>
           <p className="text-muted-foreground text-sm font-medium">
             Métricas do período selecionado.
           </p>
