@@ -127,16 +127,21 @@ principal de cada tela. Siga estas regras em toda tela nova:
     `transition-transform`, `transition-colors`).
   - Hover só no que é clicável de verdade (itens de produto, botões). Rotas
     dinâmicas têm `loading.tsx` (`PageSkeleton`) para o clique responder na hora.
-  - **Motion AI Kit (skills de animação)**: rode `npx motion-ai` num terminal
-    de verdade (é interativo; não funciona pelo `!` do Claude Code). Ele
-    instala a skill `/motion` (boas práticas para React/Radix, busca na
-    documentação, gerador de spring em CSS, auditoria de performance) e o
-    agente `motion-reviewer` em `.claude/`, e configura o servidor MCP do
-    Motion no `.mcp.json`; reinicie o Claude Code depois. Use `/motion` antes
+  - **Motion AI Kit (skills de animação, já no repo)**: a skill `/motion`
+    (`.claude/skills/motion/`: boas práticas para React/Radix, busca na
+    documentação, gerador de spring em CSS, auditoria de performance), o
+    agente `motion-reviewer` (`.claude/agents/`, audita várias pastas de uma
+    vez) e o servidor MCP do Motion (`.mcp.json`) estão commitados; ao abrir
+    o projeto no Claude Code, aprove o servidor `motion`. Use `/motion` antes
     de criar ou mudar uma animação ("/motion anime esse diálogo", "/motion
-    gere uma spring com bounce 0.3", "/motion audite src/components/checkout").
-    Com Motion+ (`npx motion-ai --plus`) liberam a nota MotionScore e o código
-    dos exemplos.
+    gere uma spring com bounce 0.3", "/motion audite
+    src/components/checkout"). Para atualizar o kit, rode `npx motion-ai`
+    num terminal de verdade (é interativo; não funciona pelo `!` do Claude
+    Code) e commite o que mudar em `.claude/` e `.mcp.json`. Com Motion+
+    (`npx motion-ai --plus`) liberam a nota MotionScore e o código dos
+    exemplos; esse servidor extra pede login, então não o commite sem
+    combinar com o time.
+
 - Reuse os primitivos genéricos de `@vippin/ui/*` (`Button`, `Card`, `Input`, `Label`,
   `Textarea`, `Select`...). Componentes compostos específicos do app principal (ex.:
   `UserAvatar`, `Toaster`, `SiteLogo`, que dependem de dados/rotas do `apps/web`)
