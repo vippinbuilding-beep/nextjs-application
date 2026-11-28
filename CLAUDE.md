@@ -76,27 +76,100 @@ principal de cada tela. Siga estas regras em toda tela nova:
   trocam sozinhos com a classe `dark` no `<html>`); para um ajuste pontual,
   `dark:`. A troca é feita pelo `ThemeToggle` (`@vippin/ui/theme-toggle`), que
   anima o tema novo num círculo (`setTheme` em `@vippin/ui/lib/theme`).
-- **Animações leves (obrigatório)**: o app precisa rodar liso em PC e celular
-  fracos.
-  - Anime **só `transform` e `opacity`**. Nunca `width`/`height`/`top`/`left`,
-    `box-shadow` ou `filter` (use `scaleX` para barras; sombra de hover num
-    `::after` que aparece por `opacity`, como em `interactive-lift`).
-  - Sem animação em loop infinito, a não ser indicador pequeno (ex.: "ao vivo").
-    **Nada de animação de entrada no carregamento da página** (atrasa o LCP e
-    briga com a hidratação); o conteúdo do servidor aparece pronto e o
-    `loading.tsx` cuida da espera. Anime só respostas a ações (`animate-pop`
-    no Pix, diálogos, toasts, abas).
-  - Sem `backdrop-blur`: barras fixas usam fundo quase opaco (`bg-background/95`).
-  - Interações: `interactive-lift` (cards clicáveis), `interactive-press`
-    (alvos de toque); curvas `ease-spring` (interação) e `ease-out-soft`
-    (entrada); 150–250 ms.
-  - `prefers-reduced-motion` já desliga tudo no `globals.css`; não reative.
+- **Movimento (obrigatório: criativo, mas leve)**: o app precisa rodar liso em
+  PC e celular fracos. Animação entra **onde tem função** (responder a uma
+  ação, mostrar o que mudou, guiar o olhar), nunca como enfeite solto. Cada
+  tela tem no máximo um momento de destaque; o resto é discreto.
+  - **CSS ou Motion**: CSS para hover/foco simples, troca de cor, skeleton e
+    loops pequenos. Motion (`motion.dev`) para saída de elementos
+    (`AnimatePresence`), mudança de layout (`layout`, `layoutId`), altura
+    `auto`, arrastar, springs que podem ser interrompidas, rolagem e
+    `whileInView`.
+  - **Motion**: importe sempre de `@vippin/ui/lib/motion` (nunca
+    `motion/react` direto) e use `m.div`, `m.span`... (não `motion.div`). O
+    `MotionProvider` (`@vippin/ui/motion-provider`, já no layout raiz dos dois
+    apps) carrega o núcleo (~5 KB) e baixa as features `domAnimation` depois
+    da hidratação, em modo `strict` (~14 KB a mais no total por página). Não
+    importe o Motion inteiro (`motion.div`): custa ~38 KB em toda página.
+    **Peso real no Turbopack**: ele não elimina bem o código não usado do
+    Motion. Uma página que importa hooks ou `m` de forma estática leva
+    ~50 KB a mais (a landing foi de 14 KB para 71 KB). Então: efeito simples
+    (revelar ao rolar, brilho/ímã seguindo o mouse, barra que se esconde,
+    linha que se desenha com a rolagem) se faz com CSS e um pouco de JS (ver
+    `components/landing/landing-motion.tsx`: variáveis CSS escritas uma vez
+    por frame, `IntersectionObserver`, `animation-timeline: view()`). O Motion
+    fica para o que só ele faz bem (saída de elementos, layout, arrastar,
+    sequências com mola) e, fora de telas que já são pesadas, entra via
+    `next/dynamic` com o espaço reservado, como a vitrine do hero. Confira o
+    tamanho da rota no `next build` antes de commitar.
+    Componente que fica no layout raiz (todas as páginas) não importa Motion
+    direto: carregue a parte animada com `next/dynamic` só quando ela for
+    aparecer, como o `Toaster` faz com `toast-stack.tsx`. Para um "pulo" de
+    destaque sem Motion, use `popElement` (`@vippin/ui/lib/pop`, Web
+    Animations API).
+  - **Overlays do Radix** (Dialog, Popover, Select) animam em CSS
+    (`tw-animate-css` + springs): o Radix espera a animação de saída acabar.
+    Todo filho direto de um `Portal` precisa ser o próprio conteúdo animado;
+    uma `div` sem animação em volta faz o Radix desmontar na hora e corta a
+    saída. Tela que
+    precisa de `layout`/`layoutId`/`drag`/`Reorder` se envolve em
+    `MotionMaxFeatures`, que baixa o resto sob demanda. Só em client
+    components; server components ficam sem JS de animação.
+  - **Springs**: use os presets `springs.snappy` (hover, toque, toggles,
+    indicadores), `springs.soft` (painéis, diálogos, superfícies grandes) e
+    `springs.bouncy` (só celebração) em JS, e as curvas equivalentes em CSS:
+    `ease-spring`, `ease-spring-soft`, `ease-spring-bouncy` (`--spring-*` no
+    `globals.css`, em `linear()`). Saídas usam `exitFast`. Duração: 150–300 ms
+    para elementos pequenos, até ~500 ms para superfícies grandes.
+  - Anime **só `transform`, `opacity` e `clip-path`**. Nunca
+    `width`/`height`/`top`/`left` nem `box-shadow` (use `scaleX` para barras;
+    sombra de hover num `::after` que aparece por `opacity`, como em
+    `interactive-lift`). `filter` (blur) só em elemento pequeno. Altura `auto`
+    com Motion só em conteúdo pequeno (texto expansível, erro de campo).
+  - **Nada de animação de entrada no carregamento da página** (atrasa o LCP e
+    briga com a hidratação): o conteúdo do servidor aparece pronto e o
+    `loading.tsx` (`PageSkeleton`) cuida da espera. Na landing, o título e o
+    texto principal aparecem prontos; decoração em volta pode animar.
+    Conteúdo abaixo da dobra pode entrar com `whileInView` (`once: true`).
+  - Efeitos que seguem o mouse (inclinação, brilho) só em
+    `(hover: hover) and (pointer: fine)`; no toque, só o "apertar". Em
+    callbacks por frame (`useTransform`, pointer move), sem alocar objetos e
+    sem `setState`: use MotionValues.
+  - Sem loop infinito, a não ser indicador pequeno (ex.: "ao vivo",
+    aguardando Pix). Sem `backdrop-blur`: barras fixas usam fundo quase
+    opaco (`bg-background/95`).
+  - Interações em CSS: `interactive-lift` (cards clicáveis, hover só com
+    mouse) e `interactive-press` (alvos de toque).
+  - Peças prontas do kit, sem biblioteca: `RevealGroup`
+    (`@vippin/ui/reveal-group`, revela em cascata ao rolar e só esconde o que
+    está abaixo da dobra), `TiltSurface` (`@vippin/ui/tilt-surface`, capa que
+    inclina com o mouse e tem reflexo, como no `ProductCard`) e
+    `usePointerVars` (`@vippin/ui/lib/pointer-vars`, posição do mouse em
+    `--px`/`--py` para efeitos em CSS). Lista que ganha item por ação do
+    usuário anima só os itens novos (ver `comment-thread.tsx`).
+  - Movimento reduzido: o `globals.css` desliga as animações CSS e o
+    `MotionConfig reducedMotion="user"` desliga transform e layout no Motion
+    (mantém opacidade). Não reative.
   - Nada de `transition-all` (anima sombra e layout junto): liste as
     propriedades (`transition-[color,background-color,border-color,opacity,transform]`,
     `transition-transform`, `transition-colors`).
-- **Movimento com intenção**: nenhuma entrada no carregamento; hover só no
-  que é clicável de verdade (itens de produto, botões). Rotas dinâmicas têm
-  `loading.tsx` (`PageSkeleton`) para o clique responder na hora.
+  - Hover só no que é clicável de verdade (itens de produto, botões). Rotas
+    dinâmicas têm `loading.tsx` (`PageSkeleton`) para o clique responder na hora.
+  - **Motion AI Kit (skills de animação, já no repo)**: a skill `/motion`
+    (`.claude/skills/motion/`: boas práticas para React/Radix, busca na
+    documentação, gerador de spring em CSS, auditoria de performance), o
+    agente `motion-reviewer` (`.claude/agents/`, audita várias pastas de uma
+    vez) e o servidor MCP do Motion (`.mcp.json`) estão commitados; ao abrir
+    o projeto no Claude Code, aprove o servidor `motion`. Use `/motion` antes
+    de criar ou mudar uma animação ("/motion anime esse diálogo", "/motion
+    gere uma spring com bounce 0.3", "/motion audite
+    src/components/checkout"). Para atualizar o kit, rode `npx motion-ai`
+    num terminal de verdade (é interativo; não funciona pelo `!` do Claude
+    Code) e commite o que mudar em `.claude/` e `.mcp.json`. Com Motion+
+    (`npx motion-ai --plus`) liberam a nota MotionScore e o código dos
+    exemplos; esse servidor extra pede login, então não o commite sem
+    combinar com o time.
+
 - Reuse os primitivos genéricos de `@vippin/ui/*` (`Button`, `Card`, `Input`, `Label`,
   `Textarea`, `Select`...). Componentes compostos específicos do app principal (ex.:
   `UserAvatar`, `Toaster`, `SiteLogo`, que dependem de dados/rotas do `apps/web`)

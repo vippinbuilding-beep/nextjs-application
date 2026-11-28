@@ -31,7 +31,9 @@ function PopoverContent({
         sideOffset={sideOffset}
         className={cn(
           "bg-popover text-popover-foreground z-50 w-auto origin-(--radix-popover-content-transform-origin) rounded-2xl border border-border p-2 shadow-elevated-lg outline-none",
-          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          // Nasce do gatilho (transform-origin do Radix) com mola curta; sai rápido.
+          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-90 data-[state=open]:duration-250 data-[state=open]:ease-spring",
+          "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:duration-100 data-[state=closed]:ease-in",
           className
         )}
         {...props}

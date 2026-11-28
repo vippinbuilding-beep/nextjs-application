@@ -5,8 +5,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  // Desempenho: só transform anima (mola curta); cores trocam sem transição.
-  "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold outline-none transition-transform duration-150 ease-spring hover:-translate-y-px active:translate-y-0 active:scale-[.97] disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-ring/30 aria-invalid:ring-4 aria-invalid:ring-destructive/25 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  // Desempenho: só transform anima; cores trocam sem transição. Mola curta:
+  // aperta ao tocar e volta com um leve repique ao soltar.
+  "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold outline-none transition-transform duration-[260ms] ease-spring hover:-translate-y-px active:translate-y-0 active:scale-[.96] active:duration-100 disabled:pointer-events-none disabled:opacity-50 focus-visible:ring-4 focus-visible:ring-ring/30 aria-invalid:ring-4 aria-invalid:ring-destructive/25 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

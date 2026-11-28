@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import dynamic from "next/dynamic";
+import { Fragment, useEffect, useRef } from "react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@vippin/ui/button";
@@ -33,6 +34,20 @@ import { LayoutBackground } from "@vippin/ui/layout-background";
 import { ContactEmailLink } from "@/components/ui/contact-email-link";
 import { JsonLd } from "@/components/seo/json-ld";
 import { organizationAndWebsiteJsonLd } from "@/lib/structured-data";
+import type { FeaturedCreator } from "@/lib/featured-creator";
+import { usePointerVars } from "@vippin/ui/lib/pointer-vars";
+import { RevealGroup } from "@vippin/ui/reveal-group";
+
+import { Magnetic, PointerGlow, scrollDrawStyle, scrollLightStyle } from "./landing-motion";
+
+/**
+ * Vitrine animada do hero (única peça com Motion): baixa depois da página
+ * pronta. O espaço fica reservado com o mesmo tamanho, sem pular layout.
+ */
+const HeroShowcase = dynamic(() => import("./hero-showcase"), {
+  ssr: false,
+  loading: () => <div aria-hidden className="h-[440px] w-full max-w-[520px] sm:h-[500px]" />,
+});
 
 const CREATOR_FEATURES = [
   {
@@ -132,27 +147,70 @@ function FeatureColumn({
         <h3 className="text-2xl font-semibold tracking-tight">{title}</h3>
         <p className="text-muted-foreground max-w-[52ch]">{lead}</p>
       </div>
-      <ul className="flex flex-col gap-7">
+      <RevealGroup as="ul" className="flex flex-col gap-7" itemClassName="group flex gap-4">
         {features.map((feature) => (
-          <li key={feature.title} className="flex gap-4">
-            <span className="bg-muted flex size-11 shrink-0 items-center justify-center rounded-xl">
+          <Fragment key={feature.title}>
+            <span className="bg-muted flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-[420ms] ease-spring-bouncy group-hover:-rotate-8 group-hover:scale-110">
               <feature.icon className="size-5" />
             </span>
             <span className="flex flex-col gap-1">
               <span className="font-semibold">{feature.title}</span>
               <span className="text-muted-foreground leading-relaxed">{feature.description}</span>
             </span>
-          </li>
+          </Fragment>
         ))}
-      </ul>
+      </RevealGroup>
     </div>
   );
 }
 
-export function LandingPage() {
+/** Nome da linha do tempo de rolagem dos passos (CSS `view-timeline`). */
+const STEPS_TIMELINE = "--landing-steps";
+
+/**
+ * "Como funciona": a linha de cada passo se desenha conforme a rolagem e o
+ * rótulo acende quando a linha chega ao fim. CSS puro (scroll-driven).
+ */
+function StepsTimeline() {
+  return (
+    <ol
+      className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10"
+      style={{ viewTimelineName: STEPS_TIMELINE } as React.CSSProperties}
+    >
+      {STEPS.map((step, index) => {
+        const start = 8 + index * 12;
+        const end = start + 12;
+        return (
+          <li key={step.number} className="relative flex flex-col gap-3 pt-6">
+            <span aria-hidden className="bg-border absolute inset-x-0 top-0 h-px" />
+            <span
+              aria-hidden
+              className="bg-aurora absolute inset-x-0 -top-px h-0.5 origin-left rounded-full motion-reduce:[animation:none]"
+              style={scrollDrawStyle(STEPS_TIMELINE, start, end)}
+            />
+            <span
+              className="text-ring text-sm font-semibold motion-reduce:[animation:none]"
+              style={scrollLightStyle(STEPS_TIMELINE, end)}
+            >
+              Passo {index + 1}
+            </span>
+            <h3 className="text-xl font-semibold">{step.title}</h3>
+            <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export function LandingPage({ featuredCreator }: { featuredCreator: FeaturedCreator | null }) {
   const returnPath = useCurrentReturnPath();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const heroRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  usePointerVars(heroRef);
+  usePointerVars(ctaRef);
 
   useEffect(() => {
     if (!loading && user) {
@@ -175,45 +233,55 @@ export function LandingPage() {
       <LandingNavbar />
 
       {/* HERO */}
-      <section className="relative overflow-hidden px-5 pt-36 pb-24 sm:px-8 sm:pt-44 sm:pb-32">
-        <div aria-hidden className="aurora-glow pointer-events-none absolute inset-0 -z-10" />
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-start gap-8">
-          <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.035em] sm:text-6xl md:text-7xl">
-            Transforme seu conhecimento em renda
-          </h1>
-          <p className="text-muted-foreground max-w-[56ch] text-pretty text-lg leading-relaxed sm:text-xl">
-            No Vippin, criadores vendem aulas e materiais direto para sua audiência,
-            e quem quer aprender encontra conteúdo de qualidade em um só lugar.
-          </p>
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-            <Button asChild size="lg" className="w-full sm:w-auto">
-              <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
-                <Rocket className="size-5" />
-                Começar como criador
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-              <Link href="explore">
-                Explorar conteúdos
-                <ArrowRight className="size-5" />
-              </Link>
-            </Button>
+      <section
+        ref={heroRef}
+        className="relative overflow-hidden px-5 pt-32 pb-20 sm:px-8 sm:pt-40 sm:pb-28"
+      >
+        <PointerGlow className="-z-10" />
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-14 lg:grid-cols-[1.1fr_1fr] lg:gap-10">
+          <div className="flex flex-col items-start gap-8">
+            <h1 className="max-w-4xl text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.035em] sm:text-6xl xl:text-7xl">
+              Transforme seu conhecimento em renda
+            </h1>
+            <p className="text-muted-foreground max-w-[56ch] text-pretty text-lg leading-relaxed sm:text-xl">
+              No Vippin, criadores vendem aulas e materiais direto para sua audiência,
+              e quem quer aprender encontra conteúdo de qualidade em um só lugar.
+            </p>
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <Magnetic>
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
+                    <Rocket className="size-5" />
+                    Começar como criador
+                  </Link>
+                </Button>
+              </Magnetic>
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
+                <Link href="explore">
+                  Explorar conteúdos
+                  <ArrowRight className="size-5" />
+                </Link>
+              </Button>
+            </div>
+            <InstallAppButton className="max-w-xs" />
+            <ul className="text-muted-foreground flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+              {TRUST_BADGES.map((badge) => (
+                <li key={badge.label} className="inline-flex items-center gap-2">
+                  <badge.icon className="text-ring size-4" />
+                  {badge.label}
+                </li>
+              ))}
+            </ul>
           </div>
-          <InstallAppButton className="max-w-xs" />
-          <ul className="text-muted-foreground flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            {TRUST_BADGES.map((badge) => (
-              <li key={badge.label} className="inline-flex items-center gap-2">
-                <badge.icon className="text-ring size-4" />
-                {badge.label}
-              </li>
-            ))}
-          </ul>
+          <div className="flex justify-center lg:justify-end">
+            <HeroShowcase sectionRef={heroRef} creator={featuredCreator} />
+          </div>
         </div>
       </section>
 
       {/* DOIS LADOS */}
       <section className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
-        <div className="flex max-w-3xl flex-col gap-4">
+        <RevealGroup className="flex max-w-3xl flex-col gap-4">
           <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
             Feito para os dois lados da mesa
           </h2>
@@ -221,7 +289,7 @@ export function LandingPage() {
             Seja você quem ensina ou quem quer aprender, o Vippin conecta os dois
             com uma experiência simples, bonita e segura.
           </p>
-        </div>
+        </RevealGroup>
 
         <div className="mt-16 grid gap-16 lg:grid-cols-2 lg:gap-20">
           <FeatureColumn
@@ -239,22 +307,19 @@ export function LandingPage() {
 
       {/* COMO FUNCIONA (sequência real: números fazem sentido aqui) */}
       <section className="mx-auto w-full max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
-        <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">Como funciona</h2>
-        <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-10">
-          {STEPS.map((step, index) => (
-            <li key={step.number} className="border-border flex flex-col gap-3 border-t pt-6">
-              <span className="text-muted-foreground text-sm font-medium">Passo {index + 1}</span>
-              <h3 className="text-xl font-semibold">{step.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-            </li>
-          ))}
-        </ol>
+        <RevealGroup>
+          <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">Como funciona</h2>
+        </RevealGroup>
+        <StepsTimeline />
       </section>
 
       {/* CTA FINAL */}
       <section className="mx-auto w-full max-w-6xl px-5 pb-24 sm:px-8 sm:pb-32">
-        <div className="bg-card shadow-surface relative overflow-hidden rounded-[32px] px-6 py-16 sm:px-14 sm:py-20">
-          <div aria-hidden className="aurora-glow pointer-events-none absolute inset-0" />
+        <div
+          ref={ctaRef}
+          className="bg-card shadow-surface relative overflow-hidden rounded-[32px] px-6 py-16 sm:px-14 sm:py-20"
+        >
+          <PointerGlow />
           <div className="relative flex max-w-2xl flex-col items-start gap-6">
             <h2 className="text-balance text-4xl font-semibold tracking-[-0.03em] sm:text-5xl">
               Pronto para começar?
@@ -263,12 +328,14 @@ export function LandingPage() {
               Crie sua conta gratuitamente e comece a vender ou a aprender hoje mesmo.
             </p>
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
-                  <Rocket className="size-5" />
-                  Quero criar conteúdo
-                </Link>
-              </Button>
+              <Magnetic>
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link href={buildLoginUrl({ role: "creator", next: returnPath })}>
+                    <Rocket className="size-5" />
+                    Quero criar conteúdo
+                  </Link>
+                </Button>
+              </Magnetic>
               <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
                 <Link href="explore">
                   <Link2 className="size-5" />

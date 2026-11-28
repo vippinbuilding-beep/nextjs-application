@@ -14,10 +14,17 @@ function collapsedLineCount(previewLength: number): number {
   return Math.max(2, Math.round(previewLength / 55));
 }
 
+/** Mesma curva do `--spring-soft` (sem passar do ponto: é texto). */
+const SOFT_SPRING =
+  "linear(0, 0.049, 0.157, 0.285, 0.411, 0.525, 0.624, 0.706, 0.772, 0.825, 0.866, 0.899, 0.924, 0.943, 0.957, 0.968, 0.976, 0.983, 0.987, 0.991, 0.993, 0.995, 0.996, 0.997, 1)";
+
 /**
- * Shows a clamped preview of long text with a "Mostrar mais"/"Mostrar menos"
- * toggle. The height animates smoothly between the collapsed and full state so
- * expanding/collapsing doesn't jump.
+ * Prévia de texto longo com "Mostrar mais"/"Mostrar menos".
+ *
+ * Fechado, o texto é cortado em N linhas pelo próprio CSS (`line-clamp`):
+ * aparece pronto no HTML do servidor, sem esperar JS. Ao abrir/fechar, a
+ * altura anima com mola (Web Animations API); é conteúdo pequeno, então
+ * animar a altura não pesa. Movimento reduzido: troca na hora.
  */
 export function ExpandableText({
   text,
@@ -26,54 +33,58 @@ export function ExpandableText({
 }: ExpandableTextProps) {
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > previewLength;
-  const paragraphRef = useRef<HTMLParagraphElement>(null);
-  const [heights, setHeights] = useState<{ collapsed: number; full: number } | null>(
-    null
-  );
-  const [measuring, setMeasuring] = useState(isLong);
-
   const lines = collapsedLineCount(previewLength);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const fromHeight = useRef<number | null>(null);
 
-  // Measure the collapsed (N lines) and full heights before paint so the
-  // preview never flashes fully expanded on mount. Start with max-height: 0
-  // (hidden) so no flash occurs, then measure and reveal.
+  const toggle = () => {
+    fromHeight.current = boxRef.current?.getBoundingClientRect().height ?? null;
+    setExpanded((value) => !value);
+  };
+
+  // Depois da troca (antes de pintar): anima da altura antiga para a nova.
   useLayoutEffect(() => {
-    const el = paragraphRef.current;
-    if (!el || !isLong) {
-      setHeights(null);
-      setMeasuring(false);
-      return;
-    }
-    const full = el.scrollHeight;
-    const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || 20;
-    const collapsed = Math.min(full, Math.round(lineHeight * lines));
-    setHeights({ collapsed, full });
-    setMeasuring(false);
-  }, [isLong, lines, text]);
-
-  const maxHeight =
-    !isLong || !heights || measuring
-      ? measuring
-        ? "0px"
-        : undefined
-      : expanded
-        ? heights.full
-        : heights.collapsed;
+    const box = boxRef.current;
+    const from = fromHeight.current;
+    fromHeight.current = null;
+    if (!box || from === null) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const to = box.getBoundingClientRect().height;
+    if (Math.abs(to - from) < 1 || typeof box.animate !== "function") return;
+    const easing = CSS.supports("transition-timing-function", SOFT_SPRING) ? SOFT_SPRING : "ease-out";
+    box.animate(
+      [
+        { height: `${from}px`, overflow: "hidden" },
+        { height: `${to}px`, overflow: "hidden" },
+      ],
+      { duration: expanded ? 420 : 320, easing }
+    );
+  }, [expanded]);
 
   return (
     <div className={className}>
-      <div
-        className="overflow-hidden"
-        style={maxHeight !== undefined ? { maxHeight } : undefined}
-      >
-        <p ref={paragraphRef} className="break-words whitespace-pre-line">
+      <div ref={boxRef}>
+        <p
+          className="break-words whitespace-pre-line"
+          style={
+            isLong && !expanded
+              ? {
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: lines,
+                  overflow: "hidden",
+                }
+              : undefined
+          }
+        >
           {text}
         </p>
       </div>
       {isLong && (
         <button
           type="button"
-          onClick={() => setExpanded((value) => !value)}
+          onClick={toggle}
+          aria-expanded={expanded}
           className="mt-1 inline-block font-semibold text-foreground underline underline-offset-2 hover:opacity-80"
         >
           {expanded ? "Mostrar menos" : "Mostrar mais"}

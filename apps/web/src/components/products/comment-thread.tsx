@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@vippin/ui/button";
@@ -288,8 +288,11 @@ function RootCommentThread({
   onCancelReply,
   onSubmitReply,
   onDelete,
+  isNew,
 }: {
   node: CommentNode;
+  /** Chegou depois da lista carregar (acabou de ser enviado): entra animado. */
+  isNew: boolean;
   currentUserId?: string;
   isOwner: boolean;
   replyingToId: string | null;
@@ -337,7 +340,12 @@ function RootCommentThread({
   };
 
   return (
-    <li className="flex w-full min-w-0 flex-col gap-2">
+    <li
+      className={cn(
+        "flex w-full min-w-0 flex-col gap-2",
+        isNew && "animate-in fade-in-0 slide-in-from-top-3 duration-[420ms] ease-spring"
+      )}
+    >
       <CommentCard node={node} {...cardProps} />
 
       {replyCount > 0 && (
@@ -366,10 +374,13 @@ function RootCommentThread({
 
       {expanded && replyCount > 0 && (
         <ul className="flex w-full min-w-0 flex-col gap-2">
-          {flattenReplies(node).map(({ node: reply, parent }) => (
+          {flattenReplies(node).map(({ node: reply, parent }, index) => (
+            // Respostas só aparecem por ação (abrir ou responder): entram em
+            // cascata curta.
             <li
               key={reply.id}
-              className={cn("box-border w-full min-w-0 pl-4")}
+              style={{ animationDelay: `${Math.min(index, 6) * 50}ms` }}
+              className="animate-in fade-in-0 slide-in-from-top-2 fill-mode-both box-border w-full min-w-0 pl-4 duration-300 ease-spring-soft"
             >
               <CommentCard
                 node={reply}
@@ -395,6 +406,13 @@ export function CommentThread({
   onSubmitReply,
   onDelete,
 }: CommentThreadProps) {
+  // Comentários que já estavam lá quando a lista apareceu não animam; só os
+  // que chegam depois (acabaram de ser enviados).
+  const initialIds = useRef<Set<string> | null>(null);
+  if (initialIds.current === null && nodes.length > 0) {
+    initialIds.current = new Set(nodes.map((node) => node.id));
+  }
+
   if (nodes.length === 0) return null;
 
   return (
@@ -403,6 +421,7 @@ export function CommentThread({
         <RootCommentThread
           key={node.id}
           node={node}
+          isNew={!initialIds.current?.has(node.id)}
           currentUserId={currentUserId}
           isOwner={isOwner}
           replyingToId={replyingToId}

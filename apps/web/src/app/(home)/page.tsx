@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import ConsumerHomePage from "./components/ConsumerHomePage";
 import DashboardPage from "./components/DashboardPage";
 import { LandingPage } from "@/components/landing/landing-page";
+import { getFeaturedCreator } from "@/lib/featured-creator";
 import { DEFAULT_DESCRIPTION, HOME_TITLE, baseOpenGraph } from "@/lib/metadata";
 import { createSupabaseServerClient } from "@vippin/supabase/client/server";
 
@@ -27,7 +28,7 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return <LandingPage />;
+    return <LandingPage featuredCreator={await getFeaturedCreator()} />;
   }
 
   const { data: profile } = await supabase
