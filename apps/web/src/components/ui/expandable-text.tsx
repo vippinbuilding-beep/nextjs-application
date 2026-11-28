@@ -63,7 +63,7 @@ export function ExpandableText({
   return (
     <div className={className}>
       <div
-        className="overflow-hidden transition-[max-height] duration-300 ease-out"
+        className="overflow-hidden"
         style={maxHeight !== undefined ? { maxHeight } : undefined}
       >
         <p ref={paragraphRef} className="break-words whitespace-pre-line">

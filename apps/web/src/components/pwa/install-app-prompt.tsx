@@ -72,7 +72,7 @@ export function InstallAppPrompt() {
       role="region"
       aria-label="Instalar aplicativo"
     >
-      <div className="flex w-full max-w-md items-start gap-3 rounded-2xl border border-border bg-background p-4 shadow-elevated-lg">
+      <div className="flex w-full max-w-md items-start gap-3 rounded-2xl border border-border bg-background p-4">
         <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-primary">
           {iosHint ? (
             <Share className="size-5" aria-hidden />

@@ -94,7 +94,7 @@ export function CreatorFeed({
       <section className="flex flex-col gap-3">
         <CreatorFeedHeader searching />
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-8 text-center">
-          <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm">
+          <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background">
             <Users className="text-muted-foreground size-6" />
           </span>
           <p className="text-muted-foreground text-sm font-medium">{emptyLabel}</p>
@@ -130,7 +130,7 @@ export function CreatorFeed({
             <Link
               href={`/@${creator.slug}`}
               draggable={false}
-              className="group flex w-28 flex-col items-center gap-2.5 rounded-2xl border border-border bg-background p-3 shadow-elevated-sm transition-all hover:-translate-y-1 hover:shadow-elevated"
+              className="group flex w-28 flex-col items-center gap-2.5 rounded-2xl border border-border bg-background p-3 transition-[color,background-color,border-color,opacity,transform] hover:-translate-y-1"
             >
               <UserAvatar
                 userId={creator.id}

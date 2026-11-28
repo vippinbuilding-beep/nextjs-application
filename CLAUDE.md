@@ -62,6 +62,10 @@ principal de cada tela. Siga estas regras em toda tela nova:
   borda); `outline` para listas densas; `elevated` para o que flutua. Listas e
   textos ficam soltos na página. Produtos em grade: imagem com canto grande e
   título/preço abaixo, sem caixa em volta.
+- **Borda ou sombra, nunca as duas** no mesmo elemento. Borda (`border-border`)
+  para divisão e listas; sombra (`shadow-surface`/`shadow-elevated*`) para o que
+  flutua. Campos de formulário usam `border-input` (contraste 3:1 com o fundo,
+  exigido pela WCAG para limites de componentes).
 - **Hierarquia de cantos**: 24–28 px em superfícies grandes (`rounded-3xl`),
   16–20 px em imagens/cards de item, 12 px em campos, botões em pílula.
 - **Tipografia**: só Geist. Títulos em `font-semibold` (não `font-bold`), h1
@@ -84,6 +88,9 @@ principal de cada tela. Siga estas regras em toda tela nova:
     (alvos de toque); curvas `ease-spring` (interação) e `ease-out-soft`
     (entrada); 150–250 ms.
   - `prefers-reduced-motion` já desliga tudo no `globals.css`; não reative.
+  - Nada de `transition-all` (anima sombra e layout junto): liste as
+    propriedades (`transition-[color,background-color,border-color,opacity,transform]`,
+    `transition-transform`, `transition-colors`).
 - **Movimento com intenção**: uma entrada por tela (o `PageHeader` já faz),
   hover só no que é clicável de verdade (itens de produto, botões). Nada de
   animar cada seção.

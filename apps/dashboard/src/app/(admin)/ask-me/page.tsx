@@ -146,7 +146,7 @@ export default async function AskMePage({
           <div className="flex flex-wrap gap-2">
             <Link
               href={buildHref(undefined)}
-              className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${!status ? "bg-secondary text-secondary-foreground shadow-elevated-sm" : "bg-card hover:bg-muted"
+              className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${!status ? "bg-secondary text-secondary-foreground" : "bg-card hover:bg-muted"
                 }`}
             >
               Todas
@@ -155,7 +155,7 @@ export default async function AskMePage({
               <Link
                 key={opt}
                 href={buildHref(opt)}
-                className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${status === opt ? "bg-secondary text-secondary-foreground shadow-elevated-sm" : "bg-card hover:bg-muted"
+                className={`rounded-xl border border-border px-3 py-1.5 text-sm font-semibold ${status === opt ? "bg-secondary text-secondary-foreground" : "bg-card hover:bg-muted"
                   }`}
               >
                 {STATUS_LABELS[opt]}

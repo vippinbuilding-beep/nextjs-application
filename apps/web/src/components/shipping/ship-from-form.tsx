@@ -253,7 +253,7 @@ export function ShipFromForm({ onSaved }: ShipFromFormProps) {
                             setSaved(false);
                           }}
                           className={cn(
-                            "rounded-xl border border-border p-3 text-left text-sm font-semibold transition-all",
+                            "rounded-xl border border-border p-3 text-left text-sm font-semibold transition-[color,background-color,border-color,opacity,transform]",
                             selected
                               ? "bg-secondary text-secondary-foreground"
                               : "bg-background",

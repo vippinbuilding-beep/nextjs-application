@@ -118,7 +118,7 @@ export function FileUploadField({
           />
 
           {hasSelection || hasExisting ? (
-            <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-3 shadow-elevated-sm">
+            <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-3">
               <div className="flex min-w-0 items-start gap-3">
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
                   {hasSelection ? (
@@ -189,14 +189,14 @@ export function FileUploadField({
               }}
               onDrop={handleDrop}
               className={cn(
-                "flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center shadow-elevated-sm transition-all",
+                "flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/20 px-4 py-6 text-center shadow-elevated-sm transition-[color,background-color,border-color,opacity,transform]",
                 "hover:border-primary hover:bg-primary/5",
                 "focus-visible:ring-ring focus-visible:ring-[3px] focus-visible:outline-none",
                 "disabled:pointer-events-none disabled:opacity-50",
                 dragging && "border-primary bg-primary/10"
               )}
             >
-              <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background shadow-elevated-sm">
+              <span className="flex size-12 items-center justify-center rounded-xl border border-border bg-background">
                 <Icon className="size-6 text-muted-foreground" />
               </span>
               <span className="flex flex-col gap-0.5">

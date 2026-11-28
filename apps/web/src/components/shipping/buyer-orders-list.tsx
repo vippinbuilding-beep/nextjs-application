@@ -203,7 +203,7 @@ export function BuyerOrdersList() {
         return (
           <li
             key={item.orderId}
-            className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-sm"
+            className="flex flex-col gap-3 rounded-xl border border-border bg-background p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">

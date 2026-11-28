@@ -251,7 +251,7 @@ export function PhysicalProductFields({
                 onClick={() => set("shippingMode", option.mode)}
                 aria-pressed={selected}
                 className={cn(
-                  "flex items-start gap-3 rounded-xl border border-border p-3 text-left transition-all cursor-pointer",
+                  "flex items-start gap-3 rounded-xl border border-border p-3 text-left transition-[color,background-color,border-color,opacity,transform] cursor-pointer",
                   selected
                     ? "bg-secondary text-secondary-foreground"
                     : "bg-background hover:-translate-y-0.5 hover:shadow-elevated-sm"

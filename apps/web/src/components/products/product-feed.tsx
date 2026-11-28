@@ -122,7 +122,7 @@ function ProductPriceBadge({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-lg border border-border font-semibold shadow-elevated-sm",
+        "inline-flex shrink-0 items-center rounded-lg border border-border font-semibold",
         size === "lg" && "px-3 py-1.5 text-base",
         size === "md" && "px-2.5 py-1 text-sm",
         size === "sm" && "px-2 py-0.5 text-xs",
@@ -153,7 +153,7 @@ function ProductFeedCard({
     return (
       <Link
         href={href}
-        className="group flex items-center gap-4 rounded-xl border border-border bg-background p-4 shadow-elevated-sm transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+        className="group flex items-center gap-4 rounded-xl border border-border bg-background p-4 transition-[color,background-color,border-color,opacity,transform] hover:-translate-y-0.5"
       >
         <ProductThumbnail
           type={item.type}
@@ -195,7 +195,7 @@ function ProductFeedCard({
   return (
     <Link
       href={href}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-elevated-sm transition-all hover:-translate-y-1 hover:shadow-elevated"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-background transition-[color,background-color,border-color,opacity,transform] hover:-translate-y-1"
     >
       <span className="relative block">
         <ProductThumbnail

@@ -22,7 +22,7 @@ export function LandingNavbar() {
     <header className="fixed inset-x-0 top-0 z-50 flex justify-center p-3 sm:p-4">
       <nav
         className={cn(
-          "flex w-full max-w-5xl items-center justify-between gap-3 rounded-2xl border border-border px-3 py-2 transition-all duration-200 sm:px-5 sm:py-3",
+          "flex w-full max-w-5xl items-center justify-between gap-3 rounded-2xl border border-border px-3 py-2 transition-[color,background-color,border-color,opacity,transform] duration-200 sm:px-5 sm:py-3",
           scrolled
             ? "bg-background/90 shadow-elevated"
             : "border-transparent bg-transparent shadow-none"

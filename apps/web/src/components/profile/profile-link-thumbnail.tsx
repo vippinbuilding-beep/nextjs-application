@@ -183,7 +183,7 @@ function PlatformBrandThumbnail({
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-lg border border-border text-white shadow-elevated-sm",
+        "flex shrink-0 items-center justify-center rounded-lg border border-border text-white",
         platform.backgroundClass,
         sizeClasses.box,
         className
@@ -235,7 +235,7 @@ export function ProfileLinkThumbnail({
     return (
       <span
         className={cn(
-          "flex shrink-0 items-center justify-center rounded-lg border border-border bg-muted shadow-elevated-sm",
+          "flex shrink-0 items-center justify-center rounded-lg border border-border bg-muted",
           sizeClasses.box,
           className
         )}
@@ -251,7 +251,7 @@ export function ProfileLinkThumbnail({
     return (
       <span
         className={cn(
-          "relative shrink-0 overflow-hidden rounded-lg border border-border bg-muted shadow-elevated-sm",
+          "relative shrink-0 overflow-hidden rounded-lg border border-border bg-muted",
           sizeClasses.box,
           className
         )}

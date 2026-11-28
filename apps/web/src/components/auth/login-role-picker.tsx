@@ -28,21 +28,21 @@ export function LoginRolePicker({ next, className }: LoginRolePickerProps) {
             href={buildLoginUrl({ role, next })}
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
-              "h-auto w-full justify-between gap-2 px-3 py-3 text-left whitespace-normal sm:gap-3 sm:px-4 sm:py-4"
+              "h-auto w-full justify-between gap-2 rounded-2xl px-3 py-3 text-left whitespace-normal sm:gap-3 sm:px-4 sm:py-4"
             )}
           >
             <span className="flex min-w-0 items-start gap-2 sm:gap-3">
               <span
                 className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-xl border border-border shadow-elevated-sm sm:size-10",
-                  role === "creator" ? "bg-primary" : "bg-[#4dd2ff]"
+                  "flex size-9 shrink-0 items-center justify-center rounded-xl sm:size-10",
+                  role === "creator" ? "bg-aurora text-white" : "bg-muted text-foreground"
                 )}
               >
                 <Icon className="size-4 sm:size-5" />
               </span>
               <span className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
                 <span className="font-semibold">{copy.badge}</span>
-                <span className="text-muted-foreground text-xs font-medium leading-snug sm:text-sm">
+                <span className="text-muted-foreground text-xs leading-snug sm:text-sm">
                   {copy.description}
                 </span>
               </span>

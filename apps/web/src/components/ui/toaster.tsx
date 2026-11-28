@@ -43,7 +43,7 @@ function ToastCard({ item }: { item: ToastItem }) {
     <div
       role="status"
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-border bg-background p-4 shadow-elevated-lg",
+        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border border-border bg-background p-4",
         "animate-in fade-in slide-in-from-bottom-4 duration-200"
       )}
     >
