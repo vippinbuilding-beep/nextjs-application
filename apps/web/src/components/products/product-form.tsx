@@ -87,6 +87,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
   const [description, setDescription] = useState(product?.description ?? "");
   const [priceCents, setPriceCents] = useState(product?.priceCents ?? 0);
   const [file, setFile] = useState<File | null>(null);
+  const [sellerTermsAccepted, setSellerTermsAccepted] = useState<boolean | null>(null);
   const [physical, setPhysical] = useState<PhysicalFieldsValue>(() =>
     physicalFieldsFromProduct(product)
   );
@@ -178,6 +179,10 @@ export function ProductForm({ type, product }: ProductFormProps) {
       const physicalError = validatePhysicalFields(physical);
       if (physicalError) {
         setError(physicalError);
+        return;
+      }
+      if (!isEdit && sellerTermsAccepted !== true) {
+        setError("Aceite os Termos do vendedor antes de publicar um produto físico.");
         return;
       }
     }
@@ -456,6 +461,7 @@ export function ProductForm({ type, product }: ProductFormProps) {
               onChange={setPhysical}
               priceCents={priceCents}
               disabled={submitting}
+              onTermsAcceptedChange={setSellerTermsAccepted}
             />
           )}
 

@@ -1,7 +1,9 @@
 import "server-only";
 
 import { postDeadline } from "@vippin/core/domain/fulfillment";
-import { isValidNfeKey, normalizeNfeKey } from "@vippin/core/domain/nfe-key";
+import { normalizeNfeKey, validateNfeKeyForSender } from "@vippin/core/domain/nfe-key";
+import { DCE_DECLARATION_VERSION } from "@vippin/core/domain/seller-terms";
+import { allowedDocumentTypes } from "@vippin/core/domain/seller-profile";
 import { validateShippingPackage } from "@vippin/core/domain/shipping";
 import type { Order } from "@vippin/core/models/order";
 import type { Shipment, ShipmentDocumentType } from "@vippin/core/models/shipment";
@@ -14,9 +16,9 @@ import {
   type EscrowActor,
 } from "@/lib/payments/escrow";
 import { alertBlockedLabel } from "@/lib/shipping/balance-alert";
-import { ESCROW_CONFIG, isDceAllowed, siteUrl } from "@/lib/shipping/config";
+import { documentRuleOptions, ESCROW_CONFIG, siteUrl } from "@/lib/shipping/config";
 import { loadPhysicalProduct } from "@/lib/shipping/quote";
-import { getShipFrom } from "@/lib/shipping/ship-from";
+import { effectiveSellerProfile, getShipFrom } from "@/lib/shipping/ship-from";
 import { getOrderRepository } from "@vippin/supabase/factories/payment-factory";
 import {
   getShipmentRepository,
@@ -35,6 +37,8 @@ export interface PrepareShipmentInput {
   creatorId: string;
   documentType: ShipmentDocumentType;
   invoiceKey?: string;
+  /** DC-e only: the creator ticked the content declaration (persisted with its version). */
+  dceAccepted?: boolean;
   /** Real packed measures; defaults to the product's. */
   package?: ShippingPackage;
 }
@@ -101,17 +105,6 @@ export async function prepareShipment(
     throw new PrepareShipmentError("Este pedido não está aguardando envio.", 409);
   }
 
-  // Fiscal document (E3).
-  let invoiceKey: string | undefined;
-  if (input.documentType === "nfe") {
-    invoiceKey = normalizeNfeKey(input.invoiceKey ?? "");
-    if (!isValidNfeKey(invoiceKey)) {
-      throw new PrepareShipmentError("Chave da NF-e inválida (44 dígitos).");
-    }
-  } else if (!isDceAllowed()) {
-    throw new PrepareShipmentError("Envios com declaração de conteúdo estão desativados. Informe a NF-e.");
-  }
-
   const [shipFrom, product] = await Promise.all([
     getShipFrom(input.creatorId),
     loadPhysicalProduct(order.productId),
@@ -119,6 +112,33 @@ export async function prepareShipment(
   if (!shipFrom) {
     throw new PrepareShipmentError("Cadastre seu endereço de remetente antes de preparar o envio.");
   }
+
+  // Fiscal document (E3): allowed by the seller's profile (PF → DC-e, MEI →
+  // NF-e/DC-e, Empresa → NF-e). Orders already paid always get a way out:
+  // eligibility was checked before the sale.
+  const allowed = allowedDocumentTypes(effectiveSellerProfile(shipFrom), documentRuleOptions());
+  if (!allowed.includes(input.documentType)) {
+    throw new PrepareShipmentError(
+      input.documentType === "dce"
+        ? "Seu perfil fiscal exige NF-e. Informe a chave da nota."
+        : "Seu perfil fiscal (pessoa física) usa declaração de conteúdo."
+    );
+  }
+  let invoiceKey: string | undefined;
+  if (input.documentType === "nfe") {
+    invoiceKey = normalizeNfeKey(input.invoiceKey ?? "");
+    const keyError = validateNfeKeyForSender(invoiceKey, shipFrom);
+    if (keyError) throw new PrepareShipmentError(keyError);
+  } else if (!input.dceAccepted) {
+    throw new PrepareShipmentError("Confirme a declaração de conteúdo para continuar.");
+  }
+  const documentFields = {
+    documentType: input.documentType,
+    invoiceKey: invoiceKey ?? null,
+    dceAcceptedAt: input.documentType === "dce" ? new Date() : null,
+    dceDeclarationVersion: input.documentType === "dce" ? DCE_DECLARATION_VERSION : null,
+  };
+
   if (!product) throw new PrepareShipmentError("Produto não encontrado.", 404);
   if (!order.shipTo || !order.shippingQuote) {
     throw new PrepareShipmentError("Pedido sem endereço de entrega.", 409);
@@ -191,8 +211,7 @@ export async function prepareShipment(
         providerOrderId: labelId,
         protocol: cart.protocol ?? null,
         costCents,
-        documentType: input.documentType,
-        invoiceKey: invoiceKey ?? null,
+        ...documentFields,
         package: pkg,
       });
     }
@@ -225,8 +244,7 @@ export async function prepareShipment(
     const updatedShipment = await shipments.update(shipment.id, {
       status: "printed",
       providerOrderId: labelId,
-      documentType: input.documentType,
-      invoiceKey: invoiceKey ?? null,
+      ...documentFields,
       package: pkg,
       labelPrintedAt: printedAt,
       trackingCode: info?.trackingCode ?? null,

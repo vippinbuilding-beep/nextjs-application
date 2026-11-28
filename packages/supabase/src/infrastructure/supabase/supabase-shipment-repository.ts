@@ -24,6 +24,8 @@ type ShipmentRow = {
   company: string | null;
   document_type: string | null;
   invoice_key: string | null;
+  dce_accepted_at: string | null;
+  dce_declaration_version: string | null;
   me_order_id: string | null;
   protocol: string | null;
   tracking_code: string | null;
@@ -183,6 +185,10 @@ function toRow(patch: UpdateShipmentInput): Partial<ShipmentRow> {
   if (patch.company !== undefined) row.company = patch.company;
   if (patch.documentType !== undefined) row.document_type = patch.documentType;
   if (patch.invoiceKey !== undefined) row.invoice_key = patch.invoiceKey;
+  if (patch.dceAcceptedAt !== undefined)
+    row.dce_accepted_at = patch.dceAcceptedAt?.toISOString() ?? null;
+  if (patch.dceDeclarationVersion !== undefined)
+    row.dce_declaration_version = patch.dceDeclarationVersion;
   if (patch.providerOrderId !== undefined) row.me_order_id = patch.providerOrderId;
   if (patch.protocol !== undefined) row.protocol = patch.protocol;
   if (patch.trackingCode !== undefined) row.tracking_code = patch.trackingCode;
@@ -212,6 +218,8 @@ function toShipment(row: ShipmentRow): Shipment {
     company: row.company ?? undefined,
     documentType: (row.document_type as ShipmentDocumentType | null) ?? undefined,
     invoiceKey: row.invoice_key ?? undefined,
+    dceAcceptedAt: row.dce_accepted_at ? new Date(row.dce_accepted_at) : undefined,
+    dceDeclarationVersion: row.dce_declaration_version ?? undefined,
     providerOrderId: row.me_order_id ?? undefined,
     protocol: row.protocol ?? undefined,
     trackingCode: row.tracking_code ?? undefined,

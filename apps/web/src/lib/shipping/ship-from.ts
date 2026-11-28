@@ -7,6 +7,12 @@ import {
   isValidCpfOrCnpj,
   onlyDigits,
 } from "@vippin/core/domain/br-documents";
+import {
+  isProfileCompatibleWithDocument,
+  isSellerProfile,
+  profilesForDocument,
+  type SellerProfile,
+} from "@vippin/core/domain/seller-profile";
 import type { ShipFromAddress } from "@vippin/core/models/shipping";
 import { createSupabaseAdminClient } from "@vippin/supabase/client/admin";
 
@@ -22,13 +28,14 @@ type ShipFromRow = {
   ship_from_district: string | null;
   ship_from_city: string | null;
   ship_from_state: string | null;
+  seller_profile: string | null;
   email: string | null;
 };
 
 const COLUMNS =
   "ship_from_name, ship_from_document, ship_from_state_register, ship_from_phone, " +
   "ship_from_postal_code, ship_from_street, ship_from_number, ship_from_complement, " +
-  "ship_from_district, ship_from_city, ship_from_state, email";
+  "ship_from_district, ship_from_city, ship_from_state, seller_profile, email";
 
 /** Creator's sender data, or null when incomplete (can't ship yet). */
 export async function getShipFrom(creatorId: string): Promise<ShipFromAddress | null> {
@@ -69,7 +76,23 @@ function toShipFrom(row: ShipFromRow | null): ShipFromAddress | null {
     district: row.ship_from_district,
     city: row.ship_from_city,
     state: row.ship_from_state,
+    sellerProfile: isSellerProfile(row.seller_profile) ? row.seller_profile : undefined,
   };
+}
+
+/**
+ * Profile the rules apply to: the stored choice when it matches the document,
+ * otherwise CPF ⇒ PF and a legacy CNPJ without a choice ⇒ MEI (keeps the
+ * behaviour sellers had before profiles existed; the form asks them to choose).
+ */
+export function effectiveSellerProfile(shipFrom: ShipFromAddress): SellerProfile {
+  if (
+    shipFrom.sellerProfile &&
+    isProfileCompatibleWithDocument(shipFrom.sellerProfile, shipFrom.document)
+  ) {
+    return shipFrom.sellerProfile;
+  }
+  return onlyDigits(shipFrom.document).length === 11 ? "pf" : "mei";
 }
 
 export type ShipFromInput = Omit<ShipFromAddress, "email">;
@@ -98,6 +121,17 @@ export function parseShipFromInput(
 
   const error = validateAddressFields(value, "remetente");
   if (error) return { error };
+
+  // CPF ⇒ always PF; CNPJ ⇒ the creator must choose MEI or Empresa.
+  const options = profilesForDocument(value.document);
+  const chosen = r.sellerProfile;
+  if (options.length === 1) {
+    value.sellerProfile = options[0];
+  } else if (isSellerProfile(chosen) && options.includes(chosen)) {
+    value.sellerProfile = chosen;
+  } else {
+    return { error: "Com CNPJ, escolha se você é MEI ou empresa." };
+  }
   if (value.stateRegister && value.stateRegister.length > 20) {
     return { error: "Inscrição estadual muito longa." };
   }
@@ -140,6 +174,7 @@ export async function saveShipFrom(creatorId: string, value: ShipFromInput): Pro
       ship_from_district: value.district,
       ship_from_city: value.city,
       ship_from_state: value.state,
+      seller_profile: value.sellerProfile ?? null,
     })
     .eq("id", creatorId);
   if (error) throw new Error(error.message);

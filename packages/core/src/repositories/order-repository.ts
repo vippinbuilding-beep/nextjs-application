@@ -79,6 +79,15 @@ export interface OrderRepository {
   ): Promise<Order[]>;
   /** Paid physical orders sold by a creator (most recent first). */
   listPhysicalByCreator(creatorId: string, limit?: number): Promise<Order[]>;
+  /**
+   * Count and total (`amountCents`) of the creator's physical orders paid since
+   * `since` that are still paid (refunded ones don't count). Feeds the monthly
+   * pessoa física limit.
+   */
+  summarizePhysicalPaidByCreatorSince(
+    creatorId: string,
+    since: Date
+  ): Promise<{ count: number; amountCents: number }>;
   /** Paid physical orders bought by a user (most recent first). */
   listPhysicalByBuyer(buyerId: string, limit?: number): Promise<Order[]>;
   /** Paid orders awaiting (or retrying) the weekly creator repass batch. */

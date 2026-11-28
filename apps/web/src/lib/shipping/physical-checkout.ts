@@ -3,9 +3,10 @@ import "server-only";
 import { computePhysicalOrderSplit } from "@vippin/core/domain/shipping";
 import { onlyDigits } from "@vippin/core/domain/br-documents";
 import type { ShippingAddress } from "@vippin/core/models/shipping";
-import { SALE_FEE_CONFIG, canSellPhysical } from "@/lib/shipping/config";
+import { SALE_FEE_CONFIG } from "@/lib/shipping/config";
 import { loadPhysicalProduct, quoteProductShipping } from "@/lib/shipping/quote";
-import { getShipFrom, validateAddressFields } from "@/lib/shipping/ship-from";
+import { buyerMessageFor, getSellerEligibility } from "@/lib/shipping/seller-eligibility";
+import { validateAddressFields } from "@/lib/shipping/ship-from";
 import { getOrderRepository, getPaymentGateway } from "@vippin/supabase/factories/payment-factory";
 
 const CHARGE_TTL_SECONDS = 60 * 60;
@@ -60,8 +61,15 @@ export async function createPhysicalCheckout(input: {
   if (product.creatorId === input.buyerId) {
     return fail(400, "Você não pode comprar o seu próprio produto.");
   }
-  if (!canSellPhysical(product.creatorId)) {
-    return fail(400, "Este produto ainda não está disponível para compra.");
+  // Seller rules (profile, terms, PF monthly limit) BEFORE charging: a sale
+  // must never happen for a creator who couldn't generate the label later.
+  const eligibility = await getSellerEligibility(product.creatorId);
+  const shipFrom = eligibility.shipFrom;
+  if (!eligibility.canSell || !shipFrom) {
+    return fail(
+      eligibility.blockReason === "pf_limit_reached" ? 409 : 400,
+      buyerMessageFor(eligibility.blockReason ?? "no_ship_from")
+    );
   }
   if (product.stock <= 0) return fail(409, "Produto esgotado.");
 
@@ -74,9 +82,6 @@ export async function createPhysicalCheckout(input: {
   if (!Number.isInteger(serviceId) || serviceId <= 0) {
     return fail(400, "Escolha uma opção de frete.");
   }
-
-  const shipFrom = await getShipFrom(product.creatorId);
-  if (!shipFrom) return fail(400, "O criador ainda não configurou o envio deste produto.");
 
   let quote;
   try {

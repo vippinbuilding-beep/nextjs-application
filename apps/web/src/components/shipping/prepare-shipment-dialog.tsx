@@ -14,8 +14,10 @@ import {
 import { Input } from "@vippin/ui/input";
 import { Label } from "@vippin/ui/label";
 import { Loading } from "@vippin/ui/loading";
-import { isValidNfeKey } from "@vippin/core/domain/nfe-key";
+import { validateNfeKeyForSender } from "@vippin/core/domain/nfe-key";
+import { DCE_DECLARATION_TEXT } from "@vippin/core/domain/seller-terms";
 import { validateShippingPackage } from "@vippin/core/domain/shipping";
+import type { ShipmentDocumentType } from "@vippin/core/models/shipment";
 import type { ShippingPackage } from "@vippin/core/models/shipping";
 import { cn } from "@vippin/ui/lib/utils";
 
@@ -27,12 +29,14 @@ export interface PrepareTarget {
 
 interface PrepareShipmentDialogProps {
   target: PrepareTarget | null;
-  dceAllowed: boolean;
+  /** Documents the seller's fiscal profile allows (server rule mirrored). */
+  allowedDocumentTypes: ShipmentDocumentType[];
+  /** Sender CNPJ/UF, to check the NF-e key before submitting. */
+  sender: { document: string; state: string } | null;
   onClose: () => void;
   onPrepared: () => void;
 }
 
-type DocumentType = "dce" | "nfe";
 
 function toText(value?: number) {
   return value ? String(value) : "";
@@ -44,7 +48,8 @@ function toText(value?: number) {
  */
 export function PrepareShipmentDialog({
   target,
-  dceAllowed,
+  allowedDocumentTypes,
+  sender,
   onClose,
   onPrepared,
 }: PrepareShipmentDialogProps) {
@@ -52,7 +57,9 @@ export function PrepareShipmentDialog({
   const [length, setLength] = useState("");
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
-  const [documentType, setDocumentType] = useState<DocumentType>(dceAllowed ? "dce" : "nfe");
+  const defaultDocument: ShipmentDocumentType = allowedDocumentTypes[0] ?? "nfe";
+  const [documentType, setDocumentType] = useState<ShipmentDocumentType>(defaultDocument);
+  const canUse = (type: ShipmentDocumentType) => allowedDocumentTypes.includes(type);
   const [invoiceKey, setInvoiceKey] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -64,11 +71,11 @@ export function PrepareShipmentDialog({
     setLength(toText(target.package?.lengthCm));
     setWidth(toText(target.package?.widthCm));
     setHeight(toText(target.package?.heightCm));
-    setDocumentType(dceAllowed ? "dce" : "nfe");
+    setDocumentType(defaultDocument);
     setInvoiceKey("");
     setAccepted(false);
     setError(null);
-  }, [target, dceAllowed]);
+  }, [target, defaultDocument]);
 
   async function submit() {
     if (!target) return;
@@ -83,9 +90,18 @@ export function PrepareShipmentDialog({
       setError(packageError);
       return;
     }
-    if (documentType === "nfe" && !isValidNfeKey(invoiceKey)) {
-      setError("Chave da NF-e inválida. Confira os 44 dígitos.");
+    if (!canUse(documentType)) {
+      setError("Seu perfil fiscal não permite este documento. Revise o endereço de remetente.");
       return;
+    }
+    if (documentType === "nfe") {
+      const keyError = sender
+        ? validateNfeKeyForSender(invoiceKey, sender)
+        : "Cadastre seu endereço de remetente antes de preparar o envio.";
+      if (keyError) {
+        setError(keyError);
+        return;
+      }
     }
     if (documentType === "dce" && !accepted) {
       setError("Confirme a declaração de conteúdo para continuar.");
@@ -102,6 +118,7 @@ export function PrepareShipmentDialog({
           package: pkg,
           documentType,
           invoiceKey: documentType === "nfe" ? invoiceKey : undefined,
+          dceAccepted: documentType === "dce" ? accepted : undefined,
         }),
       });
       const body = (await res.json()) as { error?: string };
@@ -157,7 +174,7 @@ export function PrepareShipmentDialog({
           <div className="flex flex-col gap-2">
             <Label>Documento fiscal</Label>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {dceAllowed && (
+              {canUse("dce") && (
                 <button
                   type="button"
                   onClick={() => setDocumentType("dce")}
@@ -174,6 +191,7 @@ export function PrepareShipmentDialog({
                   </span>
                 </button>
               )}
+              {canUse("nfe") && (
               <button
                 type="button"
                 onClick={() => setDocumentType("nfe")}
@@ -189,7 +207,13 @@ export function PrepareShipmentDialog({
                   Para MEI/empresa: informe a chave de acesso.
                 </span>
               </button>
+              )}
             </div>
+            {allowedDocumentTypes.length === 0 && (
+              <p className="text-destructive text-xs">
+                Nenhum documento disponível para o seu perfil fiscal. Fale com o suporte.
+              </p>
+            )}
           </div>
 
           {documentType === "nfe" ? (
@@ -214,9 +238,8 @@ export function PrepareShipmentDialog({
                 className="mt-0.5 size-4 accent-current"
               />
               <span>
-                Declaro que o conteúdo do pacote corresponde ao produto vendido e
-                que sou responsável pela declaração de conteúdo deste envio. Ela
-                sai junto com a etiqueta e deve ser colada do lado de fora da embalagem.
+                {DCE_DECLARATION_TEXT} Ela sai junto com a etiqueta e deve ser
+                colada do lado de fora da embalagem.
               </span>
             </label>
           )}

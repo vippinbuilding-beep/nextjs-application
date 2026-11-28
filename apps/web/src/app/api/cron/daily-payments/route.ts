@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { isCronAuthorized } from "@/lib/cron/auth";
 import { runAskMeExpirations } from "@/lib/payments/ask-me-finalize";
+import { runOpenReturnsReminder } from "@/lib/alerts/return-alert";
 import { runEscrowJobs } from "@/lib/payments/escrow";
 import { runRetryFailedPayments } from "@/lib/payments/retry-failed-payments";
 import { runShippingBalanceCheck } from "@/lib/shipping/balance-alert";
@@ -15,7 +16,7 @@ export const maxDuration = 120;
  * Daily cron (Hobby-compatible): expires overdue Me Pergunte questions,
  * retries failed PIX refunds/repasses, syncs shipment tracking and applies the
  * physical-product escrow rules, and alerts the team on Discord when the
- * Melhor Carteira balance is low. Schedule via vercel.json in UTC.
+ * Melhor Carteira balance is low or while buyer returns are still open. Schedule via vercel.json in UTC.
  */
 export async function GET(request: NextRequest) {
   if (!isCronAuthorized(request)) {
@@ -39,7 +40,11 @@ export async function GET(request: NextRequest) {
     error: err instanceof Error ? err.message : String(err),
   }));
 
-  return Response.json({ expirations, retries, tracking, escrow, shippingBalance });
+  const openReturns = await runOpenReturnsReminder().catch((err) => ({
+    error: err instanceof Error ? err.message : String(err),
+  }));
+
+  return Response.json({ expirations, retries, tracking, escrow, shippingBalance, openReturns });
 }
 
 export async function POST(request: NextRequest) {

@@ -7,6 +7,7 @@ import type { ProductCommentRepository } from "@vippin/core/repositories/product
 import type { ProductAccessRepository } from "@vippin/core/repositories/product-access-repository";
 import type { ProductProgressRepository } from "@vippin/core/repositories/product-progress-repository";
 import type { ProductRepository } from "@vippin/core/repositories/product-repository";
+import type { SellerTermsRepository } from "@vippin/core/repositories/seller-terms-repository";
 import type { UserRepository } from "@vippin/core/repositories/user-repository";
 import { SupabaseAskMeQuestionRepository } from "../infrastructure/supabase/supabase-ask-me-repository";
 import { SupabaseAuthRepository } from "../infrastructure/supabase/supabase-auth-repository";
@@ -18,6 +19,7 @@ import { SupabaseProductCommentRepository } from "../infrastructure/supabase/sup
 import { SupabaseProductAccessRepository } from "../infrastructure/supabase/supabase-product-access-repository";
 import { SupabaseProductProgressRepository } from "../infrastructure/supabase/supabase-product-progress-repository";
 import { SupabaseProductRepository } from "../infrastructure/supabase/supabase-product-repository";
+import { SupabaseSellerTermsRepository } from "../infrastructure/supabase/supabase-seller-terms-repository";
 import { SupabaseUserRepository } from "../infrastructure/supabase/supabase-user-repository";
 
 /**
@@ -44,3 +46,5 @@ export const askMeQuestionRepository: AskMeQuestionRepository =
   new SupabaseAskMeQuestionRepository(supabase);
 export const notificationRepository: NotificationRepository =
   new SupabaseNotificationRepository();
+export const sellerTermsRepository: SellerTermsRepository =
+  new SupabaseSellerTermsRepository(supabase);

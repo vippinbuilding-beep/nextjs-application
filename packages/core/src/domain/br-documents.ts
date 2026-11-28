@@ -64,3 +64,15 @@ export function formatCep(value: string): string {
   const d = onlyDigits(value).slice(0, 8);
   return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
 }
+
+/**
+ * Public-safe CPF/CNPJ: keeps only the middle digits, the usual pattern for
+ * identifying a seller without exposing the full document. CPF keeps digits
+ * 4–9, CNPJ keeps the first five and the check digits. Invalid lengths → "".
+ */
+export function maskDocument(value: string | null | undefined): string {
+  const d = onlyDigits(value);
+  if (d.length === 11) return `***.${d.slice(3, 6)}.${d.slice(6, 9)}-**`;
+  if (d.length === 14) return `${d.slice(0, 2)}.${d.slice(2, 5)}.***/****-${d.slice(12)}`;
+  return "";
+}

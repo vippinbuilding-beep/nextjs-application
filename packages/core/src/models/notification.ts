@@ -23,7 +23,8 @@ export type NotificationType =
   | "shipment_delivered"
   | "shipment_problem"
   | "order_released"
-  | "order_refunded";
+  | "order_refunded"
+  | "order_return_requested";
 
 export interface AppNotification {
   id: string;

@@ -176,7 +176,8 @@ export type RefundReason =
   | "returned"
   | "out_of_stock"
   | "admin"
-  | "creator_canceled";
+  | "creator_canceled"
+  | "buyer_return";
 
 const REFUND_REASON_LABEL: Record<RefundReason, string> = {
   not_prepared: "o envio não foi preparado no prazo",
@@ -185,6 +186,7 @@ const REFUND_REASON_LABEL: Record<RefundReason, string> = {
   out_of_stock: "o produto esgotou",
   admin: "a equipe Vippin cancelou o pedido",
   creator_canceled: "o criador cancelou o pedido",
+  buyer_return: "o comprador exerceu o direito de arrependimento",
 };
 
 export async function notifyOrderRefunded(order: Order, reason: RefundReason): Promise<void> {
@@ -223,6 +225,19 @@ export async function notifyShipmentProblem(
     orderId: order.id,
     title: "Problema no envio",
     body: `"${title}": ${message}`,
+    href: CREATOR_SHIPMENTS_PATH,
+  });
+}
+
+/** Buyer asked to return a delivered order (arrependimento): tell the creator. */
+export async function notifyReturnRequested(order: Order, reason: string): Promise<void> {
+  const title = await fetchProductTitle(order.productId);
+  await notifyOnce({
+    userId: order.creatorId,
+    type: "order_return_requested",
+    orderId: order.id,
+    title: "Pedido de devolução",
+    body: `O comprador de "${title}" pediu a devolução dentro do prazo de arrependimento. O repasse fica retido até a equipe Vippin resolver. Motivo: ${reason.slice(0, 200)}`,
     href: CREATOR_SHIPMENTS_PATH,
   });
 }

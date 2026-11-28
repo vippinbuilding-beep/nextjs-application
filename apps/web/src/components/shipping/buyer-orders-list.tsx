@@ -5,8 +5,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@vippin/ui/button";
+import { Label } from "@vippin/ui/label";
 import { Loading } from "@vippin/ui/loading";
+import { Textarea } from "@vippin/ui/textarea";
 import { formatBRL } from "@vippin/core/domain/money";
+import {
+  RETURN_REASON_MAX_LENGTH,
+  RETURN_STATUS_LABELS,
+  validateReturnReason,
+  type ReturnRequestStatus,
+} from "@vippin/core/domain/returns";
 import type { FulfillmentStatus } from "@vippin/core/models/order";
 import { cn } from "@vippin/ui/lib/utils";
 
@@ -25,6 +33,9 @@ interface BuyerOrder {
   trackingUrl: string | null;
   paidAt: string | null;
   deliveredAt: string | null;
+  returnStatus: ReturnRequestStatus | null;
+  canRequestReturn: boolean;
+  returnWindowEndsAt: string | null;
 }
 
 const STEPS: { status: FulfillmentStatus[]; label: string }[] = [
@@ -46,6 +57,100 @@ function formatDate(value: string | null): string | null {
     year: "numeric",
     timeZone: "America/Sao_Paulo",
   }).format(new Date(value));
+}
+
+/** "Quero devolver" (arrependimento): reason form inside the order card. */
+function ReturnRequestBox({
+  item,
+  onRequested,
+}: {
+  item: BuyerOrder;
+  onRequested: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (item.returnStatus) {
+    return (
+      <p className="rounded-xl border-2 border-border bg-muted p-3 text-xs font-medium">
+        <span className="font-bold">{RETURN_STATUS_LABELS[item.returnStatus]}.</span>{" "}
+        {item.returnStatus === "open"
+          ? "A equipe Vippin vai te enviar as instruções para devolver o produto. O reembolso sai no PIX usado na compra."
+          : ""}
+      </p>
+    );
+  }
+  if (!item.canRequestReturn) return null;
+
+  async function submit() {
+    const validation = validateReturnReason(reason);
+    if (validation) {
+      setError(validation);
+      return;
+    }
+    setError(null);
+    setSending(true);
+    try {
+      const res = await fetch(`/api/orders/${item.orderId}/return`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+      const body = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(body.error ?? "Não foi possível pedir a devolução.");
+      onRequested();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível pedir a devolução.");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span className="text-muted-foreground">
+          Você pode desistir da compra até {formatDate(item.returnWindowEndsAt)}.
+        </span>
+        <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+          Quero devolver
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border-2 border-border bg-muted p-3">
+      <Label htmlFor={`return-${item.orderId}`}>Por que você quer devolver?</Label>
+      <Textarea
+        id={`return-${item.orderId}`}
+        value={reason}
+        onChange={(e) => setReason(e.target.value.slice(0, RETURN_REASON_MAX_LENGTH))}
+        placeholder="Conte o que aconteceu (ex.: desisti da compra, veio diferente do anúncio...)"
+        disabled={sending}
+        rows={3}
+      />
+      <p className="text-muted-foreground text-xs">
+        O produto precisa voltar sem uso e na embalagem. A equipe Vippin te envia a etiqueta de
+        devolução e o valor é reembolsado no PIX usado na compra.
+      </p>
+      {error && (
+        <p className="text-destructive text-xs" role="alert">
+          {error}
+        </p>
+      )}
+      <div className="flex justify-end gap-2">
+        <Button size="sm" variant="outline" onClick={() => setOpen(false)} disabled={sending}>
+          Voltar
+        </Button>
+        <Button size="sm" onClick={() => void submit()} disabled={sending}>
+          {sending ? "Enviando..." : "Pedir devolução"}
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 /** Buyer "Meus pedidos": physical orders with progress and tracking. */
@@ -160,6 +265,19 @@ export function BuyerOrdersList() {
                 </Button>
               )}
             </div>
+
+            <ReturnRequestBox
+              item={item}
+              onRequested={() =>
+                setItems((prev) =>
+                  (prev ?? []).map((order) =>
+                    order.orderId === item.orderId
+                      ? { ...order, returnStatus: "open", canRequestReturn: false }
+                      : order
+                  )
+                )
+              }
+            />
           </li>
         );
       })}
