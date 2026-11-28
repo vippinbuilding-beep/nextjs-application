@@ -11,6 +11,9 @@ import { ProductLessonLayout } from "@/components/products/product-lesson-layout
 import { ProductThumbnail } from "@/components/products/product-thumbnail";
 import { CreatorProfileLink } from "@/components/profile/creator-profile-link";
 import { VisitTracker } from "@/components/visits/visit-tracker";
+import { JsonLd } from "@/components/seo/json-ld";
+import { productJsonLd } from "@/lib/structured-data";
+import { toAbsoluteUrl } from "@/lib/metadata";
 import { Button } from "@vippin/ui/button";
 import {
   Card,
@@ -154,6 +157,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
       >
         <PublicNavBar backFallback={`/@${profile.slug}`} sticky={false} />
         <VisitTracker scope="product" targetId={row.id} disabled={isOwner} />
+        <JsonLd
+          data={productJsonLd({
+            name: row.title,
+            description: row.description,
+            priceCents: row.price_cents ?? 0,
+            imageUrl: row.thumbnail_path ? toAbsoluteUrl(`/api/products/${row.id}/thumbnail`) : null,
+            creatorName: profile.creator_name ?? profile.slug,
+            creatorSlug: profile.slug,
+            productSlug: row.slug,
+            inStock: isPhysical ? (row.stock ?? 0) > 0 && available : true,
+          })}
+        />
         <div className="flex flex-1 flex-col items-center justify-center p-4 py-10">
           <div className="flex w-full max-w-4xl flex-col gap-6">
             <ProductLanding

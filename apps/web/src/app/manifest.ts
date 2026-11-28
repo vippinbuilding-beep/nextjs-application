@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 
-import { SITE_LOGO_PATH } from "@/lib/metadata";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -12,28 +11,14 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#fafffa",
+    background_color: "#f7f7f8",
     theme_color: "#ffe502",
     lang: "pt-BR",
     categories: ["business", "education"],
     icons: [
-      {
-        src: SITE_LOGO_PATH,
-        sizes: "512x512",
-        type: "image/jpeg",
-        purpose: "any",
-      },
-      {
-        src: SITE_LOGO_PATH,
-        sizes: "512x512",
-        type: "image/jpeg",
-        purpose: "maskable",
-      },
-      {
-        src: SITE_LOGO_PATH,
-        sizes: "180x180",
-        type: "image/jpeg",
-      },
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
   };
 }

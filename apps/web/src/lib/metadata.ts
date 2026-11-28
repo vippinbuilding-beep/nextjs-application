@@ -10,6 +10,34 @@ export const SITE_LOGO_PATH = "/icon-logo.jpg";
 export const DEFAULT_DESCRIPTION =
   "Venda aulas e materiais digitais com Pix. Sua vitrine, seu link, sua renda.";
 
+/** Home title (absolute, without the "| Vippin" template). */
+export const HOME_TITLE = "Vippin: venda aulas e materiais digitais com Pix";
+
+/**
+ * Default share image (app/opengraph-image.tsx). Next replaces the whole
+ * `openGraph` object of a parent when a page defines its own, so every page
+ * that sets `openGraph` spreads `baseOpenGraph()` to keep site, locale and
+ * this image.
+ */
+export const DEFAULT_OG_IMAGE = {
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
+  alt: "Vippin: venda aulas e materiais digitais com Pix",
+};
+
+export function baseOpenGraph(): NonNullable<Metadata["openGraph"]> {
+  return { type: "website", locale: "pt_BR", siteName: SITE_NAME, images: [DEFAULT_OG_IMAGE] };
+}
+
+/** Search results cut titles around 60 characters. */
+const MAX_TITLE_LENGTH = 60;
+const TITLE_SUFFIX_LENGTH = " | Vippin".length;
+
+function fitTitle(text: string): string {
+  return truncateDescription(text, MAX_TITLE_LENGTH - TITLE_SUFFIX_LENGTH);
+}
+
 /** Absolute origin used for Open Graph / Twitter cards and canonical URLs. */
 export function getSiteUrl(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
@@ -57,7 +85,7 @@ export function createRootMetadata(): Metadata {
   return {
     metadataBase: new URL(getSiteUrl()),
     title: {
-      default: SITE_NAME,
+      default: HOME_TITLE,
       template: `%s | ${SITE_NAME}`,
     },
     description: DEFAULT_DESCRIPTION,
@@ -70,32 +98,21 @@ export function createRootMetadata(): Metadata {
     formatDetection: {
       telephone: false,
     },
-    alternates: {
-      canonical: "/",
-    },
-    icons: {
-      icon: SITE_LOGO_PATH,
-      apple: SITE_LOGO_PATH,
-    },
+    // No root canonical: each public page sets its own. A canonical here
+    // would make every page without one (explore, login, painel...) claim to
+    // be a copy of the home page. Icons and the default share image come from
+    // the file conventions (app/icon.png, app/apple-icon.png,
+    // app/opengraph-image.tsx).
     openGraph: {
-      type: "website",
-      locale: "pt_BR",
-      siteName: SITE_NAME,
-      title: SITE_NAME,
+      ...baseOpenGraph(),
+      title: HOME_TITLE,
       description: DEFAULT_DESCRIPTION,
-      url: "/",
-      images: [
-        {
-          url: SITE_LOGO_PATH,
-          alt: SITE_NAME,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
-      title: SITE_NAME,
+      title: HOME_TITLE,
       description: DEFAULT_DESCRIPTION,
-      images: [SITE_LOGO_PATH],
+      images: [DEFAULT_OG_IMAGE.url],
     },
     ...facebookAppMetadata(),
   };
@@ -117,7 +134,10 @@ export function createCreatorMetadata({
   avatarUrl?: string | null;
 }): Metadata {
   const displayHandle = handle;
-  const title = displayHandle;
+  const sameAsSlug = handle.replace(/^@/, "").toLowerCase() === slug.toLowerCase();
+  const title = fitTitle(
+    sameAsSlug ? `@${slug}: aulas e materiais` : `${displayHandle} (@${slug}): aulas e materiais`
+  );
   const description =
     productCount > 0
       ? `${displayHandle} no Vippin — confira ${productCount} ${productCount === 1 ? "produto" : "produtos"} de aulas e materiais digitais.`
@@ -135,6 +155,7 @@ export function createCreatorMetadata({
       canonical: path,
     },
     openGraph: {
+      ...baseOpenGraph(),
       type: "profile",
       title,
       description,
@@ -151,7 +172,7 @@ export function createCreatorMetadata({
         : {}),
     },
     twitter: {
-      card: ogImage ? "summary_large_image" : "summary_large_image",
+      card: ogImage ? "summary_large_image" : "summary",
       title,
       description,
       ...(ogImage ? { images: [ogImage] } : {}),
@@ -195,14 +216,16 @@ export function createProductMetadata({
     ? toAbsoluteUrl(`/api/products/${productId}/thumbnail`)
     : undefined;
 
+  const pageTitle = fitTitle(`${title}, de ${creatorHandle}`);
+
   return {
-    title,
+    title: pageTitle,
     description: metaDescription,
     alternates: {
       canonical: path,
     },
     openGraph: {
-      type: "website",
+      ...baseOpenGraph(),
       title,
       description: metaDescription,
       url: path,

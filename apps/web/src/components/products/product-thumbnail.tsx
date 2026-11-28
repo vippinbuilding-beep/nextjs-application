@@ -16,6 +16,10 @@ interface ProductThumbnailProps {
   sizes?: string;
   /** When set, reserves the correct banner height before the image loads. */
   aspectRatio?: number;
+  /** Main image of the page (LCP): load it first instead of lazily. */
+  priority?: boolean;
+  /** Empty (decorative) by default; the product page passes the title. */
+  alt?: string;
 }
 
 /**
@@ -30,6 +34,8 @@ export function ProductThumbnail({
   rounded = "rounded-xl",
   sizes = "96px",
   aspectRatio,
+  priority = false,
+  alt = "",
 }: ProductThumbnailProps) {
   const Icon =
     type === "single_lesson" ? PlayCircle : type === "physical" ? Package : FileText;
@@ -47,8 +53,9 @@ export function ProductThumbnail({
       >
         <Image
           src={thumbnailUrl}
-          alt=""
+          alt={alt}
           fill
+          priority={priority}
           sizes={sizes}
           className="object-cover"
         />

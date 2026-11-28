@@ -40,6 +40,8 @@ import { LandingNavbar } from "./landing-navbar";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { LayoutBackground } from "@vippin/ui/layout-background";
 import { ContactEmailLink } from "@/components/ui/contact-email-link";
+import { JsonLd } from "@/components/seo/json-ld";
+import { organizationAndWebsiteJsonLd } from "@/lib/structured-data";
 
 const CREATOR_FEATURES = [
   {
@@ -141,7 +143,10 @@ export function LandingPage() {
     }
   }, [loading, user, router]);
 
-  if (loading || user) {
+  // The server only renders this page for logged-out visitors, so while the
+  // session loads we show the landing itself (crawlers and first paint get
+  // the content). The loader is only for someone who just logged in here.
+  if (!loading && user) {
     return <ScreenLoading />;
   }
 
@@ -149,6 +154,7 @@ export function LandingPage() {
     <LayoutBackground
       element="div"
       className="overflow-x-clip text-foreground">
+      <JsonLd data={organizationAndWebsiteJsonLd()} />
       <LandingNavbar />
 
       {/* HERO */}

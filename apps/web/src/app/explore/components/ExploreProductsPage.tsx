@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Compass, Home, Library, Search } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CreatorFeed } from "@/components/explore/creator-feed";
 import { ProductFeed } from "@/components/products/product-feed";
@@ -12,14 +12,15 @@ import { Button } from "@vippin/ui/button";
 import { Input } from "@vippin/ui/input";
 import { LayoutBackground } from "@vippin/ui/layout-background";
 import { Loading } from "@vippin/ui/loading";
-import { ScreenLoading } from "@vippin/ui/screen-loading";
 import type { PublicCreator } from "@vippin/core/repositories/creator-repository";
 import type { ProductWithCreator } from "@vippin/core/repositories/product-repository";
 import { isConsumer, isCreator } from "@/lib/user-role";
 import { creatorRepository, productRepository } from "@vippin/supabase/factories/repository-factory";
 
-const PAGE_SIZE = 12;
-const CREATOR_LIMIT = 12;
+import { EXPLORE_CREATOR_LIMIT, EXPLORE_PAGE_SIZE } from "./explore-config";
+
+const PAGE_SIZE = EXPLORE_PAGE_SIZE;
+const CREATOR_LIMIT = EXPLORE_CREATOR_LIMIT;
 const SEARCH_DEBOUNCE_MS = 350;
 
 function ExploreFeedLoading({ searching }: { searching: boolean }) {
@@ -54,16 +55,28 @@ function ExploreFeedLoading({ searching }: { searching: boolean }) {
   );
 }
 
-export default function ExploreProductsPage() {
+export interface ExploreInitialData {
+  creators: PublicCreator[];
+  products: ProductWithCreator[];
+  total: number;
+}
+
+/**
+ * `initialData` is the first page rendered on the server (crawlers and first
+ * paint see the catalog without waiting for JS). Search and pagination fetch
+ * from the browser.
+ */
+export default function ExploreProductsPage({ initialData }: { initialData?: ExploreInitialData }) {
   const { user, loading } = useAuth();
 
-  const [creators, setCreators] = useState<PublicCreator[]>([]);
-  const [products, setProducts] = useState<ProductWithCreator[]>([]);
-  const [exploreLoading, setExploreLoading] = useState(true);
+  const [creators, setCreators] = useState<PublicCreator[]>(initialData?.creators ?? []);
+  const [products, setProducts] = useState<ProductWithCreator[]>(initialData?.products ?? []);
+  const [exploreLoading, setExploreLoading] = useState(!initialData);
+  const skipInitialLoad = useRef(Boolean(initialData));
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(initialData?.total ?? 0);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -101,12 +114,14 @@ export default function ExploreProductsPage() {
   }, [page, searchQuery]);
 
   useEffect(() => {
+    // Primeira página, sem busca: já veio do servidor.
+    if (skipInitialLoad.current && page === 1 && !searchQuery) {
+      skipInitialLoad.current = false;
+      return;
+    }
+    skipInitialLoad.current = false;
     loadExplore();
-  }, [user, loadExplore]);
-
-  if (loading) {
-    return <ScreenLoading />;
-  }
+  }, [loadExplore, page, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const canGoBack = page > 1;
@@ -154,7 +169,7 @@ export default function ExploreProductsPage() {
                   {user ? (isCreator(user) ? "Painel" : "Início") : "Início"}
                 </Link>
               </Button>
-              {user && isConsumer(user) && (
+              {!loading && user && isConsumer(user) && (
                 <Button size="sm" asChild>
                   <Link href="/my-products">
                     <Library className="size-4" />
@@ -162,7 +177,7 @@ export default function ExploreProductsPage() {
                   </Link>
                 </Button>
               )}
-              {!user && (
+              {!loading && !user && (
                 <Button size="sm" asChild>
                   <Link href="/login?next=/explore">
                     <Compass className="size-4" />
@@ -170,7 +185,7 @@ export default function ExploreProductsPage() {
                   </Link>
                 </Button>
               )}
-              {user && <NotificationBell />}
+              {!loading && user && <NotificationBell />}
             </div>
           </div>
 

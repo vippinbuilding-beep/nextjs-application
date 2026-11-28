@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { supabase } from "../../client/client";
 import { PRODUCTS_BUCKET } from "../../constants/buckets";
 import type {
@@ -122,8 +124,11 @@ async function uploadViaSignedUrl(
  * Supabase (Postgres + Storage) implementation of {@link ProductRepository}.
  */
 export class SupabaseProductRepository implements ProductRepository {
+  /** Browser client by default; the server passes its own (e.g. SSR of /explore). */
+  constructor(private readonly client: SupabaseClient = supabase) {}
+
   async create(creatorId: string, data: ProductInput): Promise<Product> {
-    const { data: row, error } = await supabase
+    const { data: row, error } = await this.client
       .from(TABLE)
       .insert({
         creator_id: creatorId,
@@ -162,12 +167,12 @@ export class SupabaseProductRepository implements ProductRepository {
     if (data.mediaHeight !== undefined) row.media_height = data.mediaHeight;
     Object.assign(row, physicalColumns(data));
 
-    const { error } = await supabase.from(TABLE).update(row).eq("id", id);
+    const { error } = await this.client.from(TABLE).update(row).eq("id", id);
     if (error) throw mapWriteError(error);
   }
 
   async getById(id: string): Promise<Product | null> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("id", id)
@@ -181,7 +186,7 @@ export class SupabaseProductRepository implements ProductRepository {
     creatorId: string,
     slug: string
   ): Promise<Product | null> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("creator_id", creatorId)
@@ -193,7 +198,7 @@ export class SupabaseProductRepository implements ProductRepository {
   }
 
   async listByCreator(creatorId: string): Promise<Product[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .eq("creator_id", creatorId)
@@ -213,7 +218,7 @@ export class SupabaseProductRepository implements ProductRepository {
     let matchingCreatorIds: string[] = [];
     if (query) {
       const pattern = toIlikePattern(query);
-      const { data: profiles, error: profilesError } = await supabase
+      const { data: profiles, error: profilesError } = await this.client
         .from("public_profiles")
         .select("id")
         .or(`creator_name.ilike.${pattern},slug.ilike.${pattern}`);
@@ -226,7 +231,7 @@ export class SupabaseProductRepository implements ProductRepository {
 
     // Recomendação: produtos mais visitados primeiro (contagem exata por
     // navegador), com desempate pelos mais recentes.
-    let builder = supabase
+    let builder = this.client
       .from(TABLE)
       .select("*", { count: "exact" })
       .eq("status", "active")
@@ -251,7 +256,7 @@ export class SupabaseProductRepository implements ProductRepository {
     );
     if (error) throw new Error(error.message);
 
-    const items = await attachCreators((data ?? []) as ProductRow[]);
+    const items = await attachCreators((data ?? []) as ProductRow[], this.client);
     const total = count ?? 0;
 
     return { items, total, page, pageSize };
@@ -263,13 +268,13 @@ export class SupabaseProductRepository implements ProductRepository {
     // Used by the buyer/creator "library" views: shows everything the caller
     // already has access to, including cancelled products (the purchase isn't
     // revoked by a cancellation).
-    const { data, error } = await supabase
+    const { data, error } = await this.client
       .from(TABLE)
       .select("*")
       .in("id", ids)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return attachCreators(data as ProductRow[]);
+    return attachCreators(data as ProductRow[], this.client);
   }
 
   async cancel(id: string): Promise<void> {
@@ -419,11 +424,14 @@ function toIlikePattern(query: string): string {
   return `"%${escaped}%"`;
 }
 
-async function attachCreators(rows: ProductRow[]): Promise<ProductWithCreator[]> {
+async function attachCreators(
+  rows: ProductRow[],
+  client: SupabaseClient = supabase
+): Promise<ProductWithCreator[]> {
   if (!rows.length) return [];
 
   const creatorIds = [...new Set(rows.map((row) => row.creator_id))];
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from("public_profiles")
     .select("id, slug, creator_name")
     .in("id", creatorIds);

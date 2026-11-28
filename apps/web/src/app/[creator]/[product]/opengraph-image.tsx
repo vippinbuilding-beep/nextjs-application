@@ -41,7 +41,8 @@ export default async function ProductOpenGraphImage({
 
   const handle = profile.creator_name ?? profile.slug;
   const type = row.type as ProductType;
-  const typeLabel = type === "single_lesson" ? "Aula" : "Material";
+  const typeLabel =
+    type === "single_lesson" ? "Aula" : type === "physical" ? "Produto" : "Material";
   const priceLabel =
     row.price_cents === 0 ? "Grátis" : formatBRL(row.price_cents ?? 0);
 
