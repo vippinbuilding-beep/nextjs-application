@@ -147,6 +147,11 @@ principal de cada tela. Siga estas regras em toda tela nova:
     `usePointerVars` (`@vippin/ui/lib/pointer-vars`, posição do mouse em
     `--px`/`--py` para efeitos em CSS). Lista que ganha item por ação do
     usuário anima só os itens novos (ver `comment-thread.tsx`).
+    Também: `RollingNumber` (`@vippin/ui/rolling-number`, número formatado
+    que rola como odômetro quando muda; o `StatCard` já usa), `useFlipList`
+    (`@vippin/ui/lib/flip-list`, lista que desliza ao reordenar) e
+    `CSS_SPRINGS`/`springEasing` (`@vippin/ui/lib/css-springs`, as springs do
+    kit para `element.animate`; não copie as curvas `linear()` em outro lugar).
   - Movimento reduzido: o `globals.css` desliga as animações CSS e o
     `MotionConfig reducedMotion="user"` desliga transform e layout no Motion
     (mantém opacidade). Não reative.
