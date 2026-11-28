@@ -56,7 +56,7 @@ export function DigitalPixDialog({ productId, priceCents, isAuthenticated }: Dig
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-sm max-sm:self-end data-[state=open]:max-sm:slide-in-from-bottom-8">
+        <DialogContent className="max-w-sm max-sm:top-auto max-sm:bottom-3 max-sm:translate-y-0">
           <DialogHeader className="items-center text-center">
             <DialogTitle>{isAuthenticated ? "Pague com Pix" : "Entre para comprar"}</DialogTitle>
             {!isAuthenticated && (

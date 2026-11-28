@@ -269,6 +269,60 @@
 }
 
 /*
+ * Momentos do Pix (ver checkout/): revelação do QR em círculo, um brilho que
+ * passa uma vez, check que se desenha e uma explosão curta de partículas.
+ * Só transform/opacity/clip-path; tudo roda uma vez (sem loop).
+ */
+@keyframes reveal-circle {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+  to {
+    clip-path: circle(75% at 50% 50%);
+  }
+}
+
+@keyframes shine-sweep {
+  from {
+    translate: -130% 0;
+  }
+  to {
+    translate: 130% 0;
+  }
+}
+
+@keyframes draw-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes particle-burst {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateY(0) scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(calc(var(--distance) * -1)) scale(0.3);
+  }
+}
+
+@keyframes ring-out {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+/*
  * Animações ligadas à rolagem (CSS scroll-driven: `animation-timeline`).
  * Rodam no compositor, sem JS por frame. Sem suporte, a animação termina na
  * hora (duração 0) e o elemento fica no estado final.
