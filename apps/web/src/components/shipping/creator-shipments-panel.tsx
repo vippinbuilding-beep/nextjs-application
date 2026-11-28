@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer, RefreshCw, Truck, XCircle } from "lucide-react";
+import { MapPin, Printer, RefreshCw, Truck, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -23,7 +23,11 @@ import {
 import { Loading } from "@vippin/ui/loading";
 import { formatBRL } from "@vippin/core/domain/money";
 import type { FulfillmentStatus } from "@vippin/core/models/order";
-import type { ShippingAddress, ShippingPackage } from "@vippin/core/models/shipping";
+import type {
+  ShipFromAddress,
+  ShippingAddress,
+  ShippingPackage,
+} from "@vippin/core/models/shipping";
 import { toast } from "@/lib/toast";
 import { cn } from "@vippin/ui/lib/utils";
 
@@ -320,6 +324,17 @@ export function CreatorShipmentsPanel() {
                       </a>
                     </Button>
                   )}
+                  {item.fulfillmentStatus === "label_ready" && sellerStatus?.shipFrom && (
+                    <Button type="button" size="sm" variant="outline" asChild>
+                      <a
+                        href={postingPlacesUrl(sellerStatus.shipFrom, item.company)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MapPin className="size-4" /> Onde postar
+                      </a>
+                    </Button>
+                  )}
                   {item.canCancelLabel && item.shipmentId && (
                     <Button
                       type="button"
@@ -363,4 +378,18 @@ export function CreatorShipmentsPanel() {
       />
     </Card>
   );
+}
+
+/**
+ * Google Maps search for posting points of the label's carrier near the
+ * creator's ship-from CEP. The Melhor Envio agencies API only filters by
+ * city/state (no CEP or distance), so a maps search gives a better "near me".
+ */
+function postingPlacesUrl(shipFrom: ShipFromAddress, company: string | null): string {
+  const carrier =
+    !company || /correios/i.test(company) ? "Agência dos Correios" : `Ponto de postagem ${company}`;
+  const cep = shipFrom.postalCode.replace(/\D/g, "");
+  const where = cep.length === 8 ? `${cep.slice(0, 5)}-${cep.slice(5)}` : `${shipFrom.city} ${shipFrom.state}`;
+  const query = `${carrier} perto de ${where}`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
